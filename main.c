@@ -33,6 +33,7 @@ void main() {
             I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
         }
         while(I2CMasterBusy(I2C0_BASE)) {}
+
         //I2CMasterDataGet(I2C0_BASE);
     }
 }
