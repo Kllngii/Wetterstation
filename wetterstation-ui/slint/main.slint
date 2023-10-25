@@ -50,9 +50,9 @@ global Skin  {
 }
 
 export global CallbackExporter {
-    callback temperature-touch(PointerEvent);
-    callback humidity-touch(PointerEvent);
-    callback pressure-touch(PointerEvent);
+    callback temperature-touch;
+    callback humidity-touch;
+    callback pressure-touch;
 }
 
 component PieChartBackground inherits Path {
@@ -168,13 +168,13 @@ component PieChart inherits Rectangle {
 
 component Clock inherits VerticalLayout {
     in property <string> time <=> time-label.text;
+    min-width: 140px;
     Text {
         text: "Uhrzeit:";
         font-size: Skin.TitleFont;
         font-weight: 700;
     }
     time-label := Text {
-        text: "23:06.02";
         font-size: Skin.HugeFont;
         font-weight: 700;
         color: #6776ff;
@@ -235,7 +235,7 @@ component RoundedIcon inherits Rectangle {
 }
 
 component BoxedWidget inherits Box {
-    callback pointerevent <=> ta.pointer-event;
+    callback clicked <=> ta.clicked;
     in property <image> iconFile <=> icon.iconName;
     in-out property <string> value <=> val.value;
     in property <brush> gradient-box <=> icon.gradient-box;
@@ -256,33 +256,41 @@ component BoxedWidget inherits Box {
 }
 
 component Temperatur inherits BoxedWidget {
-    in-out property <string> temperature: "21,2";
+    in-out property <string> temperature;
     title-: "Temperatur";
     iconFile: @image-url("../images/temperature.png");
     value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
     gradient-box: @linear-gradient(180deg, #ff7d34, #ff3122);
-    pointerevent(PointerEvent) => {CallbackExporter.temperature-touch(PointerEvent)}
+    clicked() => {CallbackExporter.temperature-touch()}
 }
 
 component Luftfeuchtigkeit inherits BoxedWidget {
-    in-out property <string> humidity: "26";
+    in-out property <string> humidity;
     title-: "Luftfeuchtigkeit";
     iconFile: @image-url("../images/humidity.png");
     value: root.humidity + "%";
     gradient-box: @linear-gradient(180deg, #6776FF, #6100FF);
-    pointerevent(PointerEvent) => {CallbackExporter.humidity-touch(PointerEvent)}
+    clicked() => {CallbackExporter.humidity-touch()}
 }
 
 component Luftdruck inherits BoxedWidget {
-    in-out property <string> pressure: "1034";
+    in-out property <string> pressure;
     title-: "Luftdruck";
     iconFile: @image-url("../images/pressure.png");
     value: root.pressure + "hPa";
     gradient-box: @linear-gradient(180deg, #FFCE50, #f99055);
-    pointerevent(PointerEvent) => {CallbackExporter.pressure-touch(PointerEvent)}
+    clicked() => {CallbackExporter.pressure-touch()}
 }
 
 component Tagesverlauf inherits Box {
+    in property <[int]> temperature_values;
+    in property <[int]> humidity_values;
+    in property <[int]> pressure_values;
+
+    in property <bool> show_temperature;
+    in property <bool> show_humidity;
+    in property <bool> show_pressure;
+
     //Hintergrund zeichnen
     boxes := HorizontalLayout {
         padding: 0px;
@@ -308,50 +316,53 @@ component Tagesverlauf inherits Box {
             width: boxes.width;
             padding: 0px;
             spacing: 0px;
-
+            
             //Legende
             HorizontalLayout {
                 alignment: end;
                 spacing: 6px;
+                property <{text: string, color: color}> temperature-item: show_temperature ? {text: "Temperatur", color: #ff3122} : {};
+                property <{text: string, color: color}> humidity-item: show_humidity ? {text: "Luftfeuchtigkeit", color: #6776ff} : {};
+                property <{text: string, color: color}> pressure-item: show_pressure ? {text: "Luftdruck", color: #ff7d34} : {};
                 for item in [
-                    {text: "Temperatur", color: #ff3122},
-                    {text: "Luftfeuchtigkeit", color: #6776ff},
-                    {text: "Luftdruck", color: #ff7d34},
+                    temperature-item,
+                    humidity-item,
+                    pressure-item,
                 ] : HorizontalLayout {
-                    spacing: 6px;
-                    padding-top: 6px;
-                    padding-right: 18px;
-                    VerticalLayout { //v-layout mit 1 child; nur für das vertikale alignment wichtig
-                        padding: 0px;
-                        alignment: center;
-                        Rectangle {
-                            height: 9px;
-                            width: 9px;
-                            border-radius: 4px;
-                            background: item.color;
+                    padding: 0px; spacing: 0px;
+                    if item != {} : HorizontalLayout {
+                        spacing: 6px;
+                        padding-top: 6px;
+                        padding-right: 18px;
+                        VerticalLayout { //v-layout mit 1 child; nur für das vertikale alignment wichtig
+                            padding: 0px;
+                            alignment: center;
+                            Rectangle {
+                                height: 9px;
+                                width: 9px;
+                                border-radius: 4px;
+                                background: item.color;
+                            }
                         }
-                    }
-                    Text {
-                        text: item.text;
-                        horizontal-alignment: center;
-                        font-size: Skin.TinyFont;
+                        Text {
+                            text: item.text;
+                            horizontal-alignment: center;
+                            font-size: Skin.TinyFont;
+                        }
                     }
                 }
             }
+            
             Rectangle {
                 // The datapoint is
                 // FIXME: make it more curve, also fix the color
+                property <{values: [int], color: color}> temperature-data: show_temperature ? {values: root.temperature_values, color: #ff3122} : {};
+                property <{values: [int], color: color}> humidity-data: show_humidity ? {values: root.humidity_values, color: #6776ff} : {};
+                property <{values: [int], color: color}> pressure-data: show_pressure ? {values: root.pressure_values, color: #ff7d34} : {};
                 for datapoints in [
-                    {
-                        values: [40, 55, 60, 50, 40, 50, 75, 80, 100],
-                        color: #6776ff
-                    }, {
-                        values: [30, 15, 30, 40, 60, 10, 70, 20, 40],
-                        color: #ff3122
-                    } , {
-                        values: [60, 45, 60, 70, 10, 70, 20, 50, 20],
-                        color: #ff7d34,
-                    }
+                    temperature-data,
+                    humidity-data,
+                    pressure-data,
                 ] : Path {
                     opacity: 0.7;
                     fill: @linear-gradient(180deg, datapoints.color, transparent 100%);
@@ -445,6 +456,12 @@ component Tagesverlauf inherits Box {
 }
 
 component TopWidgets inherits HorizontalLayout {
+    in property <string> temperature;
+    in property <string> humidity;
+    in property <string> pressure;
+    in property <int> temperature_progress;
+    in property <int> humidity_progress;
+    in property <int> pressure_progress;
     padding-left: 24px;
     padding-top: 36px;
     padding-right: 24px;
@@ -453,9 +470,9 @@ component TopWidgets inherits HorizontalLayout {
     min-width: 600px;
 
     for item in [
-        { name: "Temperatur", progress: 58, value: 21.2, unit: "°C", color: #ff3122, gradient: @linear-gradient(0deg, #ff3122, #FF5C00)},
-        { name: "Luftfeuchtigkeit", progress: 26, value: 26, unit: "%", color: #6100ff, gradient: @linear-gradient(0deg, #6100ff, #6776FF)},
-        { name: "Luftdruck", progress: 75, value: 1034, unit: "hPa", color: #f99055, gradient: @linear-gradient(0deg, #f99055, #FFCE50)},
+        { name: "Temperatur", progress: temperature_progress, value: temperature, unit: "°C", color: #ff3122, gradient: @linear-gradient(0deg, #ff3122, #FF5C00)},
+        { name: "Luftfeuchtigkeit", progress: humidity_progress, value: humidity, unit: "%", color: #6100ff, gradient: @linear-gradient(0deg, #6100ff, #6776FF)},
+        { name: "Luftdruck", progress: pressure_progress, value: pressure, unit: "hPa", color: #f99055, gradient: @linear-gradient(0deg, #f99055, #FFCE50)},
     ] : VerticalLayout {
         padding: 0px; spacing: 0px;
         Text {
@@ -484,9 +501,33 @@ component TopWidgets inherits HorizontalLayout {
     @children //für das Clock-Element (und eventuell zukünftige nicht-Pie-Chart Ergänzungen
 }
 component MainContent inherits VerticalLayout {
+    in property <string> temperature;
+    in property <string> humidity;
+    in property <string> pressure;
+
+    in property <int> temperature_progress;
+    in property <int> humidity_progress;
+    in property <int> pressure_progress;
+
+    in property <string> time;
+
+    in property <[int]> temperature_values;
+    in property <[int]> humidity_values;
+    in property <[int]> pressure_values;
+
+    in property <bool> show_temperature;
+    in property <bool> show_humidity;
+    in property <bool> show_pressure;
+
     spacing: 24px;
     TopWidgets {
-        Clock {}
+        temperature: root.temperature;
+        humidity: root.humidity;
+        pressure: root.pressure;
+        temperature_progress: root.temperature_progress;
+        humidity_progress: root.humidity_progress;
+        pressure_progress: root.pressure_progress;
+        Clock {time: root.time;}
     }
     GridLayout {
         //TODO: Werte klug setzen statt wild zu raten...
@@ -498,25 +539,70 @@ component MainContent inherits VerticalLayout {
 
         Temperatur {
             row: 0; col: 0;
+            temperature: root.temperature;
         }
         Luftfeuchtigkeit {
             row: 0; col: 1;
+            humidity: root.humidity;
         }
         Luftdruck {
             row: 0; col: 2;
+            pressure: root.pressure;
         }
         Tagesverlauf {
             row: 1; col: 0;
             colspan: 3;
+            temperature_values: root.temperature_values;
+            humidity_values: root.humidity_values;
+            pressure_values: root.pressure_values;
+            show_temperature: root.show_temperature;
+            show_humidity: root.show_humidity;
+            show_pressure: root.show_pressure;
         }
     }
 }
 
 export component MainWindow inherits Window {
+    in property <string> temperature : "23,6";
+    in property <string> humidity : "32";
+    in property <string> pressure : "1034";
+
+    in property <int> temperature_progress : 58;
+    in property <int> humidity_progress : 32;
+    in property <int> pressure_progress : 90;
+
+    in property <string> time : "23:06.02";
+
+    in property <[int]> temperature_values : [30, 15, 30, 40, 60, 10, 70, 20, 40];
+    in property <[int]> humidity_values : [40, 55, 60, 50, 40, 50, 75, 80, 100];
+    in property <[int]> pressure_values : [60, 45, 60, 70, 10, 70, 20, 50, 20];
+
+    in property <bool> show_temperature: true;
+    in property <bool> show_humidity: true;
+    in property <bool> show_pressure: true;
+
     title: "Wetterstation";
     HorizontalLayout {
         padding: 0px; spacing: 0px;
         //MenuBar {}
-        MainContent {}
+        MainContent {
+            temperature: root.temperature;
+            humidity: root.humidity;
+            pressure: root.pressure;
+
+            temperature_progress: root.temperature_progress;
+            humidity_progress: root.humidity_progress;
+            pressure_progress: root.pressure_progress;
+
+            time: root.time;
+
+            temperature_values: root.temperature_values;
+            humidity_values: root.humidity_values;
+            pressure_values: root.pressure_values;
+
+            show_temperature: root.show_temperature;
+            show_humidity: root.show_humidity;
+            show_pressure: root.show_pressure;
+        }
     }
 }
