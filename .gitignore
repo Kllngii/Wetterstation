@@ -1,2 +1,4 @@
 Debug/*
 targetConfigs/*
+wetterstation-ui/target/*
+wetterstation-ui/Cargo.lock

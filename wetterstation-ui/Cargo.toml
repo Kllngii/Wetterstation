@@ -1,0 +1,13 @@
+[package]
+name = "wetterstation-ui"
+version = "0.1.0"
+edition = "2021"
+authors = ["Lasse Kelling <lasse@kelling.de>, Fabian Schmalenbach <>"]
+build = "src/build.rs"
+
+[dependencies]
+slint = "1.2.2"
+chrono = "0.4.19"
+
+[build-dependencies]
+slint-build = "1.2.2"

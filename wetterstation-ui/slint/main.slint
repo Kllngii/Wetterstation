@@ -1,0 +1,608 @@
+/*
+ * Nach dem Beispiel https://github.com/peter-ha/qskinny/tree/iot-dashboard/examples/iotdashboard
+ */
+import { StyleMetrics } from "std-widgets.slint";
+
+struct Palette  {
+    menuBar : brush,
+    mainContent : brush,
+    box : brush,
+    lightDisplay : brush,
+    pieChart : brush,
+    roundButton : brush,
+    segmentedBox : brush,
+    text : brush,
+    shadow : brush,
+}
+
+global Skin  {
+    in property<bool> day: !StyleMetrics.dark-color-scheme;
+    out property<Palette> palette : root.day ? {
+       menuBar : #6D7BFB,
+       mainContent :  #fbfbfb,
+       box :   #ffffff,
+       lightDisplay : #ffffff,
+       pieChart : #ffffff,
+       roundButton : #f7f7f7,
+       segmentedBox : #f4f4f4,
+       text : #000,
+       shadow : #0001,
+    } : {
+       menuBar : #2937A7,
+       mainContent : #040404,
+       box : #000000,
+       lightDisplay : #000000,
+       pieChart : #000000,
+       roundButton : #0a0a0a,
+       segmentedBox : #0c0c0c,
+       text : #fff,
+       shadow : #fff1,
+    };
+
+    // From Skin::initHints in Skin.cpp
+    out property <length> DefaultFont: 12px;
+    out property <length> TinyFont: 9px;
+    out property <length> SmallFont: 10px;
+    out property <length> MediumFont: 13px;
+    out property <length> LargeFont: 20px;
+    out property <length> HugeFont: 27px; // (also, bold)
+    out property <length> TitleFont: 10px; // (also, bold)
+}
+
+export global CallbackExporter {
+    callback temperature-touch;
+    callback humidity-touch;
+    callback pressure-touch;
+}
+
+component PieChartBackground inherits Path {
+    in property <float> thickness;
+    in property <float> inner-radius;
+
+    fill: #aaaaaa40;
+
+    viewbox-width: 100;
+    viewbox-height: 100;
+
+    MoveTo {
+        x: 50;
+        y: 0;
+    }
+    ArcTo {
+        radius-x: 50;
+        radius-y: 50;
+        x: 50;
+        y: 100;
+        sweep: true;
+    }
+    ArcTo {
+        radius-x: 50;
+        radius-y: 50;
+        x: 50;
+        y: 0;
+        sweep: true;
+    }
+    LineTo {
+        x: 50;
+        y: root.thickness;
+    }
+    ArcTo {
+        radius-x: root.inner-radius;
+        radius-y: root.inner-radius;
+        x: 50;
+        y: 100 - root.thickness;
+    }
+    ArcTo {
+        radius-x: root.inner-radius;
+        radius-y: root.inner-radius;
+        x: 50;
+        y: root.thickness;
+    }
+}
+
+component PieChartFill inherits Path {
+    in property <float> thickness;
+    in property <float> inner-radius;
+    in property <float> progress;
+    in property <float> start : 0;
+
+    viewbox-width: 100;
+    viewbox-height: 100;
+
+    MoveTo {
+        y: 50 - 50 * cos(-root.start * 360deg);
+        x: 50 - 50 * sin(-root.start * 360deg);
+    }
+    LineTo {
+        y: 50 - root.inner-radius * cos(-root.start * 360deg);
+        x: 50 - root.inner-radius * sin(-root.start * 360deg);
+    }
+    ArcTo {
+        radius-x: root.inner-radius;
+        radius-y: root.inner-radius;
+        y: 50 - root.inner-radius*cos(-(root.start + root.progress) * 360deg);
+        x: 50 - root.inner-radius*sin(-(root.start + root.progress) * 360deg);
+        sweep: root.progress > 0;
+        large-arc: root.progress > 0.5;
+    }
+    LineTo {
+        y: 50 - 50*cos(-(root.start + root.progress) * 360deg);
+        x: 50 - 50*sin(-(root.start + root.progress) * 360deg);
+    }
+    ArcTo {
+        radius-x: 50;
+        radius-y: 50;
+        y: 50 - 50 * cos(-root.start * 360deg);
+        x: 50 - 50 * sin(-root.start * 360deg);
+        sweep: root.progress < 0;
+        large-arc: root.progress > 0.5;
+    }
+    LineTo {
+        y: 50 - 50 * cos(-root.start * 360deg);
+        x: 50 - 50 * sin(-root.start * 360deg);
+    }
+}
+
+component PieChart inherits Rectangle {
+    in property <brush> brush <=> p.fill;
+    in property <float> progress;
+
+    in property <float> thickness: 15;
+    in property <float> inner-radius: 50 - root.thickness;
+
+    back := PieChartBackground {
+        width: 100%;
+        height: 100%;
+        thickness: root.thickness;
+        inner-radius: root.inner-radius;
+    }
+
+    p := PieChartFill {
+        width: 100%;
+        height: 100%;
+        thickness: root.thickness;
+        inner-radius: root.inner-radius;
+        progress: root.progress;
+    }
+}
+
+component Clock inherits VerticalLayout {
+    in property <string> time <=> time-label.text;
+    min-width: 140px;
+    Text {
+        text: "Uhrzeit:";
+        font-size: Skin.TitleFont;
+        font-weight: 700;
+    }
+    time-label := Text {
+        font-size: Skin.HugeFont;
+        font-weight: 700;
+        color: #6776ff;
+    }
+}
+
+component BoxBase inherits Rectangle {
+    background: Skin.palette.box;
+    drop-shadow-offset-x: 6px;
+    drop-shadow-offset-y: 6px;
+    drop-shadow-blur: 6px;
+    drop-shadow-color: Skin.palette.shadow;
+}
+
+component Box inherits BoxBase {
+    in property <string> title;
+    VerticalLayout {
+        if(root.title != "") : Text {
+            text <=> root.title;
+            font-size: Skin.TitleFont;
+            font-weight: 700;
+        }
+        spacing: 12px;
+        padding: 15px;
+        @children
+    }
+}
+
+component TitleValueBox inherits VerticalLayout {
+    padding: 8px;
+    spacing: 8px;
+    horizontal-stretch: 100;
+}
+
+component ValueLabel inherits Text {
+    in property <string> value <=> root.text;
+    font-size: Skin.HugeFont;
+    font-weight: 700;
+    color: #929cb2;
+}
+
+component RoundedIcon inherits Rectangle {
+    in property <brush> gradient-box;
+    in property <image> iconName <=> m-graphicLabel.source;
+    in property <float> background-opacity <=> background-fill.opacity;
+    height: 68px;
+    width: 68px;
+
+    background-fill := Rectangle {
+        background: root.gradient-box;
+        border-radius: 6px;
+        opacity: 1.0;
+    }
+    m-graphicLabel := Image {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+    }
+}
+
+component BoxedWidget inherits Box {
+    callback clicked <=> ta.clicked;
+    in property <image> iconFile <=> icon.iconName;
+    in-out property <string> value <=> val.value;
+    in property <brush> gradient-box <=> icon.gradient-box;
+    in property <string> title- <=> titleLabel.text;
+    ta := TouchArea {
+        HorizontalLayout {
+            spacing: 24px;
+            icon := RoundedIcon {}
+            TitleValueBox {
+                titleLabel := Text {
+                    font-size: Skin.TitleFont;
+                    font-weight: 700;
+                }
+                val := ValueLabel {}
+            }
+        }
+    }
+}
+
+component Temperatur inherits BoxedWidget {
+    in-out property <string> temperature;
+    title-: "Temperatur";
+    iconFile: @image-url("../images/temperature.png");
+    value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
+    gradient-box: @linear-gradient(180deg, #ff7d34, #ff3122);
+    clicked() => {CallbackExporter.temperature-touch()}
+}
+
+component Luftfeuchtigkeit inherits BoxedWidget {
+    in-out property <string> humidity;
+    title-: "Luftfeuchtigkeit";
+    iconFile: @image-url("../images/humidity.png");
+    value: root.humidity + "%";
+    gradient-box: @linear-gradient(180deg, #6776FF, #6100FF);
+    clicked() => {CallbackExporter.humidity-touch()}
+}
+
+component Luftdruck inherits BoxedWidget {
+    in-out property <string> pressure;
+    title-: "Luftdruck";
+    iconFile: @image-url("../images/pressure.png");
+    value: root.pressure + "hPa";
+    gradient-box: @linear-gradient(180deg, #FFCE50, #f99055);
+    clicked() => {CallbackExporter.pressure-touch()}
+}
+
+component Tagesverlauf inherits Box {
+    in property <[int]> temperature_values;
+    in property <[int]> humidity_values;
+    in property <[int]> pressure_values;
+
+    in property <bool> show_temperature;
+    in property <bool> show_humidity;
+    in property <bool> show_pressure;
+
+    //Hintergrund zeichnen
+    boxes := HorizontalLayout {
+        padding: 0px;
+        padding-bottom: 6px;
+        spacing: 6px;
+        min-height: 100px;
+        min-width: 300px;
+        for _ in 7 : Rectangle {
+            background: Skin.palette.box;
+            drop-shadow-offset-x: 6px;
+            drop-shadow-offset-y: 6px;
+            drop-shadow-blur: 6px;
+            drop-shadow-color: Skin.palette.segmentedBox;
+        }
+    }
+    //Durch Höhe & Position über die alten Rechtecke ein Neues schreiben (frag mich nicht wie, es funktioniert)
+    Rectangle {
+        height: 0;
+        VerticalLayout {
+            x: 0;
+            y: -boxes.height;
+            height: boxes.height;
+            width: boxes.width;
+            padding: 0px;
+            spacing: 0px;
+            
+            //Legende
+            HorizontalLayout {
+                alignment: end;
+                spacing: 6px;
+                property <{text: string, color: color}> temperature-item: show_temperature ? {text: "Temperatur", color: #ff3122} : {};
+                property <{text: string, color: color}> humidity-item: show_humidity ? {text: "Luftfeuchtigkeit", color: #6776ff} : {};
+                property <{text: string, color: color}> pressure-item: show_pressure ? {text: "Luftdruck", color: #ff7d34} : {};
+                for item in [
+                    temperature-item,
+                    humidity-item,
+                    pressure-item,
+                ] : HorizontalLayout {
+                    padding: 0px; spacing: 0px;
+                    if item != {} : HorizontalLayout {
+                        spacing: 6px;
+                        padding-top: 6px;
+                        padding-right: 18px;
+                        VerticalLayout { //v-layout mit 1 child; nur für das vertikale alignment wichtig
+                            padding: 0px;
+                            alignment: center;
+                            Rectangle {
+                                height: 9px;
+                                width: 9px;
+                                border-radius: 4px;
+                                background: item.color;
+                            }
+                        }
+                        Text {
+                            text: item.text;
+                            horizontal-alignment: center;
+                            font-size: Skin.TinyFont;
+                        }
+                    }
+                }
+            }
+            
+            Rectangle {
+                // The datapoint is
+                // FIXME: make it more curve, also fix the color
+                property <{values: [int], color: color}> temperature-data: show_temperature ? {values: root.temperature_values, color: #ff3122} : {};
+                property <{values: [int], color: color}> humidity-data: show_humidity ? {values: root.humidity_values, color: #6776ff} : {};
+                property <{values: [int], color: color}> pressure-data: show_pressure ? {values: root.pressure_values, color: #ff7d34} : {};
+                for datapoints in [
+                    temperature-data,
+                    humidity-data,
+                    pressure-data,
+                ] : Path {
+                    opacity: 0.7;
+                    fill: @linear-gradient(180deg, datapoints.color, transparent 100%);
+                    viewbox-width: self.width/1px;
+                    viewbox-height: self.height/1px;
+                    MoveTo {
+                        x: 0;
+                        y: parent.viewbox-height;
+                    }
+                    LineTo {
+                        x: 0;
+                        y: parent.viewbox-height - datapoints.values[0] / 100 * parent.viewbox-height;
+                    }
+                    QuadraticTo {
+                        x: 0.5/7 * parent.viewbox-width;
+                        y: parent.viewbox-height - datapoints.values[1] / 100 * parent.viewbox-height;
+                        control-x: 0/7 * parent.viewbox-width;
+                        control-y: parent.viewbox-height - datapoints.values[1] / 100 * parent.viewbox-height;
+                    }
+                    CubicTo {
+                        x: 1.5/7 * parent.viewbox-width;
+                        control-1-x: 1/7 * parent.viewbox-width;
+                        control-2-x: 1/7 * parent.viewbox-width;
+                        y: parent.viewbox-height - datapoints.values[2] / 100 * parent.viewbox-height;
+                        control-1-y: parent.viewbox-height - datapoints.values[1] / 100 * parent.viewbox-height;
+                        control-2-y: parent.viewbox-height - datapoints.values[2] / 100 * parent.viewbox-height;
+                    }
+                    CubicTo {
+                        x: 3.5/7 * parent.viewbox-width;
+                        control-1-x: 3/7 * parent.viewbox-width;
+                        control-2-x: 3/7 * parent.viewbox-width;
+                        y: parent.viewbox-height - datapoints.values[4] / 100 * parent.viewbox-height;
+                        control-1-y: parent.viewbox-height - datapoints.values[3] / 100 * parent.viewbox-height;
+                        control-2-y: parent.viewbox-height - datapoints.values[4] / 100 * parent.viewbox-height;
+                    }
+                    CubicTo {
+                        x: 4.5/7 * parent.viewbox-width;
+                        control-1-x: 4/7 * parent.viewbox-width;
+                        control-2-x: 4/7 * parent.viewbox-width;
+                        y: parent.viewbox-height - datapoints.values[5] / 100 * parent.viewbox-height;
+                        control-1-y: parent.viewbox-height - datapoints.values[4] / 100 * parent.viewbox-height;
+                        control-2-y: parent.viewbox-height - datapoints.values[5] / 100 * parent.viewbox-height;
+                    }
+                    CubicTo {
+                        x: 5.5/7 * parent.viewbox-width;
+                        control-1-x: 5/7 * parent.viewbox-width;
+                        control-2-x: 5/7 * parent.viewbox-width;
+                        y: parent.viewbox-height - datapoints.values[6] / 100 * parent.viewbox-height;
+                        control-1-y: parent.viewbox-height - datapoints.values[5] / 100 * parent.viewbox-height;
+                        control-2-y: parent.viewbox-height - datapoints.values[6] / 100 * parent.viewbox-height;
+                    }
+                    CubicTo {
+                        x: 6.5/7 * parent.viewbox-width;
+                        y: parent.viewbox-height - datapoints.values[7] / 100 * parent.viewbox-height;
+                        control-1-x: 6/7 * parent.viewbox-width;
+                        control-1-y: parent.viewbox-height - datapoints.values[6] / 100 * parent.viewbox-height;
+                        control-2-x: 6/7 * parent.viewbox-width;
+                        control-2-y: parent.viewbox-height - datapoints.values[7] / 100 * parent.viewbox-height;
+                    }
+                    QuadraticTo {
+                        x: parent.viewbox-width;
+                        y: parent.viewbox-height - datapoints.values[8] / 100 * parent.viewbox-height;
+                        control-x: 7/7 * parent.viewbox-width;
+                        control-y: parent.viewbox-height - datapoints.values[7] / 100 * parent.viewbox-height;
+                    }
+                    LineTo {
+                        x: parent.viewbox-width;
+                        y: parent.viewbox-height;
+                    }
+                    LineTo {
+                        x: 0;
+                        y: parent.viewbox-height;
+                    }
+                }
+            }
+        }
+    }
+    HorizontalLayout {
+        padding: 0px;
+        padding-top: 5px;
+        // WeekDay
+        for day in ["-6h", "-5h", "-4h", "-3h", "-2h", "-1h", "Jetzt"] : Text {
+            //background: blue;
+            color: Skin.palette.text;
+            text: day;
+            font-size: Skin.TinyFont;
+            horizontal-alignment: center;
+        }
+
+    }
+}
+
+component TopWidgets inherits HorizontalLayout {
+    in property <string> temperature;
+    in property <string> humidity;
+    in property <string> pressure;
+    in property <int> temperature_progress;
+    in property <int> humidity_progress;
+    in property <int> pressure_progress;
+    padding-left: 24px;
+    padding-top: 36px;
+    padding-right: 24px;
+    padding-bottom: 0px;
+    spacing: 0px;
+    min-width: 600px;
+
+    for item in [
+        { name: "Temperatur", progress: temperature_progress, value: temperature, unit: "°C", color: #ff3122, gradient: @linear-gradient(0deg, #ff3122, #FF5C00)},
+        { name: "Luftfeuchtigkeit", progress: humidity_progress, value: humidity, unit: "%", color: #6100ff, gradient: @linear-gradient(0deg, #6100ff, #6776FF)},
+        { name: "Luftdruck", progress: pressure_progress, value: pressure, unit: "hPa", color: #f99055, gradient: @linear-gradient(0deg, #f99055, #FFCE50)},
+    ] : VerticalLayout {
+        padding: 0px; spacing: 0px;
+        Text {
+            font-size: Skin.SmallFont;
+            text: item.name;
+        }
+        HorizontalLayout {
+            PieChart {
+                brush: item.gradient;
+                progress: item.progress / 100;
+            }
+            VerticalLayout {
+                padding-left: 6px;
+                Text {
+                    text: item.value;
+                    font-size: Skin.MediumFont;
+                }
+                Text {
+                    text: item.unit;
+                    font-size: Skin.SmallFont;
+                }
+            }
+            Rectangle {}
+        }
+    }
+    @children //für das Clock-Element (und eventuell zukünftige nicht-Pie-Chart Ergänzungen
+}
+component MainContent inherits VerticalLayout {
+    in property <string> temperature;
+    in property <string> humidity;
+    in property <string> pressure;
+
+    in property <int> temperature_progress;
+    in property <int> humidity_progress;
+    in property <int> pressure_progress;
+
+    in property <string> time;
+
+    in property <[int]> temperature_values;
+    in property <[int]> humidity_values;
+    in property <[int]> pressure_values;
+
+    in property <bool> show_temperature;
+    in property <bool> show_humidity;
+    in property <bool> show_pressure;
+
+    spacing: 24px;
+    TopWidgets {
+        temperature: root.temperature;
+        humidity: root.humidity;
+        pressure: root.pressure;
+        temperature_progress: root.temperature_progress;
+        humidity_progress: root.humidity_progress;
+        pressure_progress: root.pressure_progress;
+        Clock {time: root.time;}
+    }
+    GridLayout {
+        //TODO: Werte klug setzen statt wild zu raten...
+        spacing: 6px;
+        padding-left: 19px;
+        padding-top: 0px;
+        padding-right: 17px;
+        padding-bottom: 24px;
+
+        Temperatur {
+            row: 0; col: 0;
+            temperature: root.temperature;
+        }
+        Luftfeuchtigkeit {
+            row: 0; col: 1;
+            humidity: root.humidity;
+        }
+        Luftdruck {
+            row: 0; col: 2;
+            pressure: root.pressure;
+        }
+        Tagesverlauf {
+            row: 1; col: 0;
+            colspan: 3;
+            temperature_values: root.temperature_values;
+            humidity_values: root.humidity_values;
+            pressure_values: root.pressure_values;
+            show_temperature: root.show_temperature;
+            show_humidity: root.show_humidity;
+            show_pressure: root.show_pressure;
+        }
+    }
+}
+
+export component MainWindow inherits Window {
+    in property <string> temperature : "23,6";
+    in property <string> humidity : "32";
+    in property <string> pressure : "1034";
+
+    in property <int> temperature_progress : 58;
+    in property <int> humidity_progress : 32;
+    in property <int> pressure_progress : 90;
+
+    in property <string> time : "23:06.02";
+
+    in property <[int]> temperature_values : [30, 15, 30, 40, 60, 10, 70, 20, 40];
+    in property <[int]> humidity_values : [40, 55, 60, 50, 40, 50, 75, 80, 100];
+    in property <[int]> pressure_values : [60, 45, 60, 70, 10, 70, 20, 50, 20];
+
+    in property <bool> show_temperature: true;
+    in property <bool> show_humidity: true;
+    in property <bool> show_pressure: true;
+
+    title: "Wetterstation";
+    HorizontalLayout {
+        padding: 0px; spacing: 0px;
+        //MenuBar {}
+        MainContent {
+            temperature: root.temperature;
+            humidity: root.humidity;
+            pressure: root.pressure;
+
+            temperature_progress: root.temperature_progress;
+            humidity_progress: root.humidity_progress;
+            pressure_progress: root.pressure_progress;
+
+            time: root.time;
+
+            temperature_values: root.temperature_values;
+            humidity_values: root.humidity_values;
+            pressure_values: root.pressure_values;
+
+            show_temperature: root.show_temperature;
+            show_humidity: root.show_humidity;
+            show_pressure: root.show_pressure;
+        }
+    }
+}
