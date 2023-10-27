@@ -12,6 +12,9 @@ use slint::{Timer, TimerMode};
 
 mod ringtest;
 
+//TODO per Ringbuffer letzte n Werte merken und in Graph einfügen
+//TODO PieChart anhand der Messwerte füllen
+
 slint::include_modules!();
 #[forbid(unsafe_code)]
 
