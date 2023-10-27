@@ -1,0 +1,821 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1337586274">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1337586274" moduleId="org.eclipse.cdt.core.settings" name="Debug">
+				<externalSettings/>
+				<extensions>
+					<extension id="com.ti.ccstudio.binaryparser.CoffParser" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.ti.ccstudio.errorparser.CoffErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.ti.ccstudio.errorparser.AsmErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.ti.ccstudio.errorparser.LinkErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="out" artifactName="${ProjName}" buildProperties="" cleanCommand="${CG_CLEAN_CMD}" description="" id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1337586274" name="Debug" parent="com.ti.ccstudio.buildDefinitions.TMS470.Debug">
+					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1337586274." name="/" resourcePath="">
+						<toolChain id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.DebugToolchain.1518177685" name="TI Build Tools" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.DebugToolchain" targetTool="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.linkerDebug.668498490">
+							<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1393345098" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS" valueType="stringList">
+								<listOptionValue builtIn="false" value="DEVICE_CONFIGURATION_ID=Cortex M.TM4C1294NCPDT"/>
+								<listOptionValue builtIn="false" value="DEVICE_CORE_ID=CORTEX_M4_0"/>
+								<listOptionValue builtIn="false" value="DEVICE_ENDIANNESS=little"/>
+								<listOptionValue builtIn="false" value="OUTPUT_FORMAT=ELF"/>
+								<listOptionValue builtIn="false" value="LINKER_COMMAND_FILE=tm4c1294ncpdt.cmd"/>
+								<listOptionValue builtIn="false" value="RUNTIME_SUPPORT_LIBRARY=libc.a"/>
+								<listOptionValue builtIn="false" value="CCS_MBS_VERSION=6.1.3"/>
+								<listOptionValue builtIn="false" value="PRODUCTS="/>
+								<listOptionValue builtIn="false" value="PRODUCT_MACRO_IMPORTS={}"/>
+								<listOptionValue builtIn="false" value="OUTPUT_TYPE=executable"/>
+							</option>
+							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.870881118" name="Compiler version" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION" value="20.2.7.LTS" valueType="string"/>
+							<targetPlatform id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.targetPlatformDebug.560325798" name="Platform" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.targetPlatformDebug"/>
+							<builder buildPath="${BuildDirectory}" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.builderDebug.632006588" keepEnvironmentInBuildfile="false" name="GNU Make" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.builderDebug"/>
+							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.compilerDebug.106986004" name="Arm Compiler" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.compilerDebug">
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.SILICON_VERSION.857358806" name="Target processor version (--silicon_version, -mv)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.SILICON_VERSION" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.SILICON_VERSION.7M4" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.CODE_STATE.2016124635" name="Designate code state, 16-bit (thumb) or 32-bit (--code_state)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.CODE_STATE" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.CODE_STATE.16" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.ABI.1987621216" name="Application binary interface. (--abi)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.ABI" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.ABI.eabi" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.FLOAT_SUPPORT.1613217601" name="Specify floating point support (--float_support)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.FLOAT_SUPPORT" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.FLOAT_SUPPORT.FPv4SPD16" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.GCC.1997081050" name="Enable support for GCC extensions (DEPRECATED) (--gcc)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.GCC" value="true" valueType="boolean"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEFINE.1545611482" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEFINE" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ccs=&quot;ccs&quot;"/>
+									<listOptionValue builtIn="false" value="PART_TM4C1294NCPDT"/>
+								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.LITTLE_ENDIAN.1819223709" name="Little endian code [See 'General' page to edit] (--little_endian, -me)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.LITTLE_ENDIAN" value="true" valueType="boolean"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.INCLUDE_PATH.17504886" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.INCLUDE_PATH" valueType="includePath">
+									<listOptionValue builtIn="false" value="${PROJECT_ROOT}"/>
+									<listOptionValue builtIn="false" value="${TIVAWARE}"/>
+									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
+								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEBUGGING_MODEL.1992155054" name="Debugging model" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEBUGGING_MODEL" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEBUGGING_MODEL.SYMDEBUG__DWARF" valueType="enumerated"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WARNING.758633894" name="Treat diagnostic &lt;id&gt; as warning (--diag_warning, -pdsw)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WARNING" valueType="stringList">
+									<listOptionValue builtIn="false" value="225"/>
+								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP.1218884697" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP.off" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DISPLAY_ERROR_NUMBER.212858041" name="Emit diagnostic identifier numbers (--display_error_number, -pden)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__C_SRCS.978388562" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__C_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__CPP_SRCS.1375254602" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__CPP_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM_SRCS.791716073" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM2_SRCS.227899522" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM2_SRCS"/>
+							</tool>
+							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.linkerDebug.668498490" name="Arm Linker" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.linkerDebug">
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.MAP_FILE.621511393" name="Link information (map) listed into &lt;file&gt; (--map_file, -m)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.MAP_FILE" value="${ProjName}.map" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.STACK_SIZE.1743580731" name="Set C system stack size (--stack_size, -stack)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.STACK_SIZE" value="2048" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.HEAP_SIZE.950831964" name="Heap size for C/C++ dynamic memory allocation (--heap_size, -heap)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.HEAP_SIZE" value="2048" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.OUTPUT_FILE.962143374" name="Specify output file name (--output_file, -o)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.OUTPUT_FILE" value="${ProjName}.out" valueType="string"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.LIBRARY.166157628" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.LIBRARY" valueType="libs">
+									<listOptionValue builtIn="false" value="${TIVAWARE}/driverlib/ccs/Debug/driverlib.lib"/>
+									<listOptionValue builtIn="false" value="libc.a"/>
+								</option>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.SEARCH_PATH.1423256849" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.SEARCH_PATH" valueType="libPaths">
+									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/lib"/>
+									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
+								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DIAG_WRAP.924817958" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DIAG_WRAP.off" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DISPLAY_ERROR_NUMBER.259645223" name="Emit diagnostic identifier numbers (--display_error_number)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.XML_LINK_INFO.320781287" name="Detailed link information data-base into &lt;file&gt; (--xml_link_info, -xml_link_info)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.XML_LINK_INFO" value="${ProjName}_linkInfo.xml" valueType="string"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS.47826534" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS.1151118623" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__GEN_CMDS.2102455781" name="Generated Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__GEN_CMDS"/>
+							</tool>
+							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.hex.519920254" name="Arm Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.hex"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="wetterstation-ui" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-8u1pzf1s62uz/s-gq0rflq20l-oc8cww-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-8u1pzf1s62uz/s-gq0rflmytd-1w5mvua-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-8u1pzf1s62uz/s-gq0rfkvo5v-156uo3j-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-8u1pzf1s62uz/s-gq0rfj5j5e-fmetjp-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3lia0jhbh0sv/s-gq0rfqb30p-zhh96m-8hnb8gew4dkbybn3eiv8difz9"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rfod9mk-ngyvp9-50epvqxcwfhlkednctaahbs98"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rfn06mu-11701r6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rfmyf6s-1td8wu6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rfma8j9-9b01t9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rfm7ehw-xrim1e-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rflrubf-s600q5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rflq20l-1cnzdv9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rflmyuy-19big1w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rfkvq2o-esd0s0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rfj5j5d-1u8gu9g-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-8u1pzf1s62uz/s-gq0rff8gkf-4vcr9y-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2r0lqj3xby604/s-gq0rff8gkf-15uhf0h-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0rbh6okg-3h4qer-38hf4sr4fcxu7s4fd1wvy4bhf"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0rbh6okg-enjd5g-7kbyrbdu3lhsmg4iog4jpyb05"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0ra3a1rr-14gjq4b-5tozgezjgpfizr1ponif6ni4n"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0ra3a1rs-17ct96h-bfjd1jam7am2ikdez88wqnvp9"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0r52vu3g-v0b0lc-77coszkrxwezbljyq6vp3u0qc"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r70e5dx-yqnp44-6b2ssbapp11xcyxxgebzqsyc2"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r6xgu9h-1v7sy2q-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r6xa5no-11geo3w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r70e5mf-cfykn0-cvk1ayqb17yp5h9jwkf935l3h"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r6xgu97-inkn78-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r6xa5pw-1awgzf7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r6617or-ythwyr-ez3zshagwmrb3fn2zgbvussp8"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r65p1iz-1wydhvl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r65f15y-1wc2stm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r658mn8-118xc95-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r64wjro-845vs5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r60x2po-16q00ho-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r60qxxm-uf1zr8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r6617or-1683zqg-1yv9jjfh6yu40bl4p9sfhdwb9"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r65p1ie-1k8kvbe-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r65f161-1ni2l9x-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r658mn8-1ke23ck-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r64wjxd-1sq8nef-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r60x2po-1svdjb2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r60qxri-moj1ra-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qyh14rq-8g09oo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qqzk6z6-57icqf-964zxj1phbm2555g9i72ym3cg"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r3anbn0-1wzbh1r-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r3agm1i-1208q2k-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r3a8ppn-1chlg1s-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r3a2ive-taihcf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r38big8-14dbdkd-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r385anu-170amv0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r37rsl2-thueue-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r37llt5-1i72xv4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r35kzt1-cgvxd4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r35eems-b6dn0f-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r354lus-gwvf1t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r34uoei-15s58cg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0r1qkkga-3fvuyr-8k1wq01g2kgrvlj1rinx5vwtu"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r3anbom-13hfkh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r3agm6a-11811g3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r3a8ppn-1x3brm4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r3a2ive-gvy95w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r38big8-16tumsl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r385a8b-1d4t78v-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r37rsmz-1utlq0k-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r37llt4-iee4vx-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r35l3la-8tbadh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r35eems-1xpeyvt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r354lus-1dgp3yu-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r34uoei-b6178z-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0r1qkkga-1hdeg98-b3t6kz4kmpg0zy1bq8bybvw1f"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qz2yjjy-105qylr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qz2s668-rn24tl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qyyjz5r-1y9gptu-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qyydkmy-2h3p8v-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qyxu464-1hs0uka-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qyxnuxb-dco2oh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qyxhqjx-y3f4cy-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qyx86ah-2nz7yg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qqw6n7s-5z5y41-70lqp8tx4rgjvuuirm9cw73pu"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qz2yjjg-qmf28o-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qz2s665-1r4ask-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qyyjz5r-jvc7zl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qyydknh-m8balc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qyxu464-87h2k3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qyxnuxa-1h345m1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qyxhqjv-1ag7dw3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qyx86ai-1qcxic-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qqw6n4b-1gwad0i-8jqzlj9xs5mc81391xdyq5j8v"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu7fneo-1eoue06-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu79iaa-76voca-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu6dhcn-m0hevc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu6606q-mf9d3l-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu521j8-1wejc37-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu4vg7z-12lso8s-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu4nxl0-1pcgofg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu4bgml-hyqtnl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu45hcv-14ctojw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu3ih7q-cdcok9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu3cjt2-1ijy01l-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qu2y4de-1i8c3v-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu7fmvb-1j0270t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu79igz-527958-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu6dhcn-x9m09x-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu6606q-1kyq3pe-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu521hw-14adrhk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu4vgfk-17i1ivl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu4nxkz-1bwxq28-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu4bgml-1a09v5g-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu45hdd-16l45pd-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu3ih7n-1arm143-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu3cjt2-l4h4k0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qu2y4de-1us474j-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qpwtd9y-1nzgkyi-6l902mamirkyt58vposcmpcic"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpv0gcd-12ktab6-2d2e4ybysd73lhrzc42l6khfi"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpupppz-1xes5pg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpujxba-1h3osp0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpud7d1-xmk717-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpu7g45-1fhrq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qptn024-x3m79a-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qptgxp5-1t7isl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpswnjo-1e66aeq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpsqfw7-a3ro4k-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpsj1sx-213d40-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qpscse8-1f2hegq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qps2mix-1eds1p7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpv0gcd-1dn82th-83uuevwcobnuhzn6vuk2havk5"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpuppq0-yq0w0a-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpujxk7-17d3359-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpud7do-1wb6swu-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpu7fyn-1c2finz-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qptn0gp-cbbk8w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qptgydp-17bjhk3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpswnc3-17oz307-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpsqfw7-odo6g0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpsj1u2-1r24h1v-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qpscrzi-1tjgoop-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qps2mix-30c3z2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qoq3rnt-17l64m2-cq8qcjyuy41426zenl5cymtfu"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qozr6ta-63ha6w-2js07mzprwv2i8has54kyik2w"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qozr6t8-17mj5l8-d2cprwqj0g3mj49hvnhparolr"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qmn0623-1vs7gxl-3etd112qmcu1g2ww7cwyrel8j"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qnuqem1-fxbvuq-e0qzwv62ydkx7mwos6ov3r83y"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qnu1fsc-1fpo7c7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qntv2cx-rv80rc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qnuqens-1442762-ab83fri5uqobl3qvw1xe14xct"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qnu1fsc-a7lkvv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qntv2dm-1awj0ht-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qmn0623-1vs7gxl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qlxntg4-2bq9dv-dd66y3azonlaci6g9263kz5is"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qmeyf7t-1myc2yi-6jz828t61glscos1guh0amf42"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qma77ig-1yq5nvh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qma093y-yje44g-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qmeyf7t-vj7jf7-ag97924hs12pg2szhhp2jv2p1"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qma77ig-1x6eu32-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qma095i-p2kcn4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0ql5plir-171zx0z-as9voa8zlzmr0z832lrcte2fy"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0ql2hsu9-o7t49x-77zl0movn5vkr65wki73lttvb"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0ql0ybk1-dcgwdi-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0ql0h3hq-11kdii4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0ql0b33c-x5lkag-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qkzv45v-jg1jkk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qkzp5cb-1i6clar-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qkyzzeb-1wlbf1t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qkytww3-196tvs6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qkx3izm-1faafgx-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qkwx764-1ibphcv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0ql2hsu9-y72rpb-5nj0sjp1tqax1ezoinosoomye"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0ql0ybj1-mk1cat-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0ql0h3hr-nt719f-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0ql0b33c-ode6xf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qkzv45u-9ds7fc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qkzp5cb-5p33r9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qkyzzcg-17rovzv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qkytwvr-2ob8ej-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qkx3ix2-1mxevwl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qkwx7gm-13sassz-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qjv3u7q-1mg1jas-451flfusw10r83sxosky09xz2"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qjtobd1-1vl88mg-9yx845i2zmjtpbwgli15nn51k"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qjryh94-m3w52p-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qjrs5xs-yvo9ty-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qjrlwtt-1g0k1gm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qjre1w1-1bupjsq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qjtobd1-1djr14q-5svs4ah1uidme9hr4ksogm9oh"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qjryh93-x1im09-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qjrs5xs-ii2v6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qjrlwko-1jiairr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qjre1w1-4czbxv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-qxi21cpdl72f/s-gq0qi2jww4-1k182i9-elon8sa8xn1ksei99k5m2slaz"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qhyznab-16gv2d8-156chn1f0zy9dg8tdtd775ee9"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qhx27ex-cjrxn6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qhwrhxw-diyt3v-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qhw1aa3-efv7m5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qhvb0in-6o9tqj-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qhuhkzj-11o9zaq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qhyznc5-otojj5-8dxyibbe8wfcp3210gwpmies0"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qhx27f3-krh4sc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qhwrhxy-1oagvmw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qhw1aa3-1ydio7c-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qhvb0ip-1xw6tbx-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qhuhkzj-1muph0z-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qftednz-1954adw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qfqv4d7-1tq9b3i-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qfpv1ts-1kdmxnx-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qftedo1-hl2iik-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qfqv4d4-ffwy7f-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qfpv1tp-n4hur8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qfaqjv9-1eo2xn5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qf9zjc8-1adpqgc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qfaqjv9-1vl2dxo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qf9zjb6-1redyp7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2yxngyz5qq7qx/s-gq0qel3dfk-nvtw2z-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-2rkr5vois613/s-gq0qel3dme-rxgjgr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qdcl2tj-mrqosl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qdcezca-v5lkg9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qdc5r44-1u9jc4v-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qdbzrya-1j59uyt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qdbf91d-1ituf48-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qdb92dk-1fecmy0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qdcl2tj-lg6h82-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qdcezca-3pfayx-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qdc5r5j-fyzjpc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qdbzs21-1qpz9n7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qdbf91d-axlw9x-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qdb92f2-qhaakf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qaj5sz1-14e4a1n-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qaifchp-1qtm9nv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qaho83r-3ql6xc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qagxaxg-sky09b-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qafuzzz-eusbki-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qaf3xoi-jb0d7m-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3ozl3zq2j0tz3/s-gq0qaea8hn-1gzvi7z-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qaj5sz1-786dee-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qaifchq-1hrafrj-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qaho83r-16aqjlc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qagxaxl-1msg7sm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qafuzzz-1ew5g96-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qaf3xoh-cwfa7l-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-28fbndo06tvcn/s-gq0qaea8tn-mjrjq6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q73y6s2-wttujc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q73s5sn-1tiu9ih-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q73y6s2-969fwt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q73s5sm-dq11ng-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4tk7t0-q6vwgt-6ubju5prp12m4i8chj4hc0hyz"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4sb4rq-1c8cza3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4s53w9-loe44r-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4ras4x-gtsd6w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4r4oq6-en536l-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4q5z5d-1n8qk1a-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4q09r3-17hp97x-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4pn5ev-m9peel-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4phgz4-omenld-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4otnv2-1aacr93-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4onx2u-14xogz4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4nw09h-8odsep-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4tk7t0-gqions-d3jvli9y5zurjynpbma8xiw0p"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4sb4qq-cqgela-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4s540x-w0en53-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4ras7q-12co1uw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4r4orr-11kyiwf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4q5z5f-9f92wn-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4q09r3-1c0ak4g-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4pn5ce-15tcmoe-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4phgz4-mwijvm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4otnsy-1byp228-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4onx2u-15oukc2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4nw09h-khdt7k-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-21e1rg0f1911h/s-gq0q4whp93-rtr92y-7w55ieajjs7jsqmg9bzot4n5o"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q45kgis-1wunz0p-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q45efyw-1mvu6k4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q4589x6-ch83ni-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q3lxtfk-fzg6sg-b4mkxnzkpdnwd7svs9nqmxwuq"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q45kgis-h32dsr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q45eg1e-kyr97r-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q4589ys-znyir7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q3lxtfk-216osb-b3slrga8c883qrbpk5mb86c31"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-21e1rg0f1911h/s-gq0q1xp3zn-yt82jf-dz9fz73lpippmkicwvu84lzrl"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1pne0r-1bf501f-2am2zn6u1cfn8swx1md55vlfa"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1or5te-hfx1xf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1oieq2-vo9lpv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1ocamm-11danl8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1nzrut-3kn81l-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1ntpsc-194ur89-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1mkwcn-1f53w5l-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1mers6-qd7fw7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1m7dhx-1ygitiq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1m1b99-milmlq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1kex93-1qagwn2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1k8n5o-6j8ch8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1pndzv-18x7edo-7v6f2h467ufcro91d2zqq79m6"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1or5sv-qj0xx7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1oieq2-leh58h-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1ocamm-1p6y974-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1nzrut-1124sxv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1ntpsc-10fafg5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1mkwcn-ale5ms-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1merrx-pjmkon-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1m7dgj-1l2cn46-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1m1bpj-1qjalb2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1kex45-7si30e-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1k8n5o-sjcylo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1hgnay-12p3koh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1ha82y-1hckk0l-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1gypy9-1j6ksop-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1gly0t-86g9dq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1g0vwt-1apdjr8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1fv4tf-1dx9lq1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1foxh6-gf9487-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1d0g29-q36s1i-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1cuihu-12gia1h-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1cnc2s-1i93i5r-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1ch9cn-iutohx-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1c7u7d-lbycys-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1c1p0k-13swoaw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q1bmgv8-kx0odj-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q17on0z-a2uwmr-6m41fe6evido0i1wc7d8kibtw"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1hgniq-1bjv6qb-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1ha82b-c9hig0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1gypyb-7ekjjw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1glxys-h2ec6k-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1g0vzr-1gsedx0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1fv4tf-14qxh1e-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1foxh7-1x9swq6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1d0g29-1moyhmz-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1cui3v-fa3qzt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1cnc30-1yu6oc4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1ch96g-ao6jif-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1c7u7d-1udop4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1c1p2n-1lh7ync-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q1bmgv7-114yltr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q17on0z-1hgvisn-bdtlmhdyk5y7do6zw0bo8466g"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-21e1rg0f1911h/s-gq0pxh4zlg-1pqq93g-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-21e1rg0f1911h/s-gq0psljcbq-1eyileg-9vcy5e15cvxuqr4h0q4v54eej"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0ga08b-zy9hwk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0g363n-tjvll5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0fw8e1-16bq96w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0fjszj-4lbpr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0e6381-mwdnf1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0dye5k-1szhnkd-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0d8n91-1676a73-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0d1euu-naq8ir-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0cpmtb-u0m7fj-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0cf5l9-18xtjtp-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0c7yla-1rbk3s6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0bpdnh-e89kl9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0bifro-1xdi5t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0baa2t-1m54zfi-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0b33qr-1ymj6xs-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0apt71-1vhlxzc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0q0aik4s-kddhnh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvmtuiv-fjd2rg-8c1wbnsqxydpqm2v2kd1z5ndp"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0ga0aw-z7m1b7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0g363n-14uz6r-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0fw7dz-1q9x7lm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0fjszc-iukk0j-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0e6386-bfa53j-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0dye52-jl41m4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0d8n91-1dww8fm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0d1f0m-17pyhf7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0cpmtc-1w39xht-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0cf5nd-hpgv5t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0c7y8l-cl77vi-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0bpdnh-1janndn-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0bifro-1dgdj6o-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0baa2t-28wlap-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0b33qr-apn14u-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0apt71-199sym7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0q0aik3x-1542okc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvmtuja-ps7g98-7j4lkgro4fdcrprp50ipv57ff"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzskvch-1doq7r8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzsd6ka-1xngpsw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzs4c76-r9g4ot-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzrwipp-1hyophk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzr6b9w-1vr5qbi-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzqz8c6-wsh0ax-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzqno55-damjul-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzqhwic-1kvfap6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzq3ffd-mnbwo7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzpsdw8-1370xtf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzphaq0-fdvi29-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzpa2m8-bnxw66-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzoty58-grz6dy-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzom7h5-13xcxa7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzo8up2-13i24ug-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzo06r9-9ijbs0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzskvd3-srmybw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzsd6v9-wd3s6b-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzs4c14-13ctgcq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzrwipp-1tdpjqk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzr6b9w-1b1o3p1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzqz8eb-1xe1k8e-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzqno56-bffw9u-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzqhwcv-gomccs-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzq3ffd-i8e2m-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzpse1c-10szicn-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzphaq0-fvdcne-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzpa1sf-53283w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzoty4w-kls9c8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzom7i1-1o3uuml-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzo8up2-cp52r5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzo06rb-5x0gx9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzgpg1s-f7pavb-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzgfj1c-1ng30ic-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzcozgk-16qe2d1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pzci8ek-a9vmit-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzgpg1t-j272h9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzgfj1b-yrdzdw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzcozhi-18xs8qx-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pzci8ec-q2gj9a-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz9tqjh-1gxa65b-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz9myns-1pdskxu-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz9b0ol-yzedzt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz7crzh-p0v3dg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz768jd-1no42ed-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz6z0zq-13md3uc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz6s7pn-ml1plm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz6ijyt-1p9v1u2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz6bowm-1tpzskq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz651di-1cvokt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz58dg3-1xjt9v6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz51pe2-iylxre-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz9tqjh-199l8fc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz9myns-vx6yze-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz9b0lt-1p5yqik-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz7crzz-aurx1e-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz768jd-9vzgc7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz6z0zq-1l4yx14-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz6s8a9-1wmxcnh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz6ik0a-s2vn5m-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz6bowm-1x9pbcw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz651di-c970f1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz58dg3-1hzuhv3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz51pjx-n5tz8j-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz1jg4o-2dlqrh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pz1crjh-qobxis-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pyz5dgt-1woxlt9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pyyokgb-kl9jft-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz1jg3d-ny7g76-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pz1crk8-kp9yef-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pyz5dgt-16pmosm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pyyokg7-1wkwgz4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxuvt69-82zl0j-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxupeql-1nevbf9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxu2592-19dqima-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxtv87l-1cdgmet-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxtmxu9-15ugq1w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxt9uld-18zl4s5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxt35we-nin3i2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxuvt0p-flyjqk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxupeqv-6rodif-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxu2592-adqp0a-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxtv85c-g851ul-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxtmxu7-18jz3ym-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxt9uiu-ttukw8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxt35vj-13z1231-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxo3igt-165pwrs-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxnwmhj-g9mh2o-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxnk37z-tzm4gi-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxncify-1cmic0b-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxmat0y-1oifrv0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxm4a25-16nrkbq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxlr2s9-19rp973-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxlkh5r-j3qcc4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxo3io5-xah380-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxnwmhj-dajkb4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxnk37z-e2fclc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxnciqa-173slgg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxmat0m-cqe8tt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxm49xb-l66nnb-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxlr2s9-vll1aq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxlkh5r-1f0lvvv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxbi6qk-1hl7h2t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxbbf5d-tpvqhi-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxb3g19-1cqh9x4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxavrkg-15jl5xg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pxa2y6g-ndfn9z-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0px9wfin-1y3elen-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxbi6qj-1pzm94y-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxbbf5d-14ym3nb-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxb3g1b-1h2yf5z-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxavrlr-nqf0ko-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pxa2y6g-ooabbd-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0px9wfdk-es11my-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0px4tacz-ct8f4o-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0px4tacz-1u9lw4h-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwns0re-1c55wvw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwnm6cx-1muqxfv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwmv3af-ht7opj-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwmp8fk-126q0zk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwm4dqr-1f4picv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwlxzqd-17rgflf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwlknsc-1yqpehd-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwleqwr-1ksxe0m-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwkb6fq-vzqyuz-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwk5aks-10gfuxb-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwjths9-1wwa14y-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwns0re-1hudqk2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwnm6cx-4z9qs2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwmv3af-1v5qyge-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwmp8ge-1np7v5p-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwm4ds5-15v0go4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwlxzqd-o7sf0f-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwlknss-8k2yyf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwleqsy-136au0n-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwkb6f0-h91pgg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwk5akt-17zf8a8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwjths1-1bcibgg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwgu2n1-1rs3wpo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwgnt85-1pye69x-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwfszm7-15uwbm4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwfnf0m-1ljn51s-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwffaxq-5ocxgl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwf9m3f-137182p-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwch6zt-1330w3a-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwcbod8-1f3nv1n-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwc3nfv-1t5d0o6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwb6i94-1a364er-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwax5gw-9x1igs-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwgu2n8-1vikj7y-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwgnt7f-1d6krxw-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwfszi9-1qsev7u-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwfnf3h-1wqzdt0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwffaxq-1b351ze-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwf9m3f-1u89378-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwch6zt-vbx06c-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwcbod8-1iet0fo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwc3nfv-46ripc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwb6idt-1i7ny3c-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwax5gj-bczpuf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwa7awp-1vaapjo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pwa1pmi-e0go3u-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw8hw1h-15ru0mr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw8ce6c-fdlojg-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw81cur-fdf51r-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw7qrmv-9y9njf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw7kz6e-1vlz9js-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwa7awp-1b295pl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pwa1pmi-mxyq5t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw8hw17-ul5mk7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw8ce6c-68oli3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw81cur-1epfuwu-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw7qrmt-1ulkalt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw7kz6e-1dpak2n-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw5u6g6-gdow7o-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw5o687-s7ujk1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw5u6g0-6oiu3q-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw5o65b-1mu5sdq-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw1l9q0-11dgte6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pw1f984-35d1h0-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvzh2jj-13crlbj-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvzazvo-3qbtup-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw1l9q4-181hl7t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pw1f983-1g79uut-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvzh2jj-1bc6q7p-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvzazvo-43jfc9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvukjgr-177tvf6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvuel62-nohake-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvukjgr-1muvbow-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvuel62-16dnmet-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvsbrk2-1h9ygal-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvs5yq6-1qfl0xe-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvoxhzm-fkbwkl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvorxn8-pnktco-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvsbrc1-7k0h8w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvs5yb2-1s51qq5-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvoxhzm-rl0rzr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvorxmy-1406k7u-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvnqy9e-3lp5t1-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvnjl0g-1ay6m33-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvncv48-96u47u-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvnqygb-1xl40oe-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvnjl0g-37nvxr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvncv4p-1p6mzp8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvjazpm-1i4h1qf-54eeq9vqky38fbpsq2arhbfdw"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvifrx0-1y44m10-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvi7rkn-jqe2ub-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvgljo0-jt3jmp-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvgfhdq-trul6g-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pvg1f9v-1t2rm7v-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvjazpm-i4mfa4-7baju5gv6sx21hr771vwu2s3t"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvifrww-180q5ig-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvi7rjv-58ym6f-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvgljnz-8fn3xd-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvgfhdq-1845n5z-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pvg1f9v-1ec9jg9-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0ptlgjh2-lq3c9z-b63xi0mq2dsltjr1kxx4f76ir"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0ptlgjh2-gy83ao-3qs8c84cpnizrh4b8xu0hq82v"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pv1vnlk-1gaf7sb-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pv1oycr-1rw72yl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0pv1igvi-1ytpdia-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0puz6q3w-h4e1xo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0puyzz2t-1bewpvz-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pv1vnri-1md7tv2-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pv1oycr-1xhbe3t-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0pv1igup-9leet8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0puz6q3v-mdvlk8-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0puyzz2y-1vbcojl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09hqyzee-1mjkzps-8s8iqt6bbv09uae080c1p6tgl"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09hqyzdn-vh0c2w-8k38isqsaebav7wcwgyk11uf"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-21e1rg0f1911h/s-gq09hbdss8-10ko699-aeazqbu3pq7z3b2fsarxh2wcq"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09hqyzee-1mjkzps-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09hosshg-ovvzcl-4q4c9qb2xtgdgxyk9ni4v4jf4"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09hqyzdn-vh0c2w-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09hosshh-1fgv66k-2qdf1os3ybswhluqk7am71nla"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h9ijmw-3ey01-40d95ibjj5apm3gl7xg0cgygm"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h96xm6-ap8n2r-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h8u1ku-1oz18gr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h8n4mh-1yw91p6-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h82fda-12dqqjf-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h7vfzd-9kl216-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h7h9wp-ms721k-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h7ai98-89pyhm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq09h6z6iw-l529zc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h9ijmw-11u1nqa-3ty7qaxe64nvubas717uqgltw"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h96xja-1fj1dxb-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h8u1nl-hns1t3-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h8n4mh-wkrbrr-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h82fdc-laippk-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h7vfzd-13scj86-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h7h9wq-mzvrdm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h7aic2-109epeo-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq09h6z6iw-13f3e4-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-21e1rg0f1911h/s-gq09ge9eyz-1g2474j-6ke4bsuyomp3cr5yztz4kpaf0"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0178jwji-1k9kiod-9eqp8fmop191l44ty3ujwk79v"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0177858y-x28gwh-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq01772hce-fccf8s-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0176t3mi-18qz5a7-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0176fbjm-ym6xor-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq01769mhs-1p1lhoj-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0174kedl-lkaear-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-wdecsvkjmga1/s-gq0174edb2-vuap36-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0178jwji-1n4hug1-dv0oxzb4c2u5vymko59fiyh7s"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0177858y-tloopl-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq01772hce-xu21pe-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0176t3mi-1tpslqm-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0176fbjm-15cbilv-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq01769mgc-5hmfwt-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0174keib-e8gnan-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-3cgsae90vpw4s/s-gq0174edk2-1s1hflc-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-21e1rg0f1911h/s-gq014bq83j-1cypdsu-7r28w6n5pgb4azuvvcbstb1cm"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-1mgavd93oso9k/s-gpzhunsovu-mnez9y-working"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-1mgavd93oso9k/s-gpzhr9nd4v-11ue061-ep9n9egwxyfpxczkl0hqyp97t"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="wetterstation-ui/target/debug/incremental/wetterstation_ui-31x15ehfihi5x/s-gpyn7bx0nx-xt2zad-1futqzdr7tq73ri918lvaa0ly"/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="com.ti.ccstudio.buildDefinitions.TMS470.Release.1073075969">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.ti.ccstudio.buildDefinitions.TMS470.Release.1073075969" moduleId="org.eclipse.cdt.core.settings" name="Release">
+				<externalSettings/>
+				<extensions>
+					<extension id="com.ti.ccstudio.binaryparser.CoffParser" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.ti.ccstudio.errorparser.CoffErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.ti.ccstudio.errorparser.AsmErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.ti.ccstudio.errorparser.LinkErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="out" artifactName="${ProjName}" buildProperties="" cleanCommand="${CG_CLEAN_CMD}" description="" id="com.ti.ccstudio.buildDefinitions.TMS470.Release.1073075969" name="Release" parent="com.ti.ccstudio.buildDefinitions.TMS470.Release">
+					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Release.1073075969." name="/" resourcePath="">
+						<toolChain id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.ReleaseToolchain.733155056" name="TI Build Tools" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.ReleaseToolchain" targetTool="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.linkerRelease.391369495">
+							<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.154877677" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS" valueType="stringList">
+								<listOptionValue builtIn="false" value="DEVICE_CONFIGURATION_ID=Cortex M.TM4C1294NCPDT"/>
+								<listOptionValue builtIn="false" value="DEVICE_CORE_ID="/>
+								<listOptionValue builtIn="false" value="DEVICE_ENDIANNESS=little"/>
+								<listOptionValue builtIn="false" value="OUTPUT_FORMAT=ELF"/>
+								<listOptionValue builtIn="false" value="CCS_MBS_VERSION=6.1.3"/>
+								<listOptionValue builtIn="false" value="LINKER_COMMAND_FILE=tm4c1294ncpdt.cmd"/>
+								<listOptionValue builtIn="false" value="RUNTIME_SUPPORT_LIBRARY=libc.a"/>
+								<listOptionValue builtIn="false" value="OUTPUT_TYPE=executable"/>
+								<listOptionValue builtIn="false" value="PRODUCTS="/>
+								<listOptionValue builtIn="false" value="PRODUCT_MACRO_IMPORTS={}"/>
+							</option>
+							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1129653894" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION" value="20.2.7.LTS" valueType="string"/>
+							<targetPlatform id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.targetPlatformRelease.1398331637" name="Platform" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.targetPlatformRelease"/>
+							<builder buildPath="${BuildDirectory}" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.builderRelease.678720294" name="GNU Make.Release" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.builderRelease"/>
+							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.compilerRelease.976375792" name="Arm Compiler" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.compilerRelease">
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.SILICON_VERSION.960236705" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.SILICON_VERSION" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.SILICON_VERSION.7M4" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.CODE_STATE.914148285" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.CODE_STATE" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.CODE_STATE.16" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.ABI.99909549" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.ABI" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.ABI.eabi" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.FLOAT_SUPPORT.960578249" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.FLOAT_SUPPORT" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.FLOAT_SUPPORT.FPv4SPD16" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.GCC.1933663900" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.GCC" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEFINE.1991049607" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DEFINE" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ccs=&quot;ccs&quot;"/>
+									<listOptionValue builtIn="false" value="PART_TM4C1294NCPDT"/>
+								</option>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WARNING.596671055" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WARNING" useByScannerDiscovery="false" valueType="stringList">
+									<listOptionValue builtIn="false" value="225"/>
+								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DISPLAY_ERROR_NUMBER.392352863" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DISPLAY_ERROR_NUMBER" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP.463211770" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.DIAG_WRAP.off" valueType="enumerated"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.INCLUDE_PATH.2073627931" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.INCLUDE_PATH" valueType="includePath">
+									<listOptionValue builtIn="false" value="${PROJECT_ROOT}"/>
+									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
+								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.LITTLE_ENDIAN.335133809" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compilerID.LITTLE_ENDIAN" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__C_SRCS.1666857415" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__C_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__CPP_SRCS.1639675233" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__CPP_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM_SRCS.2028124386" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM2_SRCS.1394594850" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.compiler.inputType__ASM2_SRCS"/>
+							</tool>
+							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.linkerRelease.391369495" name="Arm Linker" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exe.linkerRelease">
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.MAP_FILE.1342295366" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.MAP_FILE" useByScannerDiscovery="false" value="${ProjName}.map" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.STACK_SIZE.339327344" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.STACK_SIZE" useByScannerDiscovery="false" value="512" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.HEAP_SIZE.902411820" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.HEAP_SIZE" useByScannerDiscovery="false" value="0" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.OUTPUT_FILE.1026127547" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.OUTPUT_FILE" useByScannerDiscovery="false" value="${ProjName}.out" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.XML_LINK_INFO.93654449" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.XML_LINK_INFO" useByScannerDiscovery="false" value="${ProjName}_linkInfo.xml" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DISPLAY_ERROR_NUMBER.1082773643" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DISPLAY_ERROR_NUMBER" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DIAG_WRAP.447711514" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DIAG_WRAP" useByScannerDiscovery="false" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.DIAG_WRAP.off" valueType="enumerated"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.SEARCH_PATH.2095368301" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.SEARCH_PATH" valueType="libPaths">
+									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/lib"/>
+									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
+								</option>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.LIBRARY.1794924599" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.LIBRARY" useByScannerDiscovery="false" valueType="libs">
+									<listOptionValue builtIn="false" value="libc.a"/>
+								</option>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS.1991527763" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS.975194416" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS"/>
+								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__GEN_CMDS.39208259" name="Generated Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__GEN_CMDS"/>
+							</tool>
+							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.hex.1297135201" name="Arm Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.hex"/>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="Wetterstation.com.ti.ccstudio.buildDefinitions.TMS470.ProjectType.982761960" name="TMS470" projectType="com.ti.ccstudio.buildDefinitions.TMS470.ProjectType"/>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+</cproject>
