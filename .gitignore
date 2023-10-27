@@ -1,4 +1,3 @@
-Debug/*
-targetConfigs/*
-wetterstation-ui/target/*
-wetterstation-ui/Cargo.lock
+/wetterstation-ui/target/*
+/Wetterstation/Debug/*
+/Wetterstation/targetConfigs/*
