@@ -10,6 +10,8 @@ use clokwerk::{Scheduler, TimeUnits, Job};
 
 use slint::{Timer, TimerMode};
 
+mod ringtest;
+
 slint::include_modules!();
 #[forbid(unsafe_code)]
 
