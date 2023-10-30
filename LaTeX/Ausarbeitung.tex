@@ -1,0 +1,166 @@
+\documentclass[a4paper,11pt]{article}
+%\usepackage[utf8]{inputenc} % Sonderzeichen schreiben koennen (hier nicht benutzt)
+\usepackage[ngerman]{babel} % Deutsche Abbildungszeichen
+\usepackage{graphicx}   % Graphiken einfuegen
+\usepackage{fancyhdr}   % Fuer Kopf- und Fusszeile
+\usepackage{geometry}   % Seitenraender definieren
+\usepackage{tikz}       % Zum Regler Zeichnen
+\usepackage{multirow}   % Multirow in Tabellen
+\usepackage{float}      % Um Bilder genau an diesem Punkt einzufuegen [H]
+\usepackage{fancyvrb}   % Box um Verbatim Code
+\usepackage{microtype}  % Automatische Anpassung der Zeilenmasse, dass unschoene Umbrueche vermieden werden
+\usepackage{mathtools}  % Fuer Text auf/unter Pfeilen
+\usepackage{pgfplots}   % Plot zusammen mit tikzpicture
+\usepackage{makecell}   % Umbruch in tabellen
+\usepackage{enumitem}   % Einruecken bei itemize verhindern
+\usepackage{titlesec}   % Elemente unter subsubsection erzeugen
+\usepackage{trfsigns}   % Transformationssymbole
+\usepackage{amsmath}    % Umbruch in Formeln
+\usepackage{listings}   % Code darstellen
+\usepackage{xcolor}     % Code farbig machen
+\usepackage{longtable}  % Tabellen mit Seitenumbruch
+\usepackage[font=footnotesize, labelfont=bf]{caption}
+\usetikzlibrary{shapes,arrows}
+\pgfplotsset{compat = newest}
+
+\usepackage[colorlinks,
+pdfpagelabels,
+pdfstartview = FitH,
+bookmarksopen = true,
+bookmarksnumbered = true,
+linkcolor = black,
+plainpages = false,
+hypertexnames = false,
+citecolor = black] {hyperref}
+
+% Seitenraender definieren
+\geometry{
+    left=25mm,
+    right=25mm,
+    top=25mm,
+    %bottom=25mm
+    }
+    
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\newenvironment{nospaceflalign*}
+ {\setlength{\abovedisplayskip}{0pt}\setlength{\belowdisplayskip}{0pt}%
+  \csname flalign*\endcsname}
+ {\csname endflalign*\endcsname\ignorespacesafterend}
+
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{28.1pt} % Hoehe der Kopfzeile
+\rhead{\includegraphics[height=24pt]{HAWLogo}}    % HAW Logo in Kopfzeile einfuegen
+\lhead{Bussysteme und Sensorik}  % Beschreibung in Kopfzeile
+
+\renewcommand{\footrulewidth}{0.4pt}    % Linie in Fusszeile einfügen
+\rfoot{\thepage}    % Seitenzahlen einfuegen
+\lfoot{Department Informations- und Elektrotechnik}   % Fusszeile linksbuendig
+
+\begin{document}
+%Titelseite
+\begin{titlepage}
+
+\begin{figure}
+ \centering
+ \includegraphics[height=2.5cm]{HAWLogo}
+\end{figure}
+
+\vspace*{2cm}
+\centering
+{\scshape\Large Bussysteme und Sensorik \par}
+\vspace{1cm}
+{\scshape\LARGE Entwicklung Wetterstation unter Verwendung von Bussystemen \par}
+\vspace{0.5cm}
+{\scshape\large Wintersemester 2023/2024 \par}
+\vspace{5cm}
+
+\raggedright
+Ausarbeitung von:
+
+\vspace{0.5cm}
+Lasse Kelling \\
+123456 % matnr
+
+\vspace{0.2cm}
+Fabian Schmalenbach \\
+2514071
+
+\vspace{0.5cm}
+Abgabedatum: 24.06.2023
+
+\vspace{0.5cm}
+Pr\"ufer: Prof. Dr. R. Fitz
+
+
+
+\end{titlepage}
+
+\newpage
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+
+\setcounter{page}{1}    % Seitenzaehler sicherheitshalber zuruecksetzen
+
+\noindent
+Lorem ipsum was wei{\ss} ich...
+
+\end{document}
