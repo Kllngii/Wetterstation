@@ -16,25 +16,41 @@ mod ringtest;
 //TODO PieChart anhand der Messwerte füllen
 
 slint::include_modules!();
-#[forbid(unsafe_code)]
+
+const TEMPERATURE_0: f64 = -10.0;
+const TEMPERATURE_100: f64 = 40.0;
+const HUMIDITY_0: f64 = 0.0;
+const HUMIDITY_100: f64 = 100.0;
+const PRESSURE_0: f64 = 900.0;
+const PRESSURE_100: f64 = 1100.0;
 
 #[derive(Debug, Default)]
-struct DHT_Data {
+struct SensorData {
     temperature: Option<f64>,
     humidity: Option<f64>,
+    pressure: Option<f64>,
+    co2: Option<f64>,
+    tvoc: Option<f64>,
 }
-impl FromStr for DHT_Data {
+impl FromStr for SensorData {
     type Err = Box<dyn std::error::Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let a: Value = serde_json::from_str(s)?;
 
-        let temperature = a["temperature"].as_f64();
-        let humidity = a["humidity"].as_f64();
+        //TODO DHT11 und BME280 Werte auslesen
+        let temperature = a["bme-temperature"].as_f64();
+        let humidity = a["bme-humidity"].as_f64();
+        let pressure = a["bme-pressure"].as_f64();
+        let co2 = a["ccs-co2"].as_f64();
+        let tvoc = a["ccs-tvoc"].as_f64();
 
-        Ok(DHT_Data {
+        Ok(SensorData {
             temperature,
-            humidity
+            humidity,
+            pressure,
+            co2,
+            tvoc,
         })
     }
 }
@@ -50,7 +66,7 @@ fn main() {
     ringtest::run();
     startup();
     let main_window = MainWindow::new().unwrap();
-    let dht_deque = Arc::new(Mutex::new(VecDeque::<DHT_Data>::new()));
+    let dht_deque = Arc::new(Mutex::new(VecDeque::<SensorData>::new()));
 
     initialize_callbacks(&main_window);
     let timer = initialize_update_timer(&main_window, dht_deque.clone());
@@ -76,7 +92,7 @@ fn initialize_callbacks(main_window: &MainWindow) {
     });
 }
 
-fn initialize_update_timer(main_window: &MainWindow, mut dht_deque: Arc<Mutex<VecDeque<DHT_Data>>>) -> Timer {
+fn initialize_update_timer(main_window: &MainWindow, dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Timer {
     let refresh_timer = Timer::default();
     let weak_main = main_window.as_weak().unwrap();
 
@@ -103,6 +119,16 @@ fn initialize_update_timer(main_window: &MainWindow, mut dht_deque: Arc<Mutex<Ve
                             weak_main.set_humidity(SharedString::from("N/A"));
                         },
                     }
+                    match dht_data.pressure {
+                        Some(pressure) => {
+                            weak_main.set_pressure(SharedString::from(format!("{:.1}", pressure)));
+                        },
+                        None => {
+                            weak_main.set_pressure(SharedString::from("N/A"));
+                        },
+                    }
+                    //TODO CO2 und TVOC anzeigen
+                    value_changed(weak_main.as_weak().unwrap());
                 }
             },
             Err(_) => {},
@@ -113,7 +139,25 @@ fn initialize_update_timer(main_window: &MainWindow, mut dht_deque: Arc<Mutex<Ve
     refresh_timer
 }
 
-fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<DHT_Data>>>) -> Option<clokwerk::ScheduleHandle>{
+fn value_changed(main_window: MainWindow) {
+    let temperature = main_window.get_temperature().parse::<f64>().unwrap_or(0.0);
+    let humidity = main_window.get_humidity().parse::<f64>().unwrap_or(0.0);
+    let pressure = main_window.get_pressure().parse::<f64>().unwrap_or(0.0);
+
+    let temperature_progress = (((temperature - TEMPERATURE_0) / (TEMPERATURE_100 - TEMPERATURE_0))*100f64) as i32;
+    let humidity_progress = (((humidity - HUMIDITY_0) / (HUMIDITY_100 - HUMIDITY_0))*100f64) as i32;
+    let pressure_progress = (((pressure - PRESSURE_0) / (PRESSURE_100 - PRESSURE_0))*100f64) as i32;
+
+    println!("Temperature: {} -> {}", temperature, temperature_progress);
+    println!("Humidity: {} -> {}", humidity, humidity_progress);
+    println!("Pressure: {} -> {}", pressure, pressure_progress);
+
+    main_window.set_temperature_progress(temperature_progress.clamp(0, 100));
+    main_window.set_humidity_progress(humidity_progress.clamp(0, 100));
+    main_window.set_pressure_progress(pressure_progress.clamp(0, 100));
+}
+
+fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Option<clokwerk::ScheduleHandle>{
     let mut found_port: Option<SerialPortInfo> = None;
     for port in available_ports().unwrap() {
         //TODO für Windows anpassen & eventuell andere Mikrocontroller außer Arduino unterstützen
@@ -133,7 +177,7 @@ fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<DHT_Data>>>) -> Option<cl
                     println!("Serieller Port erfolgreich geöffnet!");
                     
                     let mut scheduler = Scheduler::new();
-                    let mut buf: [u8; 128] =  [0; 128];
+                    let mut buf: [u8; 512] =  [0; 512];
                     scheduler.every(1.seconds()).plus(1.seconds()).run(move || {
                         println!("Lese Daten vom seriellen Port!");
                         match  serial.read(&mut buf) {
@@ -145,9 +189,12 @@ fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<DHT_Data>>>) -> Option<cl
                                 if let Some(start_idx) = data.find('{') {
                                     if let Some(end_idx) = data[start_idx..].find('}') {
                                         let result = &data[start_idx..start_idx + end_idx + 1];
-                                        dht_deque.lock().unwrap().push_back(result.parse::<DHT_Data>().unwrap_or(DHT_Data {
+                                        dht_deque.lock().unwrap().push_back(result.parse::<SensorData>().unwrap_or(SensorData {
                                             temperature: None,
                                             humidity: None,
+                                            pressure: None,
+                                            co2: None,
+                                            tvoc: None,
                                         }));
                                     }
                                 }
