@@ -355,7 +355,6 @@ component Tagesverlauf inherits Box {
             
             Rectangle {
                 // The datapoint is
-                // FIXME: make it more curve, also fix the color
                 property <{values: [int], color: color}> temperature-data: show_temperature ? {values: root.temperature_values, color: #ff3122} : {};
                 property <{values: [int], color: color}> humidity-data: show_humidity ? {values: root.humidity_values, color: #6776ff} : {};
                 property <{values: [int], color: color}> pressure-data: show_pressure ? {values: root.pressure_values, color: #ff7d34} : {};
