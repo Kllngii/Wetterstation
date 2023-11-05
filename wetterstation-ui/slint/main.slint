@@ -456,9 +456,9 @@ component Tagesverlauf inherits Box {
             HorizontalLayout {
                 alignment: end;
                 spacing: 6px;
-                property <{text: string, color: color}> temperature-item: {text: "Temperatur", color: #ff3122};
-                property <{text: string, color: color}> humidity-item: {text: "Luftfeuchtigkeit", color: #6776ff};
-                property <{text: string, color: color}> pressure-item: {text: "Luftdruck", color: #ff7d34};
+                property <{text: string, color: color}> temperature-item: {text: "Temperatur", color: Skin.pink-saturated};
+                property <{text: string, color: color}> humidity-item: {text: "Luftfeuchtigkeit", color: Skin.blue-saturated};
+                property <{text: string, color: color}> pressure-item: {text: "Luftdruck", color: Skin.orange-saturated};
                 temperature-legend := LegendenItem {
                     item: temperature-item;
                 }
@@ -471,9 +471,9 @@ component Tagesverlauf inherits Box {
             }
             
             Rectangle {
-                property <{values: [int], color: color}> temperature-data: {values: root.temperature_values, color: #ff3122};
-                property <{values: [int], color: color}> humidity-data: {values: root.humidity_values, color: #6776ff};
-                property <{values: [int], color: color}> pressure-data: {values: root.pressure_values, color: #ff7d34};
+                property <{values: [int], color: color}> temperature-data: {values: root.temperature_values, color: Skin.pink-saturated};
+                property <{values: [int], color: color}> humidity-data: {values: root.humidity_values, color: Skin.blue-saturated};
+                property <{values: [int], color: color}> pressure-data: {values: root.pressure_values, color: Skin.orange-saturated};
                 DataPath {
                     datapoints: temperature-data;
                     show: temperature-legend.show;
@@ -520,10 +520,13 @@ component TopWidgets inherits HorizontalLayout {
     in property <string> humidity;
     in property <string> pressure;
     in property <string> co2;
+    in property <string> tvoc;
+
     in property <int> temperature-progress;
     in property <int> humidity-progress;
     in property <int> pressure-progress;
     in property <int> co2-progress;
+    in property <int> tvoc-progress;
 
     padding-left: 24px;
     padding-top: 24px;
@@ -533,10 +536,11 @@ component TopWidgets inherits HorizontalLayout {
     min-width: 600px;
     
     for item in [
-        { name: "Temperatur", progress: temperature-progress, value: temperature, unit: "°C", gradient: @linear-gradient(0deg, Skin.orange-saturated, Skin.orange-faded)},
+        { name: "Temperatur", progress: temperature-progress, value: temperature, unit: "°C", gradient: @linear-gradient(0deg, Skin.pink-saturated, Skin.pink-faded)},
         { name: "Luftfeuchtigkeit", progress: humidity-progress, value: humidity, unit: "%", gradient: @linear-gradient(0deg, Skin.blue-saturated, Skin.blue-faded)},
-        { name: "Luftdruck", progress: pressure-progress, value: pressure, unit: "hPa", gradient: @linear-gradient(0deg, Skin.pink-saturated, Skin.pink-faded)},
-        { name: "CO2 Konzentration", progress: pressure-progress, value: pressure, unit: "ppm", gradient: @linear-gradient(0deg, Skin.green-saturated, Skin.green-faded)},
+        { name: "Luftdruck", progress: pressure-progress, value: pressure, unit: "hPa", gradient: @linear-gradient(0deg, Skin.orange-saturated, Skin.orange-faded)},
+        { name: "CO2", progress: co2-progress, value: co2, unit: "ppm", gradient: @linear-gradient(0deg, Skin.green-saturated, Skin.green-faded)},
+        { name: "TVOC", progress: tvoc-progress, value: tvoc, unit: "ppb", gradient: @linear-gradient(0deg, Skin.lightblue-saturated, Skin.lightblue-faded)},
     ] : VerticalLayout {
         padding: 0px; spacing: 0px;
         Text {
@@ -568,10 +572,14 @@ component MainContent inherits VerticalLayout {
     in property <string> temperature;
     in property <string> humidity;
     in property <string> pressure;
+    in property <string> co2;
+    in property <string> tvoc;
     
     in property <int> temperature-progress;
     in property <int> humidity-progress;
     in property <int> pressure-progress;
+    in property <int> co2-progress;
+    in property <int> tvoc-progress;
     
     in property <string> time;
     
@@ -588,9 +596,15 @@ component MainContent inherits VerticalLayout {
         temperature: root.temperature;
         humidity: root.humidity;
         pressure: root.pressure;
+        co2: root.co2;
+        tvoc: root.tvoc;
+
         temperature-progress: root.temperature-progress;
         humidity-progress: root.humidity-progress;
         pressure-progress: root.pressure-progress;
+        co2-progress: root.co2-progress;
+        tvoc-progress: root.tvoc-progress;
+
         Clock {time: root.time;}
     }
     GridLayout {
@@ -628,11 +642,13 @@ export component MainWindow inherits Window {
     in property <string> humidity : "32"; //%
     in property <string> pressure : "1034"; //hPa
     in property <string> co2 : "500"; //ppm
-    in property <string> tvoc : "0"; //ppb
+    in property <string> tvoc : "6"; //ppb
     
     in property <int> temperature-progress : 58;
     in property <int> humidity-progress : 32;
     in property <int> pressure-progress : 90;
+    in property <int> co2-progress : 46;
+    in property <int> tvoc-progress : 15;
     
     in property <string> time : "23:06.02";
     
@@ -648,10 +664,14 @@ export component MainWindow inherits Window {
             temperature: root.temperature;
             humidity: root.humidity;
             pressure: root.pressure;
+            co2: root.co2;
+            tvoc: root.tvoc;
             
             temperature-progress: root.temperature-progress;
             humidity-progress: root.humidity-progress;
             pressure-progress: root.pressure-progress;
+            co2-progress: root.co2-progress;
+            tvoc-progress: root.tvoc-progress;
             
             time: root.time;
             
