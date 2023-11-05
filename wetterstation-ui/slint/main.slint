@@ -262,12 +262,13 @@ component BoxedWidget inherits Box {
     }
 }
 
+
 component Temperatur inherits BoxedWidget {
     in-out property <string> temperature;
     title-: "Temperatur";
     iconFile: @image-url("../images/temperature.png");
     value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
-    gradient-box: @linear-gradient(180deg, #ff7d34, #ff3122);
+    gradient-box: @linear-gradient(0deg, Skin.pink-saturated, Skin.pink-faded);
     clicked() => {//TODO
     }
 }
@@ -277,7 +278,7 @@ component Luftfeuchtigkeit inherits BoxedWidget {
     title-: "Luftfeuchtigkeit";
     iconFile: @image-url("../images/humidity.png");
     value: root.humidity + "%";
-    gradient-box: @linear-gradient(180deg, #6776FF, #6100FF);
+    gradient-box: @linear-gradient(0deg, Skin.blue-saturated, Skin.blue-faded);
     clicked() => {//TODO
     }
 }
@@ -287,7 +288,7 @@ component Luftdruck inherits BoxedWidget {
     title-: "Luftdruck";
     iconFile: @image-url("../images/pressure.png");
     value: root.pressure + "hPa";
-    gradient-box: @linear-gradient(180deg, #FFCE50, #f99055);
+    gradient-box: @linear-gradient(0deg, Skin.orange-saturated, Skin.orange-faded);
     clicked() => {//TODO
     }
 }
