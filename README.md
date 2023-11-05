@@ -21,6 +21,7 @@ Geplant ist derzeit die Erfassung folgender Messdaten:
 - **LaTeX** [Dokumentation des Projekts](#dokumentation)
 - **wetterstation-arduinosensor** [Arduino als Sensormodul](#arduino-als-sensormodul)
 - **wetterstation-ui/** [Desktop App](#desktop-app)
+- **wetterstation-rpico-ui/** [Raspberry Pico mit Touchscreen als Interface](#raspberry-pico-mit-touchscreen-als-interface)
 
 # Desktop App
 ![Platform Darwin](https://img.shields.io/badge/platform-macOS-orange.svg)
@@ -40,3 +41,11 @@ Das LaTeX Dokument in diesem Ordner ist die Dokumentation des Projekts.
 ![Version](https://img.shields.io/badge/version-0.1.0-green.svg)
 
 Ein kleiner Beispiel-Sketch, der einen Arduino (Uno) benutzt, um die I2C- und Onewire-Sensoren anzusteuern.
+
+# Raspberry Pico mit Touchscreen als Interface 
+![Platform RPico](https://img.shields.io/badge/platform-RP2040-orange.svg)
+![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Apache-2.0 License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.0.1-green.svg)
+
+*TODO* Hier müsste man erklären was die Raspberry-Pi-Pico-App ist
