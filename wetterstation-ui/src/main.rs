@@ -1,4 +1,4 @@
-use chrono::offset::Utc;
+use chrono::{offset::Utc, Local};
 use chrono::DateTime;
 
 use serde::Deserialize;
@@ -23,6 +23,12 @@ const HUMIDITY_0: f64 = 0.0;
 const HUMIDITY_100: f64 = 100.0;
 const PRESSURE_0: f64 = 900.0;
 const PRESSURE_100: f64 = 1100.0;
+
+enum ValidData {
+    DHT11(f64),
+    BME280(f64),
+    BOTH(f64, f64),
+}
 
 #[derive(Debug, Default)]
 struct SensorData {
@@ -66,44 +72,25 @@ fn main() {
     ringtest::run();
     startup();
     let main_window = MainWindow::new().unwrap();
-    let dht_deque = Arc::new(Mutex::new(VecDeque::<SensorData>::new()));
+    let senor_deque = Arc::new(Mutex::new(VecDeque::<SensorData>::new()));
 
-    initialize_callbacks(&main_window);
-    let timer = initialize_update_timer(&main_window, dht_deque.clone());
-    let thread_handle = initialize_serial(dht_deque.clone());
+    let timer = initialize_update_timer(&main_window, senor_deque.clone());
+    let thread_handle = initialize_serial(senor_deque.clone());
 
     main_window.run().expect("Fehler beim Anzeigen des Fensters!");
 }
 
-fn initialize_callbacks(main_window: &MainWindow) {
-    let weak_main = main_window.as_weak().unwrap();
-    main_window.global::<CallbackExporter>().on_temperature_touch(move || {
-        weak_main.set_show_temperature(!weak_main.get_show_temperature());
-    });
-
-    let weak_main = main_window.as_weak().unwrap();
-    main_window.global::<CallbackExporter>().on_humidity_touch(move || {
-        weak_main.set_show_humidity(!weak_main.get_show_humidity());
-    });
-
-    let weak_main = main_window.as_weak().unwrap();
-    main_window.global::<CallbackExporter>().on_pressure_touch(move || {
-        weak_main.set_show_pressure(!weak_main.get_show_pressure());
-    });
-}
-
-fn initialize_update_timer(main_window: &MainWindow, dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Timer {
+fn initialize_update_timer(main_window: &MainWindow, sensor_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Timer {
     let refresh_timer = Timer::default();
     let weak_main = main_window.as_weak().unwrap();
 
     refresh_timer.start(TimerMode::Repeated, std::time::Duration::from_millis(200), move || {
-        let system_time = SystemTime::now();
-        let datetime: DateTime<Utc> = system_time.into();
+        let datetime = Local::now();
 
-        match dht_deque.try_lock() {
-            Ok(mut dht_deque) => {
-                if let Some(dht_data) = dht_deque.pop_front() {
-                    match dht_data.temperature {
+        match sensor_deque.try_lock() {
+            Ok(mut sensor_deque) => {
+                if let Some(sensor_data) = sensor_deque.pop_front() {
+                    match sensor_data.temperature {
                         Some(temperature) => {
                             weak_main.set_temperature(SharedString::from(format!("{:.1}", temperature)));
                         },
@@ -111,7 +98,7 @@ fn initialize_update_timer(main_window: &MainWindow, dht_deque: Arc<Mutex<VecDeq
                             weak_main.set_temperature(SharedString::from("N/A"));
                         },
                     }
-                    match dht_data.humidity {
+                    match sensor_data.humidity {
                         Some(humidity) => {
                             weak_main.set_humidity(SharedString::from(format!("{:.1}", humidity)));
                         },
@@ -119,12 +106,28 @@ fn initialize_update_timer(main_window: &MainWindow, dht_deque: Arc<Mutex<VecDeq
                             weak_main.set_humidity(SharedString::from("N/A"));
                         },
                     }
-                    match dht_data.pressure {
+                    match sensor_data.pressure {
                         Some(pressure) => {
                             weak_main.set_pressure(SharedString::from(format!("{:.1}", pressure)));
                         },
                         None => {
                             weak_main.set_pressure(SharedString::from("N/A"));
+                        },
+                    }
+                    match sensor_data.co2 {
+                        Some(co2) => {
+                            weak_main.set_co2(SharedString::from(format!("{:.1}", co2)));
+                        },
+                        None => {
+                            weak_main.set_co2(SharedString::from("N/A"));
+                        },
+                    }
+                    match sensor_data.tvoc {
+                        Some(tvoc) => {
+                            weak_main.set_tvoc(SharedString::from(format!("{:.1}", tvoc)));
+                        },
+                        None => {
+                            weak_main.set_tvoc(SharedString::from("N/A"));
                         },
                     }
                     //TODO CO2 und TVOC anzeigen
@@ -179,6 +182,7 @@ fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Option<
                     let mut scheduler = Scheduler::new();
                     let mut buf: [u8; 512] =  [0; 512];
                     scheduler.every(1.seconds()).plus(1.seconds()).run(move || {
+                        println!();
                         println!("Lese Daten vom seriellen Port!");
                         match  serial.read(&mut buf) {
                             Ok(bytes_read) => {
