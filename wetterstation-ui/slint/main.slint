@@ -49,12 +49,6 @@
      out property <length> TitleFont: 10px; // (also, bold)
  }
  
- export global CallbackExporter {
-     callback temperature-touch;
-     callback humidity-touch;
-     callback pressure-touch;
- }
- 
  component PieChartBackground inherits Path {
      in property <float> thickness;
      in property <float> inner-radius;
@@ -262,7 +256,8 @@
      iconFile: @image-url("../images/temperature.png");
      value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
      gradient-box: @linear-gradient(180deg, #ff7d34, #ff3122);
-     clicked() => {CallbackExporter.temperature-touch()}
+     clicked() => {//TODO
+     }
  }
  
  component Luftfeuchtigkeit inherits BoxedWidget {
@@ -271,7 +266,8 @@
      iconFile: @image-url("../images/humidity.png");
      value: root.humidity + "%";
      gradient-box: @linear-gradient(180deg, #6776FF, #6100FF);
-     clicked() => {CallbackExporter.humidity-touch()}
+     clicked() => {//TODO
+     }
  }
  
  component Luftdruck inherits BoxedWidget {
@@ -280,7 +276,8 @@
      iconFile: @image-url("../images/pressure.png");
      value: root.pressure + "hPa";
      gradient-box: @linear-gradient(180deg, #FFCE50, #f99055);
-     clicked() => {CallbackExporter.pressure-touch()}
+     clicked() => {//TODO
+     }
  }
  
  component LegendenItem {
@@ -480,17 +477,29 @@
              }
          }
      }
-     HorizontalLayout {
-         padding: 0px;
+     VerticalLayout {
          padding-top: 5px;
-         for day in ["-6h", "-5h", "-4h", "-3h", "-2h", "-1h", "Jetzt"] : Text {
-             //background: blue;
-             color: Skin.palette.text;
-             text: day;
-             font-size: Skin.TinyFont;
-             horizontal-alignment: center;
+         spacing: 0px;
+         Rectangle {
+             preferred-height: 3px;
+             background: @linear-gradient(0deg, Skin.palette.menuBar, Skin.palette.mainContent);
          }
- 
+         HorizontalLayout {
+             padding: 0px;
+             for day in ["-6h", "-5h", "-4h", "-3h", "-2h", "-1h", "Jetzt"] : Rectangle {
+                 background: Skin.palette.menuBar;
+                 Text {
+                     color: Skin.palette.text;
+                     text: day;
+                     font-size: Skin.TinyFont;
+                     horizontal-alignment: center;
+                 }
+             }
+         }
+         Rectangle {
+             preferred-height: 3px;
+             background: @linear-gradient(180deg, Skin.palette.menuBar, Skin.palette.mainContent);
+         }
      }
  }
  
