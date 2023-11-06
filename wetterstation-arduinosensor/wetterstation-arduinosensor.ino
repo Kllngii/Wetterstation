@@ -22,7 +22,7 @@ void setup() {
 }
 
 void loop() {
-  dht22Sensor.read();
+  //dht22Sensor.read();
 
   float temp(NAN), hum(NAN), pres(NAN);
   BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
