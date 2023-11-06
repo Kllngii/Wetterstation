@@ -217,6 +217,7 @@ component TitleValueBox inherits VerticalLayout {
 
 component ValueLabel inherits Text {
     in property <string> value <=> root.text;
+    in property <bool> collapsed: false;
     font-size: Skin.HugeFont;
     font-weight: 700;
     color: #929cb2;
@@ -241,25 +242,48 @@ component RoundedIcon inherits Rectangle {
 }
 
 component BoxedWidget inherits Box {
-    preferred-width: 240px; //ein leeres Boxed-Widget braucht ca. 230px + Puffer
     callback clicked <=> ta.clicked;
     in property <image> iconFile <=> icon.iconName;
-    in-out property <string> value <=> val.value;
+    in-out property <string> value;
     in property <brush> gradient-box <=> icon.gradient-box;
-    in property <string> title- <=> titleLabel.text;
+    in property <string> title-;
+    out property <bool> collapsed: false;
     ta := TouchArea {
-        HorizontalLayout {
+        layout := HorizontalLayout {
             spacing: 24px;
             icon := RoundedIcon {}
-            TitleValueBox {
-                titleLabel := Text {
+            tvb := TitleValueBox {
+                if !collapsed : Text {
                     font-size: Skin.TitleFont;
                     font-weight: 700;
+                    text: title-;
                 }
-                val := ValueLabel {}
+                if !collapsed : ValueLabel {value: root.value;}
             }
         }
+        clicked => {
+            collapsed = !collapsed;
+            debug(root.title- + " collapsed=" + (collapsed ? "true" : "false"));
+        }
+        animate preferred-width {
+            duration: 20ms;
+       }
     }
+
+    states [
+        small when collapsed : {
+            layout.spacing: 6px;
+            preferred-width: 120px;
+            tvb.spacing: 4px;
+            tvb.padding: 4px;
+
+        } normal when !collapsed : {
+            layout.spacing: 24px;
+            preferred-width: 240px;
+            tvb.spacing: 8px;
+            tvb.padding: 8px;
+        }
+    ]
 }
 
 
@@ -269,8 +293,6 @@ component Temperatur inherits BoxedWidget {
     iconFile: @image-url("../images/temperature.png");
     value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
     gradient-box: @linear-gradient(0deg, Skin.pink-saturated, Skin.pink-faded);
-    clicked() => {//TODO
-    }
 }
 
 component Luftfeuchtigkeit inherits BoxedWidget {
@@ -279,8 +301,6 @@ component Luftfeuchtigkeit inherits BoxedWidget {
     iconFile: @image-url("../images/humidity.png");
     value: root.humidity + "%";
     gradient-box: @linear-gradient(0deg, Skin.blue-saturated, Skin.blue-faded);
-    clicked() => {//TODO
-    }
 }
 
 component Luftdruck inherits BoxedWidget {
@@ -289,8 +309,6 @@ component Luftdruck inherits BoxedWidget {
     iconFile: @image-url("../images/pressure.png");
     value: root.pressure + "hPa";
     gradient-box: @linear-gradient(0deg, Skin.orange-saturated, Skin.orange-faded);
-    clicked() => {//TODO
-    }
 }
 
 component LegendenItem {

@@ -23,6 +23,10 @@ const HUMIDITY_0: f64 = 0.0;
 const HUMIDITY_100: f64 = 100.0;
 const PRESSURE_0: f64 = 900.0;
 const PRESSURE_100: f64 = 1100.0;
+const CO2_0: f64 = 400.0;
+const CO2_100: f64 = 4000.0;
+const TVOC_0: f64 = 0.0;
+const TVOC_100: f64 = 1200.0; //TODO Werte für CO2 und TVOC überprüfen
 
 enum ValidData {
     DHT11(f64),
@@ -146,18 +150,26 @@ fn value_changed(main_window: MainWindow) {
     let temperature = main_window.get_temperature().parse::<f64>().unwrap_or(0.0);
     let humidity = main_window.get_humidity().parse::<f64>().unwrap_or(0.0);
     let pressure = main_window.get_pressure().parse::<f64>().unwrap_or(0.0);
+    let co2 = main_window.get_co2().parse::<f64>().unwrap_or(0.0);
+    let tvoc = main_window.get_tvoc().parse::<f64>().unwrap_or(0.0);
 
     let temperature_progress = (((temperature - TEMPERATURE_0) / (TEMPERATURE_100 - TEMPERATURE_0))*100f64) as i32;
     let humidity_progress = (((humidity - HUMIDITY_0) / (HUMIDITY_100 - HUMIDITY_0))*100f64) as i32;
     let pressure_progress = (((pressure - PRESSURE_0) / (PRESSURE_100 - PRESSURE_0))*100f64) as i32;
+    let co2_progress = (((co2 - CO2_0) / (CO2_100 - CO2_0))*100f64) as i32;
+    let tvoc_progress = (((tvoc - TVOC_0) / (TVOC_100 - TVOC_0))*100f64) as i32;
 
     println!("Temperature: {} -> {}", temperature, temperature_progress);
     println!("Humidity: {} -> {}", humidity, humidity_progress);
     println!("Pressure: {} -> {}", pressure, pressure_progress);
+    println!("CO2: {} -> {}", co2, co2_progress);
+    println!("TVOC: {} -> {}", tvoc, tvoc_progress);
 
     main_window.set_temperature_progress(temperature_progress.clamp(0, 100));
     main_window.set_humidity_progress(humidity_progress.clamp(0, 100));
     main_window.set_pressure_progress(pressure_progress.clamp(0, 100));
+    main_window.set_co2_progress(co2_progress.clamp(0, 100));
+    main_window.set_tvoc_progress(tvoc_progress.clamp(0, 100));
 }
 
 fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Option<clokwerk::ScheduleHandle>{
