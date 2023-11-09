@@ -1,4 +1,4 @@
-use chrono::{offset::Utc, Local};
+use chrono::Local;
 use chrono::DateTime;
 
 use serde::Deserialize;
@@ -94,6 +94,7 @@ fn initialize_update_timer(main_window: &MainWindow, sensor_deque: Arc<Mutex<Vec
         match sensor_deque.try_lock() {
             Ok(mut sensor_deque) => {
                 if let Some(sensor_data) = sensor_deque.pop_front() {
+                    println!("{sensor_data:#?}");
                     match sensor_data.temperature {
                         Some(temperature) => {
                             weak_main.set_temperature(SharedString::from(format!("{:.1}", temperature)));
@@ -172,20 +173,24 @@ fn value_changed(main_window: MainWindow) {
     main_window.set_tvoc_progress(tvoc_progress.clamp(0, 100));
 }
 
-fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Option<clokwerk::ScheduleHandle>{
+fn initialize_serial(dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Option<clokwerk::ScheduleHandle>{
     let mut found_port: Option<SerialPortInfo> = None;
     for port in available_ports().unwrap() {
         //TODO für Windows anpassen & eventuell andere Mikrocontroller außer Arduino unterstützen
-        if port.port_name.contains("tty.usbmodem") {
-            println!("Mikrocontroller auf Port {} gefunden!", port.port_name);
+        if port.port_name.contains("tty.usbmodem") { //Arduino Uno
+            println!("Arduino auf Port {} gefunden!", port.port_name);
+            found_port = Some(port);
+            break;
+        } if port.port_name.contains("cu.usbserial") { //ESP32-WROOM32
+            println!("ESP32-WROOM auf Port {} gefunden!", port.port_name);
             found_port = Some(port);
             break;
         }
     }
     match found_port {
         Some(port) => {
-            let mut serial_port = serialport::new(port.port_name.as_str(), 115200)
-                .timeout(std::time::Duration::from_millis(100))
+            let serial_port = serialport::new(port.port_name.as_str(), 115200)
+                .timeout(std::time::Duration::from_millis(250))
                 .open_native();
             match serial_port {
                 Ok(mut serial) => {
@@ -201,6 +206,7 @@ fn initialize_serial(mut dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Option<
                                 println!("Es wurden {} Bytes gelesen!", bytes_read);
                                 let data = String::from_utf8_lossy(&buf);
                                 let data = data.trim();
+                                println!("Gelesener String: {}", data);
                                 serial.clear(serialport::ClearBuffer::All).unwrap();
                                 if let Some(start_idx) = data.find('{') {
                                     if let Some(end_idx) = data[start_idx..].find('}') {
