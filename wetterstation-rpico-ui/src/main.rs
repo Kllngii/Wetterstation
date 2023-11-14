@@ -5,6 +5,6 @@ slint::include_modules!();
 #[mcu_board_support::entry]
 fn main() -> ! {
     mcu_board_support::init();
-    let a = MainWindow::new().unwrap().run().unwrap();
+    MainWindow::new().unwrap().run().unwrap();
     panic!("The event loop should not return");
 }

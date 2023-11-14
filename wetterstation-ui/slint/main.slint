@@ -248,17 +248,25 @@ component BoxedWidget inherits Box {
     in property <brush> gradient-box <=> icon.gradient-box;
     in property <string> title-;
     out property <bool> collapsed: false;
+    property <float> fade: collapsed ? 0% : 100%;
+    animate fade {
+         duration: 500ms;
+    }
     ta := TouchArea {
         layout := HorizontalLayout {
             spacing: 24px;
             icon := RoundedIcon {}
             tvb := TitleValueBox {
-                if !collapsed : Text {
+                if fade > 0 : Text {
+                    opacity: fade;
                     font-size: Skin.TitleFont;
                     font-weight: 700;
                     text: title-;
                 }
-                if !collapsed : ValueLabel {value: root.value;}
+                if fade > 0 : ValueLabel {
+                    opacity: fade;
+                    value: root.value;
+                }
             }
         }
         clicked => {
@@ -267,21 +275,17 @@ component BoxedWidget inherits Box {
         }
         animate preferred-width {
             duration: 20ms;
-       }
+        }
     }
 
     states [
-        small when collapsed : {
-            layout.spacing: 6px;
+        small when fade == 0 : {
             preferred-width: 120px;
-            tvb.spacing: 4px;
-            tvb.padding: 4px;
+            layout.spacing: 0px;
 
         } normal when !collapsed : {
             layout.spacing: 24px;
             preferred-width: 240px;
-            tvb.spacing: 8px;
-            tvb.padding: 8px;
         }
     ]
 }
@@ -636,19 +640,22 @@ component MainContent inherits VerticalLayout {
         
         Temperatur {
             row: 0; col: 0;
+            colspan: 2;
             temperature: root.temperature;
         }
         Luftfeuchtigkeit {
-            row: 0; col: 1;
+            row: 0; col: 2;
+            colspan: 2;
             humidity: root.humidity;
         }
         Luftdruck {
-            row: 0; col: 2;
+            row: 0; col: 4;
+            colspan: 2;
             pressure: root.pressure;
         }
         Tagesverlauf {
             row: 1; col: 0;
-            colspan: 3;
+            colspan: 6;
             temperature_values: root.temperature_values;
             humidity_values: root.humidity_values;
             pressure_values: root.pressure_values;
