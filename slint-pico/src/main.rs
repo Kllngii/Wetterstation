@@ -12,10 +12,12 @@ fn create_slint_app() -> AppWindow {
 
     let ui_handle = ui.as_weak();
 
+    /*
     ui.on_request_increase_value(move || {
         let ui = ui_handle.unwrap();
         //ui.set_counter(ui.get_counter() + 1);
     });
+    */
 
     ui
 }
@@ -193,8 +195,6 @@ fn main() -> ! {
         if window.has_active_animations() {
             continue;
         }
-
-
 
         // TODO: we could save battery here by going to sleep up to
         //   slint::platform::duration_until_next_timer_update()
