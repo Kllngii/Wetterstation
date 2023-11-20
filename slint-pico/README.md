@@ -14,11 +14,18 @@ Nutzt [Slint](https://slint-ui.com), um eine hübsche UI auf einem Touch-Display
     ```
 - Auf einem [RaspberryPi Pico](https://www.raspberrypi.com/products/raspberry-pi-pico/) mit [2.8 inch Waveshare Touch Screen](https://www.waveshare.com/pico-restouch-lcd-2.8.htm) ausführen:
 
-    a. UF2-Images-Tool für den RP2040 installieren
+    a. Target RP2040 hinzufügen
+    ```
+    rustup self update
+    rustup update stable
+    rustup target add thumbv6m-none-eabi
+    ```
+    
+    b. UF2-Images-Tool für den RP2040 installieren
     ```
     cargo install elf2uf2-rs --locked
     ```
-    b. Auf RPico ausführen
+    c. Auf RPico ausführen
     ```
     cargo run --target=thumbv6m-none-eabi --features=pico --release
     ```
