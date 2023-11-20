@@ -20,7 +20,20 @@ rustflags = [
 ]
 
 [build]
-target = "thumbv6m-none-eabi"
+# target = "thumbv6m-none-eabi"
+target = "xtensa-esp32s3-none-elf"
 
-[env]
-DEFMT_LOG = "debug"
+#[env]
+#DEFMT_LOG = "debug"
+
+[target.xtensa-esp32s3-none-elf]
+runner = "espflash --monitor"
+rustflags = [
+    "-C", "force-frame-pointers",
+    "-C", "link-arg=-nostartfiles",
+    "-C", "link-arg=-Wl,-Tlinkall.x",
+    "-C", "target-feature=-fp",
+]
+
+[unstable]
+build-std = ["core", "alloc"]
