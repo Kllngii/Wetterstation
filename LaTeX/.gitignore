@@ -1,0 +1,7 @@
+# Ignore everything except tex, png and pdf files
+*
+
+!**.gitignore
+!**.tex
+!**.png
+!**.pdf
