@@ -10,7 +10,7 @@ pub struct XPT2046<IRQ: InputPin + 'static, CS: OutputPin, SPI: Transfer<u8>> {
 }
 
 impl<PinE, IRQ: InputPin<Error = PinE>, CS: OutputPin<Error = PinE>, SPI: Transfer<u8>>
-XPT2046<IRQ, CS, SPI>
+    XPT2046<IRQ, CS, SPI>
 {
     pub fn new(irq: IRQ, mut cs: CS, spi: SPI) -> Result<Self, PinE> {
         cs.set_high()?;
@@ -41,17 +41,13 @@ XPT2046<IRQ, CS, SPI>
             self.cs.set_low().map_err(|e| Error::Pin(e))?;
 
             macro_rules! xchg {
-                    ($byte:expr) => {
-                        match self
-                            .spi
-                            .transfer(&mut [$byte, 0, 0])
-                            .map_err(|e| Error::Transfer(e))?
-                        {
-                            [_, h, l] => ((*h as u32) << 8) | (*l as u32),
-                            _ => return Err(Error::InternalError),
-                        }
-                    };
-                }
+                ($byte:expr) => {
+                    match self.spi.transfer(&mut [$byte, 0, 0]).map_err(|e| Error::Transfer(e))? {
+                        [_, h, l] => ((*h as u32) << 8) | (*l as u32),
+                        _ => return Err(Error::InternalError),
+                    }
+                };
+            }
 
             let z1 = xchg!(CMD_Z1_READ);
             let z2 = xchg!(CMD_Z2_READ);
@@ -108,6 +104,9 @@ pub enum Error<PinE, TransferE> {
 unsafe fn set_spi_freq(freq: impl Into<fugit::Hertz<u32>>) {
     use rp_pico::hal;
     // FIXME: the touchscreen and the LCD have different frequencies, but we cannot really set different frequencies to different SpiProxy without this hack
-    hal::spi::Spi::<_, _, 8>::new(hal::pac::Peripherals::steal().SPI1)
-        .set_baudrate(125_000_000u32.Hz(), freq);
+    //FIXME Wie macht man das mit rp-pico 0.8 ?
+    //hal::spi::Spi::<_, _, _, 8>::new(hal::pac::Peripherals::steal().SPI1)
+    //    .set_baudrate(125_000_000u32.Hz(), freq);
+
+    //hal::spi::Spi::<_, _, _, 8>::new(hal::pac::Peripherals::steal().SPI1, (_spi_mosi, _spi_miso, _spi_sclk)).set_baudrate(125_000_000u32.Hz(), freq);
 }
