@@ -6,10 +6,8 @@ use defmt::*;
 #[cfg(feature = "panic-probe")]
 use defmt_rtt as _;
 use fugit::RateExtU32;
-#[cfg(feature = "panic-halt")]
-use panic_halt as _;
-#[cfg(feature = "panic-probe")]
-use panic_probe as _;
+// use panic_halt as _;
+// use panic_probe as _;
 
 use rp_pico::hal;
 use rp_pico::hal::gpio;
@@ -18,6 +16,28 @@ use rp_pico::hal::prelude::*;
 
 use crate::{create_slint_app, xpt2046};
 use slint::platform::WindowEvent;
+
+#[cfg(feature = "panic-halt")]
+extern crate panic_halt;
+#[cfg(feature = "panic-probe")]
+extern crate panic_probe;
+
+struct MyPlatform {
+    window: alloc::rc::Rc<slint::platform::software_renderer::MinimalSoftwareWindow>,
+    timer: hal::Timer,
+}
+
+impl slint::platform::Platform for MyPlatform {
+    fn create_window_adapter(
+        &self,
+    ) -> Result<alloc::rc::Rc<dyn slint::platform::WindowAdapter>, slint::PlatformError> {
+        Ok(self.window.clone())
+    }
+    fn duration_since_start(&self) -> core::time::Duration {
+        //TODO funktioniert das noch? mit rp-pico 0.5 gab es kein .ticks()
+        core::time::Duration::from_micros(self.timer.get_counter().ticks())
+    }
+}
 
 pub(crate) fn uc_main() -> ! {
     // *** Allocator Setup ***
@@ -83,7 +103,7 @@ pub(crate) fn uc_main() -> ! {
         xpt2046::XPT2046::new(touch_irq, pins.gpio16.into_push_pull_output(), spi.acquire_spi())
             .unwrap();
 
-    // -------- Setup the Slint backend --------
+    // *** Slint Backend Setup ***
     let window = slint::platform::software_renderer::MinimalSoftwareWindow::new(Default::default());
     slint::platform::set_platform(alloc::boxed::Box::new(MyPlatform {
         window: window.clone(),
@@ -91,30 +111,18 @@ pub(crate) fn uc_main() -> ! {
     }))
     .unwrap();
 
-    struct MyPlatform {
-        window: alloc::rc::Rc<slint::platform::software_renderer::MinimalSoftwareWindow>,
-        timer: hal::Timer,
-    }
+    info!("Embedded-HAL Initialisierung fertig, starte Wi-Fi Access Point!");
 
-    impl slint::platform::Platform for MyPlatform {
-        fn create_window_adapter(
-            &self,
-        ) -> Result<alloc::rc::Rc<dyn slint::platform::WindowAdapter>, slint::PlatformError>
-        {
-            Ok(self.window.clone())
-        }
-        fn duration_since_start(&self) -> core::time::Duration {
-            //TODO funktioniert das noch? mit rp-pico 0.5 gab es kein .ticks()
-            core::time::Duration::from_micros(self.timer.get_counter().ticks())
-        }
-    }
-    info!("embedded-hal init fertig, starte Wi-Fi Access Point");
+    #[cfg(feature = "wifi-ap")]
+    wifi_ap_startup();
 
-    // -------- Configure the UI --------
+    info!("Wi-Fi AP gestartet, beginne mit Aufbau der UI!");
+
+    // *** UI Config ***
     // (need to be done after the call to slint::platform::set_platform)
     let _ui = create_slint_app();
 
-    // -------- Event loop --------
+    // *** Event loop ***
     let mut line = [slint::platform::software_renderer::Rgb565Pixel(0); 320];
     let mut last_touch = None;
     loop {
@@ -140,9 +148,8 @@ pub(crate) fn uc_main() -> ! {
                         Size::new(range.len() as _, 1),
                     );
                     render_fn(&mut self.1[range.clone()]);
-                    // NOTE! this is not an efficient way to send pixel to the screen, but it is kept simple on this template.
-                    // It would be much faster to use the DMA to send pixel in parallel.
-                    // See the example in https://github.com/slint-ui/slint/blob/master/examples/mcu-board-support/pico_st7789.rs
+                    //TODO durch DMA ersetzen
+                    // https://github.com/slint-ui/slint/blob/master/examples/mcu-board-support/pico_st7789.rs
                     self.0
                         .fill_contiguous(
                             &rect,
@@ -191,3 +198,7 @@ pub(crate) fn uc_main() -> ! {
         // cortex_m::asm::wfe();
     }
 }
+
+#[cfg(feature = "wifi-ap")]
+#[inline]
+fn wifi_ap_startup() {}
