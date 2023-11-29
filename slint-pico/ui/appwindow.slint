@@ -4,14 +4,13 @@
 import { StyleMetrics } from "std-widgets.slint";
 
 struct Palette  {
-    menuBar : brush,
-    mainContent : brush,
-    box : brush,
-    lightDisplay : brush,
-    pieChart : brush,
-    roundButton : brush,
-    segmentedBox : brush,
+    time : brush,
+    background : brush,
+    primary : brush,
+    secondary : brush,
+    accent : brush,
     text : brush,
+    secondary-text : brush,
     shadow : brush,
 }
 
@@ -19,38 +18,35 @@ global Skin  {
     //in property<bool> day: !StyleMetrics.dark-color-scheme;
     in property<bool> day: false;
     out property<Palette> palette : root.day ? {
-    menuBar : #6D7BFB,
-    mainContent :  #fbfbfb,
-    box :   #ffffff,
+    time : #6D7BFB,
+    background :  #fbfbfb,
+    primary :   #ffffff,
     lightDisplay : #ffffff,
     pieChart : #ffffff,
-    roundButton : #f7f7f7,
-    segmentedBox : #f4f4f4,
+    secondary : #f7f7f7,
+    accent : #f4f4f4,
     text : #000,
+    secondary-text: #929cb2,
     shadow : #0001,
     } : {
-    menuBar : #2937A7,
-    mainContent : #040404,
-    box : #000000,
+    time : #2937A7,
+    background : #040404,
+    primary : #000000,
     lightDisplay : #000000,
     pieChart : #000000,
-    roundButton : #0a0a0a,
-    segmentedBox : #0c0c0c,
+    secondary : #0a0a0a,
+    accent : #0c0c0c,
     text : #fff,
+    secondary-text: #929cb2,
     shadow : #fff1,
     };
 
-    out property <length> DefaultFont: 24px;
-    out property <length> TinyFont: 18px;
-    out property <length> SmallFont: 20px;
-    out property <length> MediumFont: 26px;
-    out property <length> LargeFont: 40px;
-    out property <length> HugeFont: 24px;
-    out property <length> TitleFont: 28px;
+    out property <length> DefaultFont: 16px; //12pt
+    out property <length> LargeFont: 26px; //20pt
 }
 
 component BoxBase inherits Rectangle {
-    background: Skin.palette.box;
+    background: Skin.palette.primary;
     drop-shadow-offset-x: 6px;
     drop-shadow-offset-y: 6px;
     drop-shadow-blur: 6px;
@@ -62,7 +58,7 @@ component Box inherits BoxBase {
     VerticalLayout {
         if(root.title != "") : Text {
             text <=> root.title;
-            font-size: Skin.TitleFont;
+            font-size: Skin.LargeFont;
             font-weight: 700;
         }
         spacing: 0px;
@@ -72,26 +68,26 @@ component Box inherits BoxBase {
 }
 
 component TitleValueBox inherits VerticalLayout {
-    spacing: 8px;
     horizontal-stretch: 100;
+    @children
 }
 
 component ValueLabel inherits Text {
     in property <string> value <=> root.text;
-    font-size: Skin.HugeFont;
+    font-size: Skin.DefaultFont;
     font-weight: 700;
-    color: #929cb2;
+    color: Skin.palette.secondary-text;
 }
 
 component RoundedIcon inherits Rectangle {
-    in property <brush> gradient-box;
+    in property <brush> gradient-primary;
     in property <image> iconName <=> m-graphicLabel.source;
     in property <float> background-opacity <=> background-fill.opacity;
     height: 40px;
     width: 40px;
 
     background-fill := Rectangle {
-        background: root.gradient-box;
+        background: root.gradient-primary;
         border-radius: 6px;
         opacity: 1.0;
     }
@@ -105,7 +101,7 @@ component BoxedWidget inherits Box {
     callback clicked <=> ta.clicked;
     in property <image> iconFile <=> icon.iconName;
     in-out property <string> value <=> val.value;
-    in property <brush> gradient-box <=> icon.gradient-box;
+    in property <brush> gradient-primary <=> icon.gradient-primary;
     in property <string> title- <=> titleLabel.text;
     ta := TouchArea {
         HorizontalLayout {
@@ -113,7 +109,7 @@ component BoxedWidget inherits Box {
             icon := RoundedIcon {}
             TitleValueBox {
                 titleLabel := Text {
-                    font-size: Skin.TitleFont;
+                    font-size: Skin.LargeFont;
                     font-weight: 700;
                     color: Skin.palette.text;
                 }
@@ -128,8 +124,9 @@ component Temperatur inherits BoxedWidget {
     title-: "Temperatur";
     iconFile: @image-url("../images/temperature.png");
     value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
-    gradient-box: @linear-gradient(180deg, #ff7d34, #ff3122);
+    gradient-primary: @linear-gradient(180deg, #ff7d34, #ff3122);
     clicked() => {//TODO
+        debug("clicked");
     }
 }
 
@@ -138,8 +135,9 @@ component Luftfeuchtigkeit inherits BoxedWidget {
     title-: "Luftfeuchtigkeit";
     iconFile: @image-url("../images/humidity.png");
     value: root.humidity + "%";
-    gradient-box: @linear-gradient(180deg, #6776FF, #6100FF);
+    gradient-primary: @linear-gradient(180deg, #6776FF, #6100FF);
     clicked() => {//TODO
+        debug("clicked");
     }
 }
 
@@ -148,8 +146,9 @@ component Luftdruck inherits BoxedWidget {
     title-: "Luftdruck";
     iconFile: @image-url("../images/pressure.png");
     value: root.pressure + "hPa";
-    gradient-box: @linear-gradient(180deg, #FFCE50, #f99055);
+    gradient-primary: @linear-gradient(180deg, #FFCE50, #f99055);
     clicked() => {//TODO
+        debug("clicked");
     }
 }
 
@@ -204,28 +203,55 @@ export component AppWindow inherits Window {
     in property <int> humidity_progress : 32;
     in property <int> pressure_progress : 90;
 
-    in property <string> time : "23:06.02";
+    in property <string> time : "10:12:02";
+    in property <string> date : "28.11.2023";
 
     in property <[int]> temperature_values : [30, 15, 30, 40, 60, 10, 70, 20, 40];
     in property <[int]> humidity_values : [40, 55, 60, 50, 40, 50, 75, 80, 100];
     in property <[int]> pressure_values : [60, 45, 60, 70, 10, 70, 20, 50, 20];
-    
-    background: Skin.palette.mainContent;
+
+    background: Skin.palette.background;
 
     title: "Wetterstation";
-    MainContent {
-        temperature: root.temperature;
-        humidity: root.humidity;
-        pressure: root.pressure;
+    VerticalLayout {
+        Rectangle {
+            width: 100%;
+            x: 0;
+            background: Skin.palette.time;
+            HorizontalLayout {
+                padding-top: 8px;
+                padding-left: 14px;
+                padding-right: 14px;
+                padding-bottom: 5px;
+                ValueLabel {
+                    value: root.time;
+                    horizontal-alignment: left;
+                    height: Skin.DefaultFont + 3px;
+                }
+                ValueLabel {
+                    value: root.date;
+                    horizontal-alignment: right;
+                    height: Skin.DefaultFont + 3px;
+                }
+            }
 
-        temperature_progress: root.temperature_progress;
-        humidity_progress: root.humidity_progress;
-        pressure_progress: root.pressure_progress;
+        }
 
-        time: root.time;
+        MainContent {
+            temperature: root.temperature;
+            humidity: root.humidity;
+            pressure: root.pressure;
 
-        temperature_values: root.temperature_values;
-        humidity_values: root.humidity_values;
-        pressure_values: root.pressure_values;
+            temperature_progress: root.temperature_progress;
+            humidity_progress: root.humidity_progress;
+            pressure_progress: root.pressure_progress;
+
+            time: root.time;
+
+            temperature_values: root.temperature_values;
+            humidity_values: root.humidity_values;
+            pressure_values: root.pressure_values;
+        }
     }
+
 }

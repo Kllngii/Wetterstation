@@ -1,29 +1,43 @@
+
+use core::cell::RefCell;
+use cortex_m::interrupt::Mutex;
 use embedded_hal::blocking::spi::Transfer;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
-use fugit::RateExtU32;
+use euclid::default::Point2D;
+use fugit::Hertz;
+
+pub const SPI_FREQ: Hertz<u32> = Hertz::<u32>::Hz(3_000_000);
 
 pub struct XPT2046<IRQ: InputPin + 'static, CS: OutputPin, SPI: Transfer<u8>> {
-    irq: IRQ,
+    irq: &'static Mutex<RefCell<Option<IRQ>>>,
     cs: CS,
     spi: SPI,
     pressed: bool,
 }
 
 impl<PinE, IRQ: InputPin<Error = PinE>, CS: OutputPin<Error = PinE>, SPI: Transfer<u8>>
-    XPT2046<IRQ, CS, SPI>
+XPT2046<IRQ, CS, SPI>
 {
-    pub fn new(irq: IRQ, mut cs: CS, spi: SPI) -> Result<Self, PinE> {
+    pub fn new(
+        irq: &'static Mutex<RefCell<Option<IRQ>>>,
+        mut cs: CS,
+        spi: SPI,
+    ) -> Result<Self, PinE> {
         cs.set_high()?;
         Ok(Self { irq, cs, spi, pressed: false })
     }
 
-    pub fn read(&mut self) -> Result<Option<(f32, f32)>, Error<PinE, SPI::Error>> {
+    pub fn read(&mut self) -> Result<Option<Point2D<f32>>, Error<PinE, SPI::Error>> {
         const PRESS_THRESHOLD: i32 = -25_000;
         const RELEASE_THRESHOLD: i32 = -30_000;
         let threshold = if self.pressed { RELEASE_THRESHOLD } else { PRESS_THRESHOLD };
         self.pressed = false;
 
-        if self.irq.is_low().map_err(|e| Error::Pin(e))? {
+        if cortex_m::interrupt::free(|cs| {
+            self.irq.borrow(cs).borrow().as_ref().unwrap().is_low()
+        })
+            .map_err(|e| Error::Pin(e))?
+        {
             const CMD_X_READ: u8 = 0b10010000;
             const CMD_Y_READ: u8 = 0b11010000;
             const CMD_Z1_READ: u8 = 0b10110000;
@@ -35,14 +49,15 @@ impl<PinE, IRQ: InputPin<Error = PinE>, CS: OutputPin<Error = PinE>, SPI: Transf
             const MIN_Y: u32 = 2300;
             const MAX_Y: u32 = 30300;
 
-            // FIXME! how else set the frequency to this device
-            unsafe { set_spi_freq(3_000_000u32.Hz()) };
-
             self.cs.set_low().map_err(|e| Error::Pin(e))?;
 
             macro_rules! xchg {
                 ($byte:expr) => {
-                    match self.spi.transfer(&mut [$byte, 0, 0]).map_err(|e| Error::Transfer(e))? {
+                    match self
+                        .spi
+                        .transfer(&mut [$byte, 0, 0])
+                        .map_err(|e| Error::Transfer(e))?
+                    {
                         [_, h, l] => ((*h as u32) << 8) | (*l as u32),
                         _ => return Err(Error::InternalError),
                     }
@@ -56,18 +71,16 @@ impl<PinE, IRQ: InputPin<Error = PinE>, CS: OutputPin<Error = PinE>, SPI: Transf
             if z < threshold {
                 xchg!(0);
                 self.cs.set_high().map_err(|e| Error::Pin(e))?;
-                unsafe { set_spi_freq(62_500_000.Hz()) };
                 return Ok(None);
             }
 
             xchg!(CMD_X_READ | 1); // Dummy read, first read is a outlier
 
-            let mut point = (0u32, 0u32);
+            let mut point = Point2D::new(0u32, 0u32);
             for _ in 0..10 {
                 let y = xchg!(CMD_Y_READ);
                 let x = xchg!(CMD_X_READ);
-                point.0 += i16::MAX as u32 - x;
-                point.1 += y;
+                point += euclid::vec2(i16::MAX as u32 - x, y)
             }
 
             let z1 = xchg!(CMD_Z1_READ);
@@ -76,18 +89,16 @@ impl<PinE, IRQ: InputPin<Error = PinE>, CS: OutputPin<Error = PinE>, SPI: Transf
 
             xchg!(0);
             self.cs.set_high().map_err(|e| Error::Pin(e))?;
-            unsafe { set_spi_freq(62_500_000.Hz()) };
 
             if z < RELEASE_THRESHOLD {
                 return Ok(None);
             }
 
-            point.0 /= 10;
-            point.1 /= 10;
+            point /= 10;
             self.pressed = true;
-            Ok(Some((
-                point.0.saturating_sub(MIN_X) as f32 / (MAX_X - MIN_X) as f32,
-                point.1.saturating_sub(MIN_Y) as f32 / (MAX_Y - MIN_Y) as f32,
+            Ok(Some(euclid::point2(
+                point.x.saturating_sub(MIN_X) as f32 / (MAX_X - MIN_X) as f32,
+                point.y.saturating_sub(MIN_Y) as f32 / (MAX_Y - MIN_Y) as f32,
             )))
         } else {
             Ok(None)
@@ -99,14 +110,4 @@ pub enum Error<PinE, TransferE> {
     Pin(PinE),
     Transfer(TransferE),
     InternalError,
-}
-
-unsafe fn set_spi_freq(freq: impl Into<fugit::Hertz<u32>>) {
-    use rp_pico::hal;
-    // FIXME: the touchscreen and the LCD have different frequencies, but we cannot really set different frequencies to different SpiProxy without this hack
-    //FIXME Wie macht man das mit rp-pico 0.8 ?
-    //hal::spi::Spi::<_, _, _, 8>::new(hal::pac::Peripherals::steal().SPI1)
-    //    .set_baudrate(125_000_000u32.Hz(), freq);
-
-    //hal::spi::Spi::<_, _, _, 8>::new(hal::pac::Peripherals::steal().SPI1, (_spi_mosi, _spi_miso, _spi_sclk)).set_baudrate(125_000_000u32.Hz(), freq);
 }

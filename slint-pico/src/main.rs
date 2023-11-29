@@ -5,10 +5,15 @@
 
 #[cfg(feature = "simulator")]
 mod simulator_support;
-#[cfg(not(feature = "simulator"))]
+#[cfg(feature = "test")]
 mod uc_support;
 #[cfg(not(feature = "simulator"))]
 mod xpt2046;
+#[cfg(not(feature = "simulator"))]
+mod pico_backend;
+
+#[cfg(not(feature = "simulator"))]
+mod display_interface_spi;
 
 extern crate alloc;
 
@@ -17,7 +22,7 @@ slint::include_modules!();
 fn create_slint_app() -> AppWindow {
     let ui = AppWindow::new().expect("Failed to load UI");
 
-    let ui_handle = ui.as_weak();
+    //let ui_handle = ui.as_weak();
 
     /*
     ui.on_request_increase_value(move || {
@@ -32,8 +37,10 @@ fn create_slint_app() -> AppWindow {
 #[cfg_attr(not(feature = "simulator"), rp_pico::entry)]
 fn main() -> ! {
     #[cfg(not(feature = "simulator"))]
-    return uc_support::uc_main();
+    pico_backend::init();
 
-    #[cfg(feature = "simulator")]
-    return simulator_support::simulator_main();
+    let ui = create_slint_app();
+    unsafe { pico_backend::init_timers(ui.as_weak()); }
+    ui.run().unwrap();
+    loop {};
 }
