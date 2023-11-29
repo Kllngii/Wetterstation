@@ -1,6 +1,13 @@
 use chrono::Local;
 use chrono::DateTime;
 
+use log::LevelFilter;
+use log::debug;
+use log::info;
+use log4rs::Config;
+use log4rs::append::console::ConsoleAppender;
+use log4rs::config::Appender;
+use log4rs::config::Root;
 use serde::Deserialize;
 use serde_json::Value;
 use serialport::{SerialPort, available_ports, SerialPortInfo};
@@ -66,14 +73,24 @@ impl FromStr for SensorData {
 }
 
 fn startup() {
+    let stdout = ConsoleAppender::builder().build();
+
+    //TODO Pattern setzen "{d(%Y-%m-%d %H:%M:%S)} | {({l}):5.5} | {f}:{L} — {m}{n}"
+
+    let config = Config::builder()
+        .appender(Appender::builder().build("stdout", Box::new(stdout)))
+        .build(Root::builder().appender("stdout").build(LevelFilter::Debug))
+        .unwrap();
+    let handle = log4rs::init_config(config).unwrap();
+
     match option_env!("CARGO_PKG_VERSION") {
-        Some(version_string) => println!("Starte Wetterstation-UI v{version_string}!"),
-        None => println!("Starte Wetterstation-UI!"),
+        Some(version_string) => info!("Starte Wetterstation-UI v{version_string}!"),
+        None => info!("Starte Wetterstation-UI!"),
     };
 }
 
 fn main() {
-    ringtest::run();
+    //ringtest::run();
     startup();
     let main_window = MainWindow::new().unwrap();
     let senor_deque = Arc::new(Mutex::new(VecDeque::<SensorData>::new()));
@@ -198,9 +215,8 @@ fn initialize_serial(dht_deque: Arc<Mutex<VecDeque<SensorData>>>) -> Option<clok
                     
                     let mut scheduler = Scheduler::new();
                     let mut buf: [u8; 512] =  [0; 512];
-                    scheduler.every(1.seconds()).plus(1.seconds()).run(move || {
-                        println!();
-                        println!("Lese Daten vom seriellen Port!");
+                    scheduler.every(2.seconds()).run(move || {
+                        debug!("Lese Daten vom seriellen Port!");
                         match  serial.read(&mut buf) {
                             Ok(bytes_read) => {
                                 println!("Es wurden {} Bytes gelesen!", bytes_read);

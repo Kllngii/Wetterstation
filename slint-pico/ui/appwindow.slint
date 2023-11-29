@@ -1,0 +1,257 @@
+/*
+* Nach dem Beispiel https://github.com/peter-ha/qskinny/tree/iot-dashboard/examples/iotdashboard
+*/
+import { StyleMetrics } from "std-widgets.slint";
+
+struct Palette  {
+    time : brush,
+    background : brush,
+    primary : brush,
+    secondary : brush,
+    accent : brush,
+    text : brush,
+    secondary-text : brush,
+    shadow : brush,
+}
+
+global Skin  {
+    //in property<bool> day: !StyleMetrics.dark-color-scheme;
+    in property<bool> day: false;
+    out property<Palette> palette : root.day ? {
+    time : #6D7BFB,
+    background :  #fbfbfb,
+    primary :   #ffffff,
+    lightDisplay : #ffffff,
+    pieChart : #ffffff,
+    secondary : #f7f7f7,
+    accent : #f4f4f4,
+    text : #000,
+    secondary-text: #929cb2,
+    shadow : #0001,
+    } : {
+    time : #2937A7,
+    background : #040404,
+    primary : #000000,
+    lightDisplay : #000000,
+    pieChart : #000000,
+    secondary : #0a0a0a,
+    accent : #0c0c0c,
+    text : #fff,
+    secondary-text: #929cb2,
+    shadow : #fff1,
+    };
+
+    out property <length> DefaultFont: 16px; //12pt
+    out property <length> LargeFont: 26px; //20pt
+}
+
+component BoxBase inherits Rectangle {
+    background: Skin.palette.primary;
+    drop-shadow-offset-x: 6px;
+    drop-shadow-offset-y: 6px;
+    drop-shadow-blur: 6px;
+    drop-shadow-color: Skin.palette.shadow;
+}
+
+component Box inherits BoxBase {
+    in property <string> title;
+    VerticalLayout {
+        if(root.title != "") : Text {
+            text <=> root.title;
+            font-size: Skin.LargeFont;
+            font-weight: 700;
+        }
+        spacing: 0px;
+        padding: 3px;
+        @children
+    }
+}
+
+component TitleValueBox inherits VerticalLayout {
+    horizontal-stretch: 100;
+    @children
+}
+
+component ValueLabel inherits Text {
+    in property <string> value <=> root.text;
+    font-size: Skin.DefaultFont;
+    font-weight: 700;
+    color: Skin.palette.secondary-text;
+}
+
+component RoundedIcon inherits Rectangle {
+    in property <brush> gradient-primary;
+    in property <image> iconName <=> m-graphicLabel.source;
+    in property <float> background-opacity <=> background-fill.opacity;
+    height: 40px;
+    width: 40px;
+
+    background-fill := Rectangle {
+        background: root.gradient-primary;
+        border-radius: 6px;
+        opacity: 1.0;
+    }
+    m-graphicLabel := Image {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+    }
+}
+
+component BoxedWidget inherits Box {
+    callback clicked <=> ta.clicked;
+    in property <image> iconFile <=> icon.iconName;
+    in-out property <string> value <=> val.value;
+    in property <brush> gradient-primary <=> icon.gradient-primary;
+    in property <string> title- <=> titleLabel.text;
+    ta := TouchArea {
+        HorizontalLayout {
+            spacing: 12px;
+            icon := RoundedIcon {}
+            TitleValueBox {
+                titleLabel := Text {
+                    font-size: Skin.LargeFont;
+                    font-weight: 700;
+                    color: Skin.palette.text;
+                }
+                val := ValueLabel {}
+            }
+        }
+    }
+}
+
+component Temperatur inherits BoxedWidget {
+    in-out property <string> temperature;
+    title-: "Temperatur";
+    iconFile: @image-url("../images/temperature.png");
+    value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
+    gradient-primary: @linear-gradient(180deg, #ff7d34, #ff3122);
+    clicked() => {//TODO
+        debug("clicked");
+    }
+}
+
+component Luftfeuchtigkeit inherits BoxedWidget {
+    in-out property <string> humidity;
+    title-: "Luftfeuchtigkeit";
+    iconFile: @image-url("../images/humidity.png");
+    value: root.humidity + "%";
+    gradient-primary: @linear-gradient(180deg, #6776FF, #6100FF);
+    clicked() => {//TODO
+        debug("clicked");
+    }
+}
+
+component Luftdruck inherits BoxedWidget {
+    in-out property <string> pressure;
+    title-: "Luftdruck";
+    iconFile: @image-url("../images/pressure.png");
+    value: root.pressure + "hPa";
+    gradient-primary: @linear-gradient(180deg, #FFCE50, #f99055);
+    clicked() => {//TODO
+        debug("clicked");
+    }
+}
+
+component MainContent inherits VerticalLayout {
+    in property <string> temperature;
+    in property <string> humidity;
+    in property <string> pressure;
+
+    in property <int> temperature_progress;
+    in property <int> humidity_progress;
+    in property <int> pressure_progress;
+
+    in property <string> time;
+
+    in property <[int]> temperature_values;
+    in property <[int]> humidity_values;
+    in property <[int]> pressure_values;
+
+    in property <bool> show_temperature;
+    in property <bool> show_humidity;
+    in property <bool> show_pressure;
+
+    GridLayout {
+        spacing: 6px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        Temperatur {
+            row: 0; col: 0;
+            temperature: root.temperature;
+        }
+        Luftfeuchtigkeit {
+            row: 1; col: 0;
+            humidity: root.humidity;
+        }
+        Luftdruck {
+            row: 2; col: 0;
+            pressure: root.pressure;
+        }
+    }
+}
+
+export component AppWindow inherits Window {
+    width: 320px;
+    height: 240px;
+    in property <string> temperature : "23,6"; //°C
+    in property <string> humidity : "32"; //%
+    in property <string> pressure : "1034"; //hPa
+    in property <string> co2 : "500"; //ppm
+    in property <string> tvoc : "0"; //ppb
+
+    in property <int> temperature_progress : 58;
+    in property <int> humidity_progress : 32;
+    in property <int> pressure_progress : 90;
+
+    in property <string> time : "10:12:02";
+    in property <string> date : "28.11.2023";
+
+    in property <[int]> temperature_values : [30, 15, 30, 40, 60, 10, 70, 20, 40];
+    in property <[int]> humidity_values : [40, 55, 60, 50, 40, 50, 75, 80, 100];
+    in property <[int]> pressure_values : [60, 45, 60, 70, 10, 70, 20, 50, 20];
+
+    background: Skin.palette.background;
+
+    title: "Wetterstation";
+    VerticalLayout {
+        Rectangle {
+            width: 100%;
+            x: 0;
+            background: Skin.palette.time;
+            HorizontalLayout {
+                padding-top: 8px;
+                padding-left: 14px;
+                padding-right: 14px;
+                padding-bottom: 5px;
+                ValueLabel {
+                    value: root.time;
+                    horizontal-alignment: left;
+                    height: Skin.DefaultFont + 3px;
+                }
+                ValueLabel {
+                    value: root.date;
+                    horizontal-alignment: right;
+                    height: Skin.DefaultFont + 3px;
+                }
+            }
+
+        }
+
+        MainContent {
+            temperature: root.temperature;
+            humidity: root.humidity;
+            pressure: root.pressure;
+
+            temperature_progress: root.temperature_progress;
+            humidity_progress: root.humidity_progress;
+            pressure_progress: root.pressure_progress;
+
+            time: root.time;
+
+            temperature_values: root.temperature_values;
+            humidity_values: root.humidity_values;
+            pressure_values: root.pressure_values;
+        }
+    }
+
+}
