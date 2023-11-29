@@ -1,15 +1,15 @@
 \documentclass[a4paper,11pt]{article}
-%\usepackage[utf8]{inputenc} % Sonderzeichen schreiben koennen (hier nicht benutzt)
+\usepackage[utf8]{inputenc} % Sonderzeichen schreiben können
 \usepackage[ngerman]{babel} % Deutsche Abbildungszeichen
-\usepackage{graphicx}   % Graphiken einfuegen
-\usepackage{fancyhdr}   % Fuer Kopf- und Fusszeile
-\usepackage{geometry}   % Seitenraender definieren
-\usepackage{tikz}       % Zum Regler Zeichnen
+\usepackage{graphicx}   % Graphiken einfügen
+\usepackage{fancyhdr}   % Für Kopf- und Fusszeile
+\usepackage{geometry}   % Seitenränder definieren
+\usepackage{tikz}       % Zum Regler zeichnen
 \usepackage{multirow}   % Multirow in Tabellen
 \usepackage{float}      % Um Bilder genau an diesem Punkt einzufuegen [H]
 \usepackage{fancyvrb}   % Box um Verbatim Code
-\usepackage{microtype}  % Automatische Anpassung der Zeilenmasse, dass unschoene Umbrueche vermieden werden
-\usepackage{mathtools}  % Fuer Text auf/unter Pfeilen
+\usepackage{microtype}  % Automatische Anpassung der Zeilenmaße, dass unschöne Umbrüche vermieden werden
+\usepackage{mathtools}  % Für Text auf/unter Pfeilen
 \usepackage{pgfplots}   % Plot zusammen mit tikzpicture
 \usepackage{makecell}   % Umbruch in tabellen
 \usepackage{enumitem}   % Einruecken bei itemize verhindern
@@ -33,7 +33,7 @@ plainpages = false,
 hypertexnames = false,
 citecolor = black] {hyperref}
 
-% Seitenraender definieren
+% Seitenränder definieren
 \geometry{
     left=25mm,
     right=25mm,
@@ -105,13 +105,13 @@ citecolor = black] {hyperref}
 
 \pagestyle{fancy}
 \fancyhf{}
-\setlength{\headheight}{28.1pt} % Hoehe der Kopfzeile
-\rhead{\includegraphics[height=24pt]{HAWLogo}}    % HAW Logo in Kopfzeile einfuegen
+\setlength{\headheight}{28.1pt} % Höhe der Kopfzeile
+\rhead{\includegraphics[height=24pt]{HAWLogo}}    % HAW Logo in Kopfzeile einfügen
 \lhead{Bussysteme und Sensorik}  % Beschreibung in Kopfzeile
 
-\renewcommand{\footrulewidth}{0.4pt}    % Linie in Fusszeile einfügen
-\rfoot{\thepage}    % Seitenzahlen einfuegen
-\lfoot{Department Informations- und Elektrotechnik}   % Fusszeile linksbuendig
+\renewcommand{\footrulewidth}{0.4pt}    % Linie in Fußzeile einfügen
+\rfoot{\thepage}    % Seitenzahlen einfügen
+\lfoot{Department Informations- und Elektrotechnik}   % Fusszeile linksbündig
 
 \begin{document}
 %Titelseite
@@ -126,7 +126,7 @@ citecolor = black] {hyperref}
 \centering
 {\scshape\Large Bussysteme und Sensorik \par}
 \vspace{1cm}
-{\scshape\LARGE Entwicklung Wetterstation unter Verwendung von Bussystemen \par}
+{\scshape\LARGE Entwicklung eines Hubs zur Erfassung und graphischen Darstellung von Sensordaten \par}
 \vspace{0.5cm}
 {\scshape\large Wintersemester 2023/2024 \par}
 \vspace{5cm}
@@ -146,7 +146,7 @@ Fabian Schmalenbach \\
 Abgabedatum: 24.06.2023
 
 \vspace{0.5cm}
-Pr\"ufer: Prof. Dr. R. Fitz
+Prüfer: Prof. Dr. R. Fitz
 
 
 
@@ -158,9 +158,54 @@ Pr\"ufer: Prof. Dr. R. Fitz
 \thispagestyle{empty}
 \newpage
 
-\setcounter{page}{1}    % Seitenzaehler sicherheitshalber zuruecksetzen
+\setcounter{page}{1}    % Seitenzähler sicherheitshalber zurücksetzen
+
+\section{Projektbeschreibung}
+\label{sub:projektbeschreibung}
+
+Ziel des Projekts ist die Entwicklung eines Sensorhubs, der mehrere Sensordaten erfassen kann und diese
+auf einem Display anzeigt. Der Hub verfügt über ein Display und soll als eine Art Wetterstation implementiert werden. 
 
 \noindent
-Lorem ipsum was wei{\ss} ich...
+Die Wetterstation soll über ein drahtloses Außenmodul verfügen, um eine Außentemperatur messen zu können. 
+\subsection{Sensorik}
+\label{subsub:sensorik}
+
+Die Wetterstation teilt sich auf ein Haupt- und ein Außenmodul auf, das jeweils über eine unterschiedliche Peripherie verfügt. \\
+Das Außenmodul soll die Sensordaten über 433 MHz an das Hauptmodul übertragen. 
+
+\vspace{0.2cm} \noindent
+Hauptmodul:
+\begin{itemize}
+  \item BME280: \\
+        Erfassung von Temperatur, Luftfeuchtigkeit und Luftdruck
+  \item CO2 Sensor: \\
+        Erfassung der CO2-Konzentration im Raum
+\end{itemize}
+
+\vspace{0.2cm} \noindent
+Außenmodul:
+\begin{itemize}
+  \item BMP280: \\
+        Erfassung von Temperatur und Luftfeuchtigkeit
+  \item DCF77: \\
+        Empfang der aktuellen Zeit und Datum sowie einer Wettervorhersage für die nächsten Tage
+\end{itemize}
+
+\subsection{Konnektiviät}
+\label{subsub:konnektivität}
+
+Bei den verwendeten Mikrocontrollern handelt es sich um ESP32 und Raspberry Pi Pico, die jeweils über ein WLAN-Modul verfügen.
+Damit ist es möglich, die erfassten Sensordaten über MQTT oder ein anderes Protokoll drahtlos zu übermitteln. Dies ermöglicht weitere
+Funktionen, wie die Speicherung der Daten in einer Datenbank für Langzeitstatistiken oder die Darstellung der erfassten Daten auf
+mehreren Endgeräten. Zudem wäre theoretisch auch das Abrufen von Wettervorhersagen aus dem Internet möglich, hier wird aber die MeteoTime
+vom DCF77 Signal verwendet. 
+
+\noindent
+Der Außensensor soll die von ihm erfassten Daten in Form eines (XML-) Strings drahtlos über 433 MHz übertragen. Die im Vergleich zu
+2,4 GHz deutlich niedrigere Frequenz kann die Reichweite deutlich steigern. 433 MHz ist insbesondere bei Außensensoren von Wetterstationen standard. 
+
+\subsection{Grafikoberfläche}
+\label{subsub:grafikoberfläche}
 
 \end{document}
