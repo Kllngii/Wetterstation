@@ -1,5 +1,6 @@
 #![allow(stable_features, unknown_lints, async_fn_in_trait)]
 
+use cortex_m::prelude::_embedded_hal_serial_Read;
 use heapless::spsc::Queue;
 use core::cell::RefCell;
 use alloc::fmt::format;
@@ -59,14 +60,15 @@ type UartPins = (
 );
 type Uart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
 
-//mutex_cell_rx: Mutex<RefCell<Queue<u8, 256>>>,
-struct UartQueue {
+struct UartQueueTx {
     mutex_cell_tx: Mutex<RefCell<Queue<u8, 64>>>,
-
     interrupt: pac::Interrupt,
 }
+struct UartQueueRx {
+    mutex_cell_rx: Mutex<RefCell<Queue<u8, 256>>>,
+}
 
-impl UartQueue {
+impl UartQueueTx {
     fn read_byte(&self) -> Option<u8> {
         cortex_m::interrupt::free(|cs| {
             let cell_queue = self.mutex_cell_tx.borrow(cs);
@@ -81,6 +83,14 @@ impl UartQueue {
             let cell_queue = self.mutex_cell_tx.borrow(cs);
             let queue = cell_queue.borrow_mut();
             queue.peek().cloned()
+        })
+    }
+
+    fn len(&self) -> usize {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_tx.borrow(cs);
+            let queue = cell_queue.borrow_mut();
+            queue.len()
         })
     }
 
@@ -126,7 +136,31 @@ impl UartQueue {
     }
 }
 
-impl core::fmt::Write for &UartQueue {
+impl UartQueueRx {
+    fn read_byte(&self) -> Option<u8> {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let mut queue = cell_queue.borrow_mut();
+            queue.dequeue()
+        })
+    }
+    fn peek_byte(&self) -> Option<u8> {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let queue = cell_queue.borrow_mut();
+            queue.peek().cloned()
+        })
+    }
+    fn len(&self) -> usize {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let queue = cell_queue.borrow_mut();
+            queue.len()
+        })
+    }
+}
+
+impl core::fmt::Write for &UartQueueTx {
     /// This function allows us to `writeln!` on our global static UART queue.
     /// Note we have an impl for &UartQueue, because our global static queue
     /// is not mutable and `core::fmt::Write` takes mutable references.
@@ -141,9 +175,13 @@ static GLOBAL_UART: Mutex<RefCell<Option<Uart>>> = Mutex::new(RefCell::new(None)
 
 /// This is our outbound UART queue. We write to it from the main thread, and
 /// read from it in the UART IRQ.
-static UART_TX_QUEUE: UartQueue = UartQueue {
+static UART_TX_QUEUE: UartQueueTx = UartQueueTx {
     mutex_cell_tx: Mutex::new(RefCell::new(Queue::new())),
     interrupt: hal::pac::Interrupt::UART0_IRQ,
+};
+
+static UART_RX_QUEUE: UartQueueRx = UartQueueRx {
+    mutex_cell_rx: Mutex::new(RefCell::new(Queue::new())),
 };
 
 pub(crate) fn uc_main() -> ! {
@@ -286,12 +324,28 @@ pub(crate) fn uc_main() -> ! {
             "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
             time[2], time[1], time[0], time[4], time[5], time[6]
         );
+        /*
         writeln!(&UART_TX_QUEUE, "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
                                            time[2], time[1], time[0], time[4], time[5], time[6]).unwrap();
+         */
         let time_str: SharedString = SharedString::from(slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]));
+
         let date_str: SharedString = SharedString::from(slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]));
         ui.set_time(time_str);
         ui.set_date(date_str);
+        /*
+        cortex_m::interrupt::free(|cs| {
+            // Grab the mutex contents.
+            let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
+            // Grab mutable access to the queue. This can't fail
+            // because there are no interrupts running.
+            let mut queue = cell_queue.borrow_mut();
+            // Try and put the byte in the queue.
+            while let Some(byte) = queue.dequeue() {
+                info!("Byte empfangen: {}", byte);
+            }
+        });
+         */
     });
 
     loop {
@@ -380,8 +434,7 @@ fn UART0_IRQ() {
     // this because the function's 'real' name is unknown, and hence it cannot
     // be called from the main thread. We also know that the NVIC will not
     // re-entrantly call an interrupt.
-    static mut UART: Option<hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>> =
-        None;
+    static mut UART: Option<hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>> = None;
 
     // This is one-time lazy initialisation. We steal the variable given to us
     // via `GLOBAL_UART`.
@@ -401,6 +454,20 @@ fn UART0_IRQ() {
             } else {
                 break;
             }
+        }
+
+        while let Ok(byte) = uart.read() {
+            cortex_m::interrupt::free(|cs| {
+                // Grab the mutex contents.
+                let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
+                // Grab mutable access to the queue. This can't fail
+                // because there are no interrupts running.
+                let mut queue = cell_queue.borrow_mut();
+                // Try and put the byte in the queue.
+                if !queue.enqueue(byte).is_ok() {
+                    warn!("Fehler beim Beschreiben der RX Queue!");
+                }
+            });
         }
 
         if UART_TX_QUEUE.peek_byte().is_none() {
