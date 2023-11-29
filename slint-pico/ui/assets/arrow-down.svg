@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <path style="fill: rgba(252, 252, 252, 0.99); transform-origin: 16px 16px;" d="M 4 12.181 L 18 14 L 18 8 C 18 8 28 16 28 16 C 28 16 18 24 18 24 L 18 18 L 4 19 L 4 12.216 L 4 13 L 4 12.181 Z" transform="matrix(0, 1, -1, 0, 0, 0)"/>
+</svg>
