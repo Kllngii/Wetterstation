@@ -198,10 +198,23 @@ pub fn init() {
         stolen_pin: (dc_copy, cs_copy),
     };
 
+    let _i2c_sda: hal::gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio20.reconfigure();
+    let _i2c_scl: hal::gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio21.reconfigure();
+
+    let mut i2c = I2C::new_controller(
+        pac.I2C0,
+        _i2c_sda,
+        _i2c_scl,
+        100.kHz(),
+        &mut pac.RESETS,
+        clocks.system_clock.freq(),
+    );
+
     slint::platform::set_platform(Box::new(PicoBackend {
         window: Default::default(),
         buffer_provider: buffer_provider.into(),
         touch: touch.into(),
+        //i2c: i2c.into(), //FIXME WIE?!
     })).expect("backend already initialized");
 
 }
@@ -254,8 +267,9 @@ struct PicoBackend<DrawBuffer, Touch> {
     window: RefCell<Option<Rc<renderer::MinimalSoftwareWindow>>>,
     buffer_provider: RefCell<DrawBuffer>,
     touch: RefCell<Touch>,
+    //FIXME WIE?!
+    //i2c: RefCell<I2C<I2CType, SdaScl>>
 }
-
 impl<
     DI: display_interface::WriteOnlyDataCommand,
     RST: OutputPin<Error = Infallible>,
@@ -353,6 +367,7 @@ for PicoBackend<
                 }
             };
 
+            //Gute Nacht 😴
             cortex_m::interrupt::free(|cs| {
                 if let Some(duration) = sleep_duration {
                     ALARM0.borrow(cs).borrow_mut().as_mut().unwrap().schedule(duration).unwrap();

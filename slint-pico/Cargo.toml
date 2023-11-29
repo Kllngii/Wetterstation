@@ -48,6 +48,7 @@ fugit = { version = "0.3.6", optional = true }
 shared-bus = { version = "0.3", optional = true }
 st7789 = { version = "0.7.0", optional = true }
 euclid = { version = "0.22", default-features = false, optional = true }
+heapless = { version = "0.8.0", optional = true }
 
 
 [build-dependencies]
@@ -89,7 +90,8 @@ pico = [
     #"wifi-ap",
     "display-interface",
     "euclid",
-    "euclid/libm"
+    "euclid/libm",
+    "heapless"
 ]
 
 
