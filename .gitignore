@@ -1,3 +1,4 @@
 /wetterstation-ui/target/*
 /wetterstation-rpico-ui/target/*
 /slint-pico/target/*
+**.vscode
