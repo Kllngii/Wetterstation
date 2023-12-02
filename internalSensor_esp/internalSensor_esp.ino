@@ -14,12 +14,28 @@
 #define RX_METEO    9   // SDD2
 #define TX_METEO    10  // SDD3
 
+#define BME_SEND_FREQUENCY_MILLIS   30000
+#define CO2_SEND_FREQUENCY_MILLIS   15000
+
 Adafruit_BME280 bme;
 Mhz19 MHZ;
 SoftwareSerial CO2Serial(RX_CO2, TX_CO2);
 //MHZ CO2(RX_CO2, TX_CO2, MHZ19C);
 SoftwareSerial HC12(RX_HC12, TX_HC12);
 SoftwareSerial MeteoDecoder(RX_METEO, TX_METEO);
+
+timeBuf timePacket = {'T','I','M','E'};
+meteoRawBuffer rawMeteoPacket = {'M','T','E','O'};
+meteoConvertedBuffer convertedMeteoPacket = {'M','T','E','O'};
+bmeBuf intBmePacket = {'I','B','M','E'};
+bmeBuf extBmePacket = {'E','B','M','E'};
+co2Buf co2Packet = {'C','O','2','.'};
+
+bool preHeatingFinished = false;
+unsigned long lastBmeSend = 0;
+unsigned long lastCo2Send = 0;
+char dataType[4];
+uint8_t dataTypeCounter;
 
 void setup()
 {
@@ -88,7 +104,7 @@ void setup()
     delay(100);
 
     // Set data transmission to 8 bits + odd parity + 1 stop bit
-    HC12.print("AT+U8O1");
+    HC12.print("AT+U8N1");
     while(HC12.available() < 7);
     for(int i = 0; i < 7; i++)
     {
@@ -99,18 +115,33 @@ void setup()
 
     // Disable Setting Mode in HC-12
     pinMode(SET_PIN, INPUT);
-
-    while(!MHZ.isReady())
-    {
-      Serial.println("Still preheating...");
-      delay(5000);
-    }
-
 }
 
 void loop()
 {
-    int co2 = MHZ.getCarbonDioxide();
-    Serial.println(co2);
-    delay(1000);
+    if (HC12.available()){
+        while(HC12.available())
+        {
+            Serial.print(HC12.read());
+        }
+        Serial.println("");
+    }
+    if (!preHeatingFinished)
+    {
+      preHeatingFinished = MHZ.isReady();
+    }
+    if ((millis() - lastBmeSend) > BME_SEND_FREQUENCY_MILLIS)
+    {
+        intBmePacket.sendStruct.temp = bme.readTemperature();
+        intBmePacket.sendStruct.humidity = bme.readHumidity();
+        intBmePacket.sendStruct.pressure = bme.readPressure();
+        Serial.println(intBmePacket.sendArr);
+        lastBmeSend = millis();
+    }
+    if (((millis() - lastCo2Send) > CO2_SEND_FREQUENCY_MILLIS) && preHeatingFinished)
+    {
+        co2Packet.sendStruct.concentration = MHZ.getCarbonDioxide();
+        Serial.println(co2Packet.sendArr);
+        lastCo2Send = millis();
+    }
 }
