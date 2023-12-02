@@ -1,9 +1,10 @@
-#include "DCF77.h"
 #include <TimeLib.h>
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include "DCF77.h"
+#include "DataTypes.h"
 
 #define DCF_DATA_PIN        14  // D5
 #define DCF_INTERRUPT_PIN   14  // D5
@@ -13,43 +14,6 @@
 
 #define SENSOR_SEND_FREQUENCY_MILLIS    60000
 #define TIME_SEND_FREQUENCY_MILLIS  120000
-
-typedef struct _timeStruct {
-    const char dataType[4];
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-} timeStruct;
-
-typedef union _timeSendBuf {
-    char timeBuf[sizeof(timeStruct)];
-    timeStruct dcfTime;
-} timeSendBuf;
-
-typedef struct _meteoStruct {
-    const char dataType[4];
-    meteoDataBuffer packetData;
-} meteoStruct;
-
-typedef union _meteoSendBuf {
-    char meteoBuf[sizeof(meteoStruct)];
-    meteoStruct data;
-} meteoSendBuf;
-
-typedef struct _sensorStruct {
-    const char dataType[4];
-    float temp;
-    float humidity;
-    float pressure;
-} sensorStruct;
-
-typedef union _sensorSendBuf {
-    char sensorBuf[sizeof(sensorStruct)];
-    sensorStruct sensor;
-} sensorSendBuf;
 
 Adafruit_BME280 bme;
 DCF77 DCF = DCF77(DCF_DATA_PIN, DCF_INTERRUPT_PIN);
