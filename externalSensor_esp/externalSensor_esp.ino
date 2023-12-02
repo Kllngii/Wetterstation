@@ -90,7 +90,7 @@ void setup() {
     delay(100);
 
     // Set data transmission to 8 bits + odd parity + 1 stop bit
-    HC12.print("AT+U8O1");
+    HC12.print("AT+U8N1");
     while(HC12.available() < 7);
     for(int i = 0; i < 7; i++)
     {
@@ -114,10 +114,13 @@ void loop() {
         // Set internal time to dcf time if valid
         Serial.println("Set time");
         setTime(DCFtime);
+        if (!timeValid)
+        {
+          // Reset timestamps because time changed
+          lastSensorSend = millis();
+          lastTimeSend = millis();
+        }
         timeValid = true;   // Begin transmission of time
-        // Reset timestamps because time changed
-        lastSensorSend = millis();
-        lastTimeSend = millis();
     }
 
     if (DCF.isMeteoReady())
