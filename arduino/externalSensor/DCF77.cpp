@@ -21,9 +21,9 @@
   2  Jul 2012 - minor bugfix and additional noise rejection
 */
 
-#include <DCF77.h>       //https://github.com/thijse/Arduino-Libraries/downloads
+#include "DCF77.h"       //https://github.com/thijse/Arduino-Libraries/downloads
 #include <TimeLib.h>        //http://playground.arduino.cc/code/time
-#include <Utils.h>
+#include "Utils.h"
 
 #define _DCF77_VERSION 1_0_0 // software version of this library
 
@@ -62,6 +62,11 @@ void DCF77::initialize(void)
 	flags.parityHour      = 0;
 	flags.parityMin       = 0;
 	CEST				  = 0;
+	meteoData.packet1 = 0;
+	meteoData.packet2 = 0;
+	meteoData.packet3 = 0;
+	meteoPacketNumber     = 0;
+	meteoDataReady        = false;
 }
 
 /**
@@ -281,7 +286,30 @@ bool DCF77::processBuffer(void) {
         flags.parityDate == rx_buffer->P3 &&
 		rx_buffer->CEST != rx_buffer->CET) 
     { 
-      //convert the received buffer into time	  	  	 
+      //Merge MeteoTime Data
+	    if (!meteoDataReady)
+	    {
+			switch(meteoPacketNumber)
+			{
+				case 0:
+					meteoData.packet1 = rx_buffer->meteoBits;
+					meteoPacketNumber++;
+				break;
+				case 1:
+					meteoData.packet2 = rx_buffer->meteoBits;
+					meteoPacketNumber++;
+				break;
+				case 2:
+					meteoData.packet2 = rx_buffer->meteoBits;
+					meteoPacketNumber = 0;
+					meteoDataReady = true;
+				break;
+				default:
+					LogLn("Invalid meteo packet number.");
+					// This stays unhandled. 
+			}
+	    } 
+	  //convert the received buffer into time	  	 
       time.Second = 0;
 	  time.Minute = rx_buffer->Min-((rx_buffer->Min/16)*6);
       time.Hour   = rx_buffer->Hour-((rx_buffer->Hour/16)*6);
@@ -295,6 +323,32 @@ bool DCF77::processBuffer(void) {
 	} else {
 	  //Parity incorrect
 	  return false;
+	}
+}
+
+bool DCF77::isMeteoReady()
+{
+	if (meteoDataReady)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+meteoDataBuffer DCF77::getMeteoData()
+{
+	if (meteoDataReady)
+	{
+		meteoDataReady = false;
+		return meteoData;
+	}
+	else
+	{
+		meteoDataBuffer emptyBuf;
+		return emptyBuf;
 	}
 }
 
@@ -352,6 +406,11 @@ int DCF77::bufferPosition = 0;
 unsigned long long DCF77::runningBuffer = 0;
 unsigned long long DCF77::processingBuffer = 0;
 
+// MeteoInformation
+meteoDataBuffer DCF77::meteoData;
+int DCF77::meteoPacketNumber = 0;
+bool DCF77::meteoDataReady = false;
+
 // Pulse flanks
 int DCF77::leadingEdge=0;
 int DCF77::trailingEdge=0;
@@ -365,5 +424,3 @@ time_t DCF77::processingTimestamp= 0;
 time_t DCF77::previousProcessingTimestamp=0;
 unsigned char DCF77::CEST=0;
 DCF77::ParityFlags DCF77::flags = {0,0,0,0};
-
-

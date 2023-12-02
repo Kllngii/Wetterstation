@@ -16,6 +16,12 @@
 #define DCFSplitTime 180        // Specifications distinguishes pulse width 100 ms and 200 ms. In practice we see 130 ms and 230
 #define DCFSyncTime 1500        // Specifications defines 2000 ms pulse for end of sequence
 
+typedef struct _meteoDataBuffer {
+    uint16_t packet1;
+    uint16_t packet2;
+    uint16_t packet3;
+} meteoDataBuffer;
+
 class DCF77 {
 private:
 
@@ -33,8 +39,10 @@ private:
     static unsigned char CEST;
     // DCF time format structure
     struct DCF77Buffer {
-      //unsigned long long prefix       :21;
-      unsigned long long prefix     :17;
+      unsigned long long startBit   :1; // Start of new minute. "0"
+      unsigned long long meteoBits  :14;// 14 Bits of meteotime
+      unsigned long long callBit    :1; // "Rufbit" unused
+      unsigned long long daySavings :1; // Flag that indicates change from CEST to CET
       unsigned long long CEST       :1; // CEST 
       unsigned long long CET        :1; // CET 
       unsigned long long unused     :2; // unused bits
@@ -68,6 +76,12 @@ private:
     static unsigned long long runningBuffer;
     static unsigned long long processingBuffer;
 
+    // Variables for meteotime
+
+    static meteoDataBuffer meteoData;
+    static int meteoPacketNumber;
+    static bool meteoDataReady; 
+
     // Pulse flanks
     static   int  leadingEdge;
     static   int  trailingEdge;
@@ -88,6 +102,8 @@ public:
     // Public Functions
     DCF77(int DCF77Pin, int DCFinterrupt, bool OnRisingFlank=true); 
     
+    static bool isMeteoReady();
+    static meteoDataBuffer getMeteoData();
     static time_t getTime(void);
     static time_t getUTCTime(void);
     static void Start(void);

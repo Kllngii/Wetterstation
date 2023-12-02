@@ -1,4 +1,4 @@
-#include <DCF77.h>
+#include "DCF77.h"
 #include <TimeLib.h>
 #include <SoftwareSerial.h>
 #include <Wire.h>
@@ -29,8 +29,18 @@ typedef union _timeSendBuf {
     timeStruct dcfTime;
 } timeSendBuf;
 
+typedef struct _meteoStruct {
+    const char dataType[4];
+    meteoDataBuffer packetData;
+} meteoStruct;
+
+typedef union _meteoSendBuf {
+    char meteoBuf[sizeof(meteoStruct)];
+    meteoStruct data;
+} meteoSendBuf;
+
 typedef struct _sensorStruct {
-    char dataType[4];
+    const char dataType[4];
     float temp;
     float humidity;
     float pressure;
@@ -46,7 +56,8 @@ DCF77 DCF = DCF77(DCF_DATA_PIN, DCF_INTERRUPT_PIN);
 SoftwareSerial HC12(HCSERIAL_RX_PIN, HCSERIAL_TX_PIN);
 
 timeSendBuf timeBuffer = {'T','I','M','E'};
-sensorSendBuf sensorBuffer = {'S','E','N','S'};    
+sensorSendBuf sensorBuffer = {'S','E','N','S'};  
+meteoSendBuf meteoBuffer = {'M','T','E','O'};
 
 bool timeValid = false;
 unsigned long lastSensorSend = 0;
@@ -144,6 +155,17 @@ void loop() {
         lastSensorSend = millis();
         lastTimeSend = millis();
     }
+
+    if (DCF.isMeteoReady())
+    {
+        meteoBuffer.data.packetData = DCF.getMeteoData();
+        Serial.print("New String of meteodata: ");
+        Serial.print(meteoBuffer.data.packetData.packet1, BIN);
+        Serial.print(meteoBuffer.data.packetData.packet2, BIN);
+        Serial.println(meteoBuffer.data.packetData.packet3, BIN);
+        HC12.print(meteoBuffer.meteoBuf);
+    }
+    
     // Send BME Data
     if ((millis() - lastSensorSend) > SENSOR_SEND_FREQUENCY_MILLIS)
     {
