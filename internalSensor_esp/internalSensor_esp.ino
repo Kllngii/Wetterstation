@@ -4,7 +4,7 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-#include <MHZ.h>
+#include <Mhz19.h>
 
 #define RX_CO2      12  // D6
 #define TX_CO2      13  // D7
@@ -71,14 +71,20 @@ typedef union _bmeBuf {
 } bmeBuf;
 
 Adafruit_BME280 bme;
-MHZ CO2(RX_CO2, TX_CO2, MHZ19C);
+Mhz19 MHZ;
+SoftwareSerial CO2Serial(RX_CO2, TX_CO2);
+//MHZ CO2(RX_CO2, TX_CO2, MHZ19C);
 SoftwareSerial HC12(RX_HC12, TX_HC12);
-//SoftwareSerial MeteoDecoder(RX_METEO, TX_METEO);
+SoftwareSerial MeteoDecoder(RX_METEO, TX_METEO);
 
 void setup()
 {
     char rxArray[9] = {0};
     pinMode(SET_PIN, INPUT);
+    CO2Serial.begin(9600);
+    MHZ.begin(&CO2Serial);
+    MHZ.setMeasuringRange(Mhz19MeasuringRange::Ppm_5000);
+    MHZ.enableAutoBaseCalibration();
     Serial.begin(115200);
     HC12.begin(9600);
 
@@ -150,15 +156,17 @@ void setup()
     // Disable Setting Mode in HC-12
     pinMode(SET_PIN, INPUT);
 
-    while(!CO2.isReady()){
-      delay(1);
+    while(!MHZ.isReady())
+    {
+      Serial.println("Still preheating...");
+      delay(5000);
     }
 
 }
 
 void loop()
 {
-    int co2 = CO2.readCO2UART();
+    int co2 = MHZ.getCarbonDioxide();
     Serial.println(co2);
     delay(1000);
 }
