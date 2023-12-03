@@ -1,10 +1,15 @@
+use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
+use cortex_m::prelude::_embedded_hal_serial_Read;
 extern crate alloc;
 
+use hal::uart::StopBits;
 use alloc::boxed::Box;
 use alloc::rc::Rc;
+use alloc::string::String;
 use alloc::vec;
 use core::cell::RefCell;
 use core::convert::Infallible;
+use core::time;
 use cortex_m::interrupt::Mutex;
 use cortex_m::singleton;
 //pub use cortex_m_rt::entry;
@@ -27,13 +32,15 @@ use rp_pico::hal::I2C;
 use rp_pico::hal::uart::Pins;
 use rp_pico::pac::{I2C0, Peripherals};
 use core::time::Duration;
+#[cfg(feature = "panic-probe")]
+use defmt::*;
 use slint::{format, SharedString, TimerMode};
+use heapless::spsc::Queue;
+use hal::uart::DataBits;
 
 use crate::{AppWindow, display_interface_spi, xpt2046};
 use crate::xpt2046::XPT2046;
 
-#[cfg(feature = "panic-probe")]
-extern crate defmt;
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
 #[cfg(feature = "panic-probe")]
@@ -56,7 +63,8 @@ const SPI_ST7789VW_MAX_FREQ: Hertz<u32> = Hertz::<u32>::Hz(62_500_000);
 
 const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
 
-/// The Pixel type of the backing store
+const UART_RX_QUEUE_MAX_SIZE: usize = 256;
+
 pub type TargetPixel = Rgb565Pixel;
 
 type SpiPins = (
@@ -66,6 +74,28 @@ type SpiPins = (
 );
 
 type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
+
+type UartPins = (
+    hal::gpio::Pin<hal::gpio::bank0::Gpio0, hal::gpio::FunctionUart, hal::gpio::PullNone>,
+    hal::gpio::Pin<hal::gpio::bank0::Gpio1, hal::gpio::FunctionUart, hal::gpio::PullNone>,
+);
+
+type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
+
+type I2CPins = (
+    hal::gpio::Pin<hal::gpio::bank0::Gpio20, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
+    hal::gpio::Pin<hal::gpio::bank0::Gpio21, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
+);
+
+type EnabledI2C = hal::i2c::I2C<pac::I2C0, I2CPins>;
+
+static GLOBAL_UART: Mutex<RefCell<Option<EnabledUart>>> = Mutex::new(RefCell::new(None));
+
+static GLOBAL_I2C: Mutex<RefCell<Option<EnabledI2C>>> = Mutex::new(RefCell::new(None));
+
+static UART_RX_QUEUE: UartQueueRx = UartQueueRx {
+    mutex_cell_rx: Mutex::new(RefCell::new(Queue::new())),
+};
 
 #[derive(Clone)]
 struct SharedSpiWithFreq {
@@ -94,6 +124,35 @@ impl Transfer<u8> for SharedSpiWithFreq {
     }
 }
 
+//TODO UartQueueTx implementieren
+struct UartQueueRx {
+    mutex_cell_rx: Mutex<RefCell<Queue<u8, UART_RX_QUEUE_MAX_SIZE>>>,
+}
+
+impl UartQueueRx {
+    fn read_byte(&self) -> Option<u8> {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let mut queue = cell_queue.borrow_mut();
+            queue.dequeue()
+        })
+    }
+    fn peek_byte(&self) -> Option<u8> {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let queue = cell_queue.borrow_mut();
+            queue.peek().cloned()
+        })
+    }
+    fn len(&self) -> usize {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let queue = cell_queue.borrow_mut();
+            queue.len()
+        })
+    }
+}
+
 pub fn init() {
     let mut pac = pac::Peripherals::take().unwrap();
     let core = pac::CorePeripherals::take().unwrap();
@@ -117,6 +176,8 @@ pub fn init() {
 
     let sio = hal::sio::Sio::new(pac.SIO);
     let pins = rp_pico::Pins::new(pac.IO_BANK0, pac.PADS_BANK0, sio.gpio_bank0, &mut pac.RESETS);
+
+    info!("Test");
 
     let rst = pins.gpio15.into_push_pull_output();
     let bl = pins.gpio13.into_push_pull_output();
@@ -210,6 +271,31 @@ pub fn init() {
         clocks.system_clock.freq(),
     );
 
+    cortex_m::interrupt::free(|cs| {
+        GLOBAL_I2C.borrow(cs).replace(Some(i2c));
+    });
+
+    let uart_pins = (
+        pins.gpio0.reconfigure::<hal::gpio::FunctionUart, hal::gpio::PullNone>(),
+        pins.gpio1.reconfigure::<hal::gpio::FunctionUart, hal::gpio::PullNone>(),
+    );
+
+    let mut uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
+        .enable(
+            hal::uart::UartConfig::new(115200.Hz(), DataBits::Eight, None,StopBits::One),
+            clocks.peripheral_clock.freq(),
+        )
+        .unwrap();
+
+    unsafe { //UART Interrupt aktivieren
+        pac::NVIC::unmask(hal::pac::Interrupt::UART0_IRQ);
+    }
+
+    uart.enable_rx_interrupt(); //IRQ wenn Platz im TX Buffer
+    cortex_m::interrupt::free(|cs| {
+        GLOBAL_UART.borrow(cs).replace(Some(uart)); //Ab jetzt kein Zugriff mehr aus Main...
+    });
+
     slint::platform::set_platform(Box::new(PicoBackend {
         window: Default::default(),
         buffer_provider: buffer_provider.into(),
@@ -219,48 +305,78 @@ pub fn init() {
 
 }
 
-pub unsafe fn init_timers(ui_handle: slint::Weak<AppWindow>) {
 
-    let mut pac = pac::Peripherals::steal();
-
-    let mut watchdog = hal::Watchdog::new(pac.WATCHDOG);
-    let clocks = hal::clocks::init_clocks_and_plls(
-        rp_pico::XOSC_CRYSTAL_FREQ,
-        pac.XOSC,
-        pac.CLOCKS,
-        pac.PLL_SYS,
-        pac.PLL_USB,
-        &mut pac.RESETS,
-        &mut watchdog,
-    ).ok().unwrap();
-
-    //let sio = hal::sio::Sio::new(pac.SIO);
-    //let pins = rp_pico::Pins::new(pac.IO_BANK0, pac.PADS_BANK0, sio.gpio_bank0, &mut pac.RESETS);
-
-
-    /*
-
-    let timer = slint::Timer::default();
+pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
+    let timer: slint::Timer = slint::Timer::default();
     let mut time: [u8; 7] = [0u8; 7];
+    let mut raw_data: [u8; 44] = [0u8; 44];
     //let mut control: [u8; 2] = [0u8; 2];
-    timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
-        //i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
-        //i2c.write_read(0x68, &[0x0eu8], &mut control).expect("I2C Fehler");
-        /*
-            info!(
-                "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
-                time[2], time[1], time[0], time[4], time[5], time[6]
-            );
+    timer.start(TimerMode::Repeated, time::Duration::from_millis(1000), move || {
+        let ui = ui_handle.upgrade().unwrap();
 
+
+        static mut I2C: Option<EnabledI2C> = None;
+        unsafe {
+            if I2C.is_none() {
+                cortex_m::interrupt::free(|cs| {
+                    I2C = GLOBAL_I2C.borrow(cs).take();
+                });
+            }
+            if let Some(i2c) = &mut I2C {
+
+                i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
+                //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
+
+                let time_str: SharedString = SharedString::from(slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]));
+                let date_str: SharedString = SharedString::from(slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]));
+
+                ui.set_time(time_str);
+                ui.set_date(date_str);
+            } else {
+                warn!("I2C nicht initialisiert!");
+            }
+        }
+        //
+        /*
+        writeln!(&UART_TX_QUEUE, "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
+                                           time[2], time[1], time[0], time[4], time[5], time[6]).unwrap();
          */
-        let ui = ui_handle.unwrap();
-        let time_str: SharedString = SharedString::from(slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]));
-        let date_str: SharedString = SharedString::from(slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]));
-        ui.set_time(time_str);
-        ui.set_date(date_str);
+        //
+
+        //
+        //
+        //
+
+        cortex_m::interrupt::free(|cs| {
+            // Grab the mutex contents.
+            let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
+            // Grab mutable access to the queue. This can't fail
+            // because there are no interrupts running.
+            let mut queue = cell_queue.borrow_mut();
+            // Try and put the byte in the queue.
+            let mut count = 0;
+            let mut data: [u8; 256] = [0u8; 256];
+            while let Some(byte) = queue.dequeue() {
+                //info!("Byte empfangen: {}", byte);
+                if count >= data.len() {
+                    //Bei einem Overflow Fehlermeldung ausgeben
+                    warn!("Maximale Länge eines UART-Telegramms überschritten! count = {}; max_len = {}", count, data.len());
+                } else {
+                    data[count] = byte;
+                    count += 1;
+                }
+            }
+            if count > 0 {
+                let str = String::from_utf8(data.to_vec());
+                match str {
+                    Ok(s) => info!("{}", s.as_str()),
+                    Err(e) => error!("Fehler"),
+                }
+            }
+        });
     });
 
-     */
+    timer
 }
 
 struct PicoBackend<DrawBuffer, Touch> {
@@ -354,12 +470,13 @@ for PicoBackend<
                 }
             }
 
+            //voraussichtliche wfe-Zeit berechnen 💤
             let sleep_duration = match slint::platform::duration_until_next_timer_update() {
                 None => None,
                 Some(d) => {
                     let micros = d.as_micros() as u32;
                     if micros < 10 {
-                        // Cannot wait for less than 10µs, or `schedule()` panics
+                        //Wenn man weniger als 10µs schlafen will, merk es dir mit einem REIM, NEIN!
                         continue;
                     } else {
                         Some(fugit::MicrosDurationU32::micros(micros))
@@ -516,9 +633,65 @@ fn IO_IRQ_BANK0() {
 
 #[interrupt]
 fn TIMER_IRQ_0() {
+    info!("TIMER0");
     cortex_m::interrupt::free(|cs| {
         ALARM0.borrow(cs).borrow_mut().as_mut().unwrap().clear_interrupt();
     });
+}
+
+#[interrupt]
+fn UART0_IRQ() {
+    // This variable is special. It gets mangled by the `#[interrupt]` macro
+    // into something that we can access without the `unsafe` keyword. It can
+    // do this because this function cannot be called re-entrantly. We know
+    // this because the function's 'real' name is unknown, and hence it cannot
+    // be called from the main thread. We also know that the NVIC will not
+    // re-entrantly call an interrupt.
+    static mut UART: Option<EnabledUart> = None;
+
+    // This is one-time lazy initialisation. We steal the variable given to us
+    // via `GLOBAL_UART`.
+    if UART.is_none() {
+        cortex_m::interrupt::free(|cs| {
+            *UART = GLOBAL_UART.borrow(cs).take();
+        });
+    }
+
+    // Check if we have a UART to work with
+    if let Some(uart) = UART {
+
+
+        // Check if we have data to transmit
+        /*
+        while let Some(byte) = UART_TX_QUEUE.peek_byte() {
+            if uart.write(byte).is_ok() {
+                // The UART took it, so pop it off the queue.
+                let _ = UART_TX_QUEUE.read_byte();
+            } else {
+                break;
+            }
+        }
+
+         */
+        while let Ok(byte) = uart.read() {
+            cortex_m::interrupt::free(|cs| {
+                // Grab the mutex contents.
+                let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
+                // Grab mutable access to the queue. This can't fail
+                // because there are no interrupts running.
+                let mut queue = cell_queue.borrow_mut();
+                // Try and put the byte in the queue.
+                if !queue.enqueue(byte).is_ok() {
+                    warn!("Fehler beim Beschreiben der RX Queue!");
+                }
+            });
+        }
+    } else {
+        warn!("Uart nicht initialisiert!");
+    }
+    // Set an event to ensure the main thread always wakes up, even if it's in
+    // the process of going to sleep.
+    cortex_m::asm::sev();
 }
 
 #[cfg(not(feature = "panic-probe"))]

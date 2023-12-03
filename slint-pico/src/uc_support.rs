@@ -4,9 +4,9 @@ use cortex_m::prelude::_embedded_hal_serial_Read;
 use heapless::spsc::Queue;
 use core::cell::RefCell;
 use alloc::fmt::format;
+use alloc::string::String;
 use alloc::vec;
 use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
-// Pull in any important traits
 use core::time;
 #[cfg(feature = "panic-probe")]
 use defmt::*;
@@ -241,6 +241,9 @@ pub(crate) fn uc_main() -> ! {
         )
         .unwrap();
 
+    unsafe { //UART Interrupt aktivieren
+        pac::NVIC::unmask(hal::pac::Interrupt::UART0_IRQ);
+    }
 
     let _spi_sclk: hal::gpio::Pin<_, gpio::FunctionSpi, gpio::PullNone> = pins.gpio10.reconfigure();
     let _spi_mosi: hal::gpio::Pin<_, gpio::FunctionSpi, gpio::PullNone> = pins.gpio11.reconfigure();
@@ -276,7 +279,8 @@ pub(crate) fn uc_main() -> ! {
     */
 
     // *** UART Config ***
-    uart.enable_tx_interrupt(); //IRQ wenn Platz im TX Buffer
+    //uart.enable_tx_interrupt(); //IRQ wenn Platz im TX Buffer
+    uart.enable_rx_interrupt(); //IRQ wenn Platz im TX Buffer
     cortex_m::interrupt::free(|cs| {
         GLOBAL_UART.borrow(cs).replace(Some(uart)); //Ab jetzt kein Zugriff mehr aus Main...
     });
@@ -315,15 +319,17 @@ pub(crate) fn uc_main() -> ! {
 
     let timer = Timer::default();
     let mut time: [u8; 7] = [0u8; 7];
+    let mut raw_data: [u8; 44] = [0u8; 44];
     //let mut control: [u8; 2] = [0u8; 2];
     timer.start(TimerMode::Repeated, time::Duration::from_millis(1000), move || {
         i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
         //i2c.write_read(0x68, &[0x0eu8], &mut control).expect("I2C Fehler");
 
-        info!(
+        /*info!(
             "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
             time[2], time[1], time[0], time[4], time[5], time[6]
         );
+         */
         /*
         writeln!(&UART_TX_QUEUE, "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
                                            time[2], time[1], time[0], time[4], time[5], time[6]).unwrap();
@@ -333,7 +339,7 @@ pub(crate) fn uc_main() -> ! {
         let date_str: SharedString = SharedString::from(slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]));
         ui.set_time(time_str);
         ui.set_date(date_str);
-        /*
+
         cortex_m::interrupt::free(|cs| {
             // Grab the mutex contents.
             let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
@@ -341,11 +347,26 @@ pub(crate) fn uc_main() -> ! {
             // because there are no interrupts running.
             let mut queue = cell_queue.borrow_mut();
             // Try and put the byte in the queue.
+            let mut count = 0;
+            let mut data: [u8; 256] = [0u8; 256];
             while let Some(byte) = queue.dequeue() {
-                info!("Byte empfangen: {}", byte);
+                //info!("Byte empfangen: {}", byte);
+                if count >= data.len() { //Bei einem Overflow Fehlermeldung ausgeben
+                    warn!("Maximale Länge eines UART-Telegramms überschritten! count = {}; max_len = {}", count, data.len());
+                } else {
+                    data[count] = byte;
+                    count += 1;
+                }
+            }
+            if count > 0 {
+                let str = String::from_utf8(data.to_vec());
+                match str {
+                    Ok(s) => info!("{}", s.as_str()),
+                    Err(e) => error!("Fehler"),
+                }
+
             }
         });
-         */
     });
 
     loop {
@@ -446,6 +467,8 @@ fn UART0_IRQ() {
 
     // Check if we have a UART to work with
     if let Some(uart) = UART {
+
+
         // Check if we have data to transmit
         while let Some(byte) = UART_TX_QUEUE.peek_byte() {
             if uart.write(byte).is_ok() {
@@ -455,7 +478,6 @@ fn UART0_IRQ() {
                 break;
             }
         }
-
         while let Ok(byte) = uart.read() {
             cortex_m::interrupt::free(|cs| {
                 // Grab the mutex contents.
@@ -470,11 +492,13 @@ fn UART0_IRQ() {
             });
         }
 
+        //TODO Wenn man auch empfangen will, darf man hier den IRQ nicht ausschalten... Alternative?
+        /*
         if UART_TX_QUEUE.peek_byte().is_none() {
             pac::NVIC::mask(UART_TX_QUEUE.interrupt);
         }
+         */
     }
-
     // Set an event to ensure the main thread always wakes up, even if it's in
     // the process of going to sleep.
     cortex_m::asm::sev();

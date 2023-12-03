@@ -2846,6 +2846,7 @@ dependencies = [
  "euclid",
  "fugit",
  "heapless 0.8.0",
+ "log",
  "once_cell",
  "panic-halt",
  "panic-probe",
