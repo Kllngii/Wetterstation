@@ -2,7 +2,6 @@ use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
 use cortex_m::prelude::_embedded_hal_serial_Read;
 extern crate alloc;
 
-use hal::uart::StopBits;
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::string::String;
@@ -12,53 +11,48 @@ use core::convert::Infallible;
 use core::time;
 use cortex_m::interrupt::Mutex;
 use cortex_m::singleton;
+use hal::uart::StopBits;
 //pub use cortex_m_rt::entry;
+use core::time::Duration;
+#[cfg(feature = "panic-probe")]
+use defmt::*;
 use embedded_alloc::Heap;
 use embedded_hal::blocking::spi::Transfer;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
 use embedded_hal::spi::FullDuplex;
 use fugit::{Hertz, RateExtU32};
 use hal::dma::{DMAExt, SingleChannel, WriteTarget};
+use hal::uart::DataBits;
+use heapless::spsc::Queue;
 use renderer::Rgb565Pixel;
+use rp_pico::hal::gpio::DynFunction::I2c;
 use rp_pico::hal::gpio::{self, Interrupt as GpioInterrupt, Pin};
 use rp_pico::hal::pac::interrupt;
 use rp_pico::hal::timer::{Alarm, Alarm0};
-use rp_pico::hal::{self, Clock, pac, prelude::*, Sio, Timer};
-use rp_pico::hal::gpio::DynFunction::I2c;
+use rp_pico::hal::uart::Pins;
+use rp_pico::hal::I2C;
+use rp_pico::hal::{self, pac, prelude::*, Clock, Sio, Timer};
+use rp_pico::pac::{Peripherals, I2C0};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use rp_pico::hal::I2C;
-use rp_pico::hal::uart::Pins;
-use rp_pico::pac::{I2C0, Peripherals};
-use core::time::Duration;
-#[cfg(feature = "panic-probe")]
-use defmt::*;
 use slint::{format, SharedString, TimerMode};
-use heapless::spsc::Queue;
-use hal::uart::DataBits;
 
-use crate::{AppWindow, display_interface_spi, xpt2046};
 use crate::xpt2046::XPT2046;
+use crate::{display_interface_spi, xpt2046, AppWindow};
 
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
 #[cfg(feature = "panic-probe")]
 extern crate panic_probe;
 
+// *** Allocator ***
 const HEAP_SIZE: usize = 200 * 1024;
 static mut HEAP: [u8; HEAP_SIZE] = [0; HEAP_SIZE];
-
 #[global_allocator]
 static ALLOCATOR: Heap = Heap::empty();
 
-type IrqPin = gpio::Pin<gpio::bank0::Gpio17, gpio::FunctionSio<gpio::SioInput>, gpio::PullUp>;
-static IRQ_PIN: Mutex<RefCell<Option<IrqPin>>> = Mutex::new(RefCell::new(None));
-
-static ALARM0: Mutex<RefCell<Option<Alarm0>>> = Mutex::new(RefCell::new(None));
-static TIMER: Mutex<RefCell<Option<Timer>>> = Mutex::new(RefCell::new(None));
-
-// 16ns for serial clock cycle (write), page 43 of https://www.waveshare.com/w/upload/a/ae/ST7789_Datasheet.pdf
+// berechnet nach der minimalen Zeit eines Schreibzykluses (siehe S.43) https://www.waveshare.com/w/upload/a/ae/ST7789_Datasheet.pdf
 const SPI_ST7789VW_MAX_FREQ: Hertz<u32> = Hertz::<u32>::Hz(62_500_000);
 
 const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
@@ -66,48 +60,46 @@ const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
 const UART_RX_QUEUE_MAX_SIZE: usize = 256;
 
 pub type TargetPixel = Rgb565Pixel;
-
+type IrqPin = gpio::Pin<gpio::bank0::Gpio17, gpio::FunctionSio<gpio::SioInput>, gpio::PullUp>;
 type SpiPins = (
     gpio::Pin<gpio::bank0::Gpio11, gpio::FunctionSpi, gpio::PullDown>,
     gpio::Pin<gpio::bank0::Gpio12, gpio::FunctionSpi, gpio::PullDown>,
     gpio::Pin<gpio::bank0::Gpio10, gpio::FunctionSpi, gpio::PullDown>,
 );
-
-type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
-
 type UartPins = (
     hal::gpio::Pin<hal::gpio::bank0::Gpio0, hal::gpio::FunctionUart, hal::gpio::PullNone>,
     hal::gpio::Pin<hal::gpio::bank0::Gpio1, hal::gpio::FunctionUart, hal::gpio::PullNone>,
 );
-
-type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
-
 type I2CPins = (
     hal::gpio::Pin<hal::gpio::bank0::Gpio20, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
     hal::gpio::Pin<hal::gpio::bank0::Gpio21, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
 );
-
+type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
+type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
 type EnabledI2C = hal::i2c::I2C<pac::I2C0, I2CPins>;
 
+static ALARM0: Mutex<RefCell<Option<Alarm0>>> = Mutex::new(RefCell::new(None));
+static TIMER: Mutex<RefCell<Option<Timer>>> = Mutex::new(RefCell::new(None));
+static IRQ_PIN: Mutex<RefCell<Option<IrqPin>>> = Mutex::new(RefCell::new(None));
 static GLOBAL_UART: Mutex<RefCell<Option<EnabledUart>>> = Mutex::new(RefCell::new(None));
-
 static GLOBAL_I2C: Mutex<RefCell<Option<EnabledI2C>>> = Mutex::new(RefCell::new(None));
-
-static UART_RX_QUEUE: UartQueueRx = UartQueueRx {
-    mutex_cell_rx: Mutex::new(RefCell::new(Queue::new())),
-};
+static UART_RX_QUEUE: UartQueueRx =
+    UartQueueRx { mutex_cell_rx: Mutex::new(RefCell::new(Queue::new())) };
 
 #[derive(Clone)]
 struct SharedSpiWithFreq {
     mutex: &'static shared_bus::NullMutex<(EnabledSpi, Hertz<u32>)>,
     freq: Hertz<u32>,
 }
+struct UartQueueRx {
+    mutex_cell_rx: Mutex<RefCell<Queue<u8, UART_RX_QUEUE_MAX_SIZE>>>,
+}
 
 impl SharedSpiWithFreq {
     fn lock<R, F: FnOnce(&mut EnabledSpi) -> R>(&self, f: F) -> R {
         self.mutex.lock(|(spi, old_freq)| {
             if *old_freq != self.freq {
-                // the touchscreen and the LCD have different frequencies
+                //Touch und Display-Ansteuerung brauchen verschiedene Baudraten...
                 spi.set_baudrate(125_000_000u32.Hz(), self.freq);
                 *old_freq = self.freq;
             }
@@ -115,7 +107,6 @@ impl SharedSpiWithFreq {
         })
     }
 }
-
 impl Transfer<u8> for SharedSpiWithFreq {
     type Error = <EnabledSpi as Transfer<u8>>::Error;
 
@@ -124,11 +115,7 @@ impl Transfer<u8> for SharedSpiWithFreq {
     }
 }
 
-//TODO UartQueueTx implementieren
-struct UartQueueRx {
-    mutex_cell_rx: Mutex<RefCell<Queue<u8, UART_RX_QUEUE_MAX_SIZE>>>,
-}
-
+//TODO Wird diese impl noch benötigt? Evtl. entfernen
 impl UartQueueRx {
     fn read_byte(&self) -> Option<u8> {
         cortex_m::interrupt::free(|cs| {
@@ -154,6 +141,7 @@ impl UartQueueRx {
 }
 
 pub fn init() {
+    // *** Zugriff auf Systemressourcen übernehmen ***
     let mut pac = pac::Peripherals::take().unwrap();
     let core = pac::CorePeripherals::take().unwrap();
 
@@ -167,8 +155,8 @@ pub fn init() {
         &mut pac.RESETS,
         &mut watchdog,
     )
-        .ok()
-        .unwrap();
+    .ok()
+    .unwrap();
 
     unsafe { ALLOCATOR.init(&mut HEAP as *const u8 as usize, core::mem::size_of_val(&HEAP)) }
 
@@ -177,13 +165,13 @@ pub fn init() {
     let sio = hal::sio::Sio::new(pac.SIO);
     let pins = rp_pico::Pins::new(pac.IO_BANK0, pac.PADS_BANK0, sio.gpio_bank0, &mut pac.RESETS);
 
-    info!("Test");
+    // *** Pins und benötigte Schnittstellen konfigurieren ***
 
-    let rst = pins.gpio15.into_push_pull_output();
-    let bl = pins.gpio13.into_push_pull_output();
+    let rst = pins.gpio15.into_push_pull_output(); //Reset
+    let bl = pins.gpio13.into_push_pull_output(); //Backlight
 
-    let dc = pins.gpio8.into_push_pull_output();
-    let cs = pins.gpio9.into_push_pull_output();
+    let dc = pins.gpio8.into_push_pull_output(); //Data/Command
+    let cs = pins.gpio9.into_push_pull_output(); //Display-Chipselect
 
     let spi_sclk = pins.gpio10.into_function::<gpio::FunctionSpi>();
     let spi_mosi = pins.gpio11.into_function::<gpio::FunctionSpi>();
@@ -194,10 +182,9 @@ pub fn init() {
         &mut pac.RESETS,
         clocks.peripheral_clock.freq(),
         SPI_ST7789VW_MAX_FREQ,
-        &embedded_hal::spi::MODE_3,
+        embedded_hal::spi::MODE_3,
     );
 
-    // SAFETY: This is not safe :-(  But we need to access the SPI and its control pins for the PIO
     let (dc_copy, cs_copy) =
         unsafe { (core::ptr::read(&dc as *const _), core::ptr::read(&cs as *const _)) };
     let stolen_spi = unsafe { core::ptr::read(&spi as *const _) };
@@ -230,7 +217,7 @@ pub fn init() {
         pins.gpio16.into_push_pull_output(),
         SharedSpiWithFreq { mutex: spi_mutex, freq: xpt2046::SPI_FREQ },
     )
-        .unwrap();
+    .unwrap();
 
     let mut timer = Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
     let mut alarm0 = timer.alarm_0().unwrap();
@@ -262,7 +249,7 @@ pub fn init() {
     let _i2c_sda: hal::gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio20.reconfigure();
     let _i2c_scl: hal::gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio21.reconfigure();
 
-    let mut i2c = I2C::new_controller(
+    let i2c = I2C::new_controller(
         pac.I2C0,
         _i2c_sda,
         _i2c_scl,
@@ -282,12 +269,13 @@ pub fn init() {
 
     let mut uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
         .enable(
-            hal::uart::UartConfig::new(115200.Hz(), DataBits::Eight, None,StopBits::One),
+            hal::uart::UartConfig::new(115200.Hz(), DataBits::Eight, None, StopBits::One),
             clocks.peripheral_clock.freq(),
         )
         .unwrap();
 
-    unsafe { //UART Interrupt aktivieren
+    unsafe {
+        //UART Interrupt aktivieren
         pac::NVIC::unmask(hal::pac::Interrupt::UART0_IRQ);
     }
 
@@ -301,19 +289,15 @@ pub fn init() {
         buffer_provider: buffer_provider.into(),
         touch: touch.into(),
         //i2c: i2c.into(), //FIXME WIE?!
-    })).expect("backend already initialized");
-
+    }))
+    .expect("backend already initialized");
 }
-
 
 pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
     let timer: slint::Timer = slint::Timer::default();
     let mut time: [u8; 7] = [0u8; 7];
-    let mut raw_data: [u8; 44] = [0u8; 44];
-    //let mut control: [u8; 2] = [0u8; 2];
     timer.start(TimerMode::Repeated, time::Duration::from_millis(1000), move || {
         let ui = ui_handle.upgrade().unwrap();
-
 
         static mut I2C: Option<EnabledI2C> = None;
         unsafe {
@@ -327,8 +311,9 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
                 //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
 
-                let time_str: SharedString = SharedString::from(slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]));
-                let date_str: SharedString = SharedString::from(slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]));
+                //TODO Für den schlechten Linter des Editors hier ein unnötiges .into() Nach nächstem Update des Linters entfernen...
+                let time_str: SharedString = slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]).into();
+                let date_str: SharedString = slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]).into();
 
                 ui.set_time(time_str);
                 ui.set_date(date_str);
@@ -336,24 +321,11 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 warn!("I2C nicht initialisiert!");
             }
         }
-        //
-        /*
-        writeln!(&UART_TX_QUEUE, "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
-                                           time[2], time[1], time[0], time[4], time[5], time[6]).unwrap();
-         */
-        //
-
-        //
-        //
-        //
 
         cortex_m::interrupt::free(|cs| {
-            // Grab the mutex contents.
             let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
-            // Grab mutable access to the queue. This can't fail
-            // because there are no interrupts running.
             let mut queue = cell_queue.borrow_mut();
-            // Try and put the byte in the queue.
+
             let mut count = 0;
             let mut data: [u8; 256] = [0u8; 256];
             while let Some(byte) = queue.dequeue() {
@@ -367,6 +339,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
             }
             if count > 0 {
+                //TODO sinnvolle Auswertung der Daten vornehmen
                 let str = String::from_utf8(data.to_vec());
                 match str {
                     Ok(s) => info!("{}", s.as_str()),
@@ -383,25 +356,23 @@ struct PicoBackend<DrawBuffer, Touch> {
     window: RefCell<Option<Rc<renderer::MinimalSoftwareWindow>>>,
     buffer_provider: RefCell<DrawBuffer>,
     touch: RefCell<Touch>,
-    //FIXME WIE?!
-    //i2c: RefCell<I2C<I2CType, SdaScl>>
 }
 impl<
-    DI: display_interface::WriteOnlyDataCommand,
-    RST: OutputPin<Error = Infallible>,
-    BL: OutputPin<Error = Infallible>,
-    TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
-    CH: SingleChannel,
-    DC_: OutputPin<Error = Infallible>,
-    CS_: OutputPin<Error = Infallible>,
-    IRQ: InputPin<Error = Infallible>,
-    CS: OutputPin<Error = Infallible>,
-    SPI: Transfer<u8>,
-> slint::platform::Platform
-for PicoBackend<
-    DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>,
-    xpt2046::XPT2046<IRQ, CS, SPI>,
->
+        DI: display_interface::WriteOnlyDataCommand,
+        RST: OutputPin<Error = Infallible>,
+        BL: OutputPin<Error = Infallible>,
+        TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
+        CH: SingleChannel,
+        DC_: OutputPin<Error = Infallible>,
+        CS_: OutputPin<Error = Infallible>,
+        IRQ: InputPin<Error = Infallible>,
+        CS: OutputPin<Error = Infallible>,
+        SPI: Transfer<u8>,
+    > slint::platform::Platform
+    for PicoBackend<
+        DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>,
+        XPT2046<IRQ, CS, SPI>,
+    >
 {
     fn create_window_adapter(
         &self,
@@ -440,7 +411,7 @@ for PicoBackend<
                             (point.x * DISPLAY_SIZE.width as f32) as _,
                             (point.y * DISPLAY_SIZE.height as f32) as _,
                         )
-                            .to_logical(window.scale_factor());
+                        .to_logical(window.scale_factor());
                         match last_touch.replace(position) {
                             Some(_) => WindowEvent::PointerMoved { position },
                             None => WindowEvent::PointerPressed { position, button },
@@ -457,15 +428,16 @@ for PicoBackend<
 
                     window.dispatch_event(event);
 
-                    // removes hover state on widgets
+                    //evtl. Hover-State über Widgets zurücknehmen
                     if is_pointer_release_event {
                         window.dispatch_event(WindowEvent::PointerExited);
                     }
-                    // Don't go to sleep after a touch event that forces a redraw
+                    //Nach Touch-Input keinen Sleep auslösen
                     continue;
                 }
 
                 if window.has_active_animations() {
+                    //Bei laufenden Animationen keinen Sleep auslösen
                     continue;
                 }
             }
@@ -501,16 +473,16 @@ for PicoBackend<
         }
     }
 
-    fn duration_since_start(&self) -> core::time::Duration {
+    fn duration_since_start(&self) -> Duration {
         let counter = cortex_m::interrupt::free(|cs| {
             TIMER.borrow(cs).borrow().as_ref().map(|t| t.get_counter().ticks()).unwrap_or_default()
         });
-        core::time::Duration::from_micros(counter)
+        Duration::from_micros(counter)
     }
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
         use alloc::string::ToString;
-        defmt::println!("{=str}", arguments.to_string());
+        info!("{=str}", arguments.to_string());
     }
 }
 
@@ -520,16 +492,15 @@ enum PioTransfer<TO: WriteTarget, CH: SingleChannel> {
 }
 
 impl<TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>, CH: SingleChannel>
-PioTransfer<TO, CH>
+    PioTransfer<TO, CH>
 {
     fn wait(self) -> (CH, &'static mut [TargetPixel], TO) {
         match self {
             PioTransfer::Idle(a, b, c) => (a, b, c),
             PioTransfer::Running(dma) => {
                 let (a, b, mut to) = dma.wait();
-                // After the DMA operated, we need to empty the receive FIFO, otherwise the touch screen
-                // driver will pick wrong values. Continue to read as long as we don't get a Err(WouldBlock)
-                while !to.read().is_err() {}
+                // Nach DMA Operation FIFO leeren bis zum Err(WouldBlock). Sonst macht der Touchcontroller Schwachsinn
+                while to.read().is_ok() {}
                 (a, b.0, to)
             }
         }
@@ -544,15 +515,15 @@ struct DrawBuffer<Display, PioTransfer, Stolen> {
 }
 
 impl<
-    DI: display_interface::WriteOnlyDataCommand,
-    RST: OutputPin<Error = Infallible>,
-    BL: OutputPin<Error = Infallible>,
-    TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
-    CH: SingleChannel,
-    DC_: OutputPin<Error = Infallible>,
-    CS_: OutputPin<Error = Infallible>,
-> renderer::LineBufferProvider
-for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
+        DI: display_interface::WriteOnlyDataCommand,
+        RST: OutputPin<Error = Infallible>,
+        BL: OutputPin<Error = Infallible>,
+        TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
+        CH: SingleChannel,
+        DC_: OutputPin<Error = Infallible>,
+        CS_: OutputPin<Error = Infallible>,
+    > renderer::LineBufferProvider
+    for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
 {
     type TargetPixel = TargetPixel;
 
@@ -564,7 +535,7 @@ for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)
     ) {
         render_fn(&mut self.buffer[range.clone()]);
 
-        // convert from little to big indian before sending to the DMA channel
+        // Little zu Big-Endian für DMA
         for x in &mut self.buffer[range.clone()] {
             *x = Rgb565Pixel(x.0.to_be())
         }
@@ -573,7 +544,6 @@ for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)
 
         core::mem::swap(&mut self.buffer, &mut b);
 
-        // We send empty data just to get the device in the right window
         self.display
             .set_pixels(
                 range.start as u16,
@@ -589,20 +559,18 @@ for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)
         let mut dma = hal::dma::single_buffer::Config::new(ch, PartialReadBuffer(b, range), spi);
         dma.pace(hal::dma::Pace::PreferSink);
         self.pio = Some(PioTransfer::Running(dma.start()));
-        /*let (a, b, c) = dma.start().wait();
-        self.pio = Some(PioTransfer::Idle(a, b.0, c));*/
     }
 }
 
 impl<
-    DI: display_interface::WriteOnlyDataCommand,
-    RST: OutputPin<Error = Infallible>,
-    BL: OutputPin<Error = Infallible>,
-    TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
-    CH: SingleChannel,
-    DC_: OutputPin<Error = Infallible>,
-    CS_: OutputPin<Error = Infallible>,
-> DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
+        DI: display_interface::WriteOnlyDataCommand,
+        RST: OutputPin<Error = Infallible>,
+        BL: OutputPin<Error = Infallible>,
+        TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
+        CH: SingleChannel,
+        DC_: OutputPin<Error = Infallible>,
+        CS_: OutputPin<Error = Infallible>,
+    > DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
 {
     fn flush_frame(&mut self) {
         let (ch, b, spi) = self.pio.take().unwrap().wait();
@@ -641,47 +609,23 @@ fn TIMER_IRQ_0() {
 
 #[interrupt]
 fn UART0_IRQ() {
-    // This variable is special. It gets mangled by the `#[interrupt]` macro
-    // into something that we can access without the `unsafe` keyword. It can
-    // do this because this function cannot be called re-entrantly. We know
-    // this because the function's 'real' name is unknown, and hence it cannot
-    // be called from the main thread. We also know that the NVIC will not
-    // re-entrantly call an interrupt.
+    /* Dank `#[interrupt]` Makro ist ein Aufruf ohne `unsafe` möglich. Diese Funktion ist nicht eintritt-invariant / reentrant,
+     * durch die Funktionsweise des NVIC kann dieser Problemfall aber auch nie auftreten.
+     */
     static mut UART: Option<EnabledUart> = None;
 
-    // This is one-time lazy initialisation. We steal the variable given to us
-    // via `GLOBAL_UART`.
     if UART.is_none() {
         cortex_m::interrupt::free(|cs| {
             *UART = GLOBAL_UART.borrow(cs).take();
         });
     }
 
-    // Check if we have a UART to work with
     if let Some(uart) = UART {
-
-
-        // Check if we have data to transmit
-        /*
-        while let Some(byte) = UART_TX_QUEUE.peek_byte() {
-            if uart.write(byte).is_ok() {
-                // The UART took it, so pop it off the queue.
-                let _ = UART_TX_QUEUE.read_byte();
-            } else {
-                break;
-            }
-        }
-
-         */
         while let Ok(byte) = uart.read() {
             cortex_m::interrupt::free(|cs| {
-                // Grab the mutex contents.
                 let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
-                // Grab mutable access to the queue. This can't fail
-                // because there are no interrupts running.
                 let mut queue = cell_queue.borrow_mut();
-                // Try and put the byte in the queue.
-                if !queue.enqueue(byte).is_ok() {
+                if queue.enqueue(byte).is_err() {
                     warn!("Fehler beim Beschreiben der RX Queue!");
                 }
             });
@@ -689,116 +633,6 @@ fn UART0_IRQ() {
     } else {
         warn!("Uart nicht initialisiert!");
     }
-    // Set an event to ensure the main thread always wakes up, even if it's in
-    // the process of going to sleep.
+    //Durch das Event sollte der Main-Thread immer wieder aufwachen...
     cortex_m::asm::sev();
-}
-
-#[cfg(not(feature = "panic-probe"))]
-#[inline(never)]
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    // Safety: it's ok to steal here since we are in the panic handler, and the rest of the code will not be run anymore
-    let (mut pac, core) = unsafe { (pac::Peripherals::steal(), pac::CorePeripherals::steal()) };
-
-    let sio = hal::sio::Sio::new(pac.SIO);
-    let pins = rp_pico::Pins::new(pac.IO_BANK0, pac.PADS_BANK0, sio.gpio_bank0, &mut pac.RESETS);
-    let mut led = pins.led.into_push_pull_output();
-    led.set_high().unwrap();
-
-    // Re-init the display
-    let mut watchdog = hal::watchdog::Watchdog::new(pac.WATCHDOG);
-    let clocks = hal::clocks::init_clocks_and_plls(
-        rp_pico::XOSC_CRYSTAL_FREQ,
-        pac.XOSC,
-        pac.CLOCKS,
-        pac.PLL_SYS,
-        pac.PLL_USB,
-        &mut pac.RESETS,
-        &mut watchdog,
-    )
-        .ok()
-        .unwrap();
-
-    let spi_sclk = pins.gpio10.into_function::<gpio::FunctionSpi>();
-    let spi_mosi = pins.gpio11.into_function::<gpio::FunctionSpi>();
-    let spi_miso = pins.gpio12.into_function::<gpio::FunctionSpi>();
-
-    let spi = hal::Spi::<_, _, _, 8>::new(pac.SPI1, (spi_mosi, spi_miso, spi_sclk));
-    let spi = spi.init(
-        &mut pac.RESETS,
-        clocks.peripheral_clock.freq(),
-        4_000_000u32.Hz(),
-        &embedded_hal::spi::MODE_3,
-    );
-
-    let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().raw());
-
-    let rst = pins.gpio15.into_push_pull_output();
-    let bl = pins.gpio13.into_push_pull_output();
-    let dc = pins.gpio8.into_push_pull_output();
-    let cs = pins.gpio9.into_push_pull_output();
-    let di = display_interface_spi::SPIInterface::new(spi, dc, cs);
-    let mut display = st7789::ST7789::new(di, Some(rst), Some(bl), 320, 240);
-
-    use core::fmt::Write;
-    use embedded_graphics::{
-        mono_font::{ascii::FONT_6X10, MonoTextStyle},
-        pixelcolor::Rgb565,
-        prelude::*,
-        text::Text,
-    };
-
-    display.init(&mut delay).unwrap();
-    display.set_orientation(st7789::Orientation::LandscapeSwapped).unwrap();
-    display.fill_solid(&display.bounding_box(), Rgb565::new(0x00, 0x25, 0xff)).unwrap();
-
-    struct WriteToScreen<'a, D> {
-        x: i32,
-        y: i32,
-        width: i32,
-        style: MonoTextStyle<'a, Rgb565>,
-        display: &'a mut D,
-    }
-    let mut writer = WriteToScreen {
-        x: 0,
-        y: 1,
-        width: display.bounding_box().size.width as i32 / 6 - 1,
-        style: MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE),
-        display: &mut display,
-    };
-    impl<'a, D: DrawTarget<Color = Rgb565>> Write for WriteToScreen<'a, D> {
-        fn write_str(&mut self, mut s: &str) -> Result<(), core::fmt::Error> {
-            while !s.is_empty() {
-                let (x, y) = (self.x, self.y);
-                let end_of_line = s
-                    .find(|c| {
-                        if c == '\n' || self.x > self.width {
-                            self.x = 0;
-                            self.y += 1;
-                            true
-                        } else {
-                            self.x += 1;
-                            false
-                        }
-                    })
-                    .unwrap_or(s.len());
-                let (line, rest) = s.split_at(end_of_line);
-                let sz = self.style.font.character_size;
-                Text::new(line, Point::new(x * sz.width as i32, y * sz.height as i32), self.style)
-                    .draw(self.display)
-                    .map_err(|_| core::fmt::Error)?;
-                s = rest.strip_prefix('\n').unwrap_or(rest);
-            }
-            Ok(())
-        }
-    }
-    write!(writer, "{}", info).unwrap();
-
-    loop {
-        delay.delay_ms(100);
-        led.set_low().unwrap();
-        delay.delay_ms(100);
-        led.set_high().unwrap();
-    }
 }
