@@ -30,7 +30,7 @@ use rp_pico::hal::{self, pac, prelude::*, Clock, Timer};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use slint::{SharedString, TimerMode};
+use slint::{format, SharedString, TimerMode};
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
@@ -294,6 +294,10 @@ pub fn init() {
 pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
     let timer: slint::Timer = slint::Timer::default();
     let mut time: [u8; 7] = [0u8; 7];
+
+    let id_ibme = [u8::try_from('I').unwrap(), u8::try_from('B').unwrap(), u8::try_from('M').unwrap(), u8::try_from('E').unwrap()];
+    let id_co2 = [u8::try_from('C').unwrap(), u8::try_from('O').unwrap(), u8::try_from('2').unwrap(), u8::try_from('.').unwrap()];
+
     timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
         let ui = ui_handle.upgrade().unwrap();
 
@@ -325,7 +329,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
             let mut queue = cell_queue.borrow_mut();
 
             let mut count = 0;
-            let mut data: [u8; 256] = [0u8; 256];
+            let mut data: [u8; UART_RX_QUEUE_MAX_SIZE] = [0u8; UART_RX_QUEUE_MAX_SIZE];
             while let Some(byte) = queue.dequeue() {
                 //info!("Byte empfangen: {}", byte);
                 if count >= data.len() {
@@ -337,17 +341,52 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
             }
             if count > 0 {
-                //TODO sinnvolle Auswertung der Daten vornehmen
+                /*
                 let str = String::from_utf8(data.to_vec());
                 match str {
                     Ok(s) => info!("{}", s.as_str()),
                     Err(e) => error!("Fehler"),
+                } */
+                info!("count: {}", count);
+                if let Some(ibme_start) = find_identifier::<u8>(&data, &id_ibme) {
+                    info!("ibme_start: {}", ibme_start);
+                    let temperature: f32 = data.to_f32(ibme_start);
+                    let humidity: f32 = data.to_f32(ibme_start + 4);
+                    let pressure: f32 = data.to_f32(ibme_start + 8);
+
+                    //TODO auch hier wieder unnötige .into(), dem Linter des RR sei Dank!
+                    ui.set_temperature(format!("{:.1}", temperature).into());
+                    ui.set_humidity(format!("{:.1}", humidity).into());
+                    ui.set_pressure(format!("{:.1}", pressure).into());
+                }
+                if let Some(co2_start) = find_identifier::<u8>(&data, &id_co2) {
+                    info!("co2_start: {}", co2_start);
+
+                    //TODO sinnvolle Auswertung der Daten vornehmen
                 }
             }
         });
     });
 
     timer
+}
+
+trait NumbersFromSlice<T: PartialEq+Sized = Self> {
+    fn to_f32(&self, start_index: usize) -> f32;
+    fn to_i16(&self, start_index: usize) -> i16;
+}
+
+impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
+    fn to_f32(&self, start_index: usize) -> f32 {
+        f32::from_be_bytes([self[start_index + 3], self[start_index + 2], self[start_index + 1], self[start_index]])
+    }
+    fn to_i16(&self, start_index: usize) -> i16 {
+        i16::from_be_bytes([self[start_index + 1], self[start_index]])
+    }
+}
+
+fn find_identifier<T>(haystack: &[T], needle: &[T]) -> Option<usize> where for<'a> &'a [T]: PartialEq {
+    haystack.windows(needle.len()).position(|window| window == needle).map(|index| index + needle.len())
 }
 
 struct PicoBackend<DrawBuffer, Touch> {
