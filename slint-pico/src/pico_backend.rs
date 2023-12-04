@@ -349,7 +349,6 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 } */
                 info!("count: {}", count);
                 if let Some(ibme_start) = find_identifier::<u8>(&data, &id_ibme) {
-                    info!("ibme_start: {}", ibme_start);
                     let temperature: f32 = data.to_f32(ibme_start);
                     let humidity: f32 = data.to_f32(ibme_start + 4);
                     let pressure: f32 = data.to_f32(ibme_start + 8);
@@ -360,9 +359,9 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     ui.set_pressure(format!("{:.1}", pressure).into());
                 }
                 if let Some(co2_start) = find_identifier::<u8>(&data, &id_co2) {
-                    info!("co2_start: {}", co2_start);
-
-                    //TODO sinnvolle Auswertung der Daten vornehmen
+                    let co2: i16 = data.to_i16(co2_start);
+                    info!("co2: {}ppm", co2);
+                    ui.set_co2(format!("{:.1}", co2).into());
                 }
             }
         });
