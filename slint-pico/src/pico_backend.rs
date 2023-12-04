@@ -482,7 +482,7 @@ impl<
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
         use alloc::string::ToString;
-        info!("{=str}", arguments.to_string());
+        debug!("{=str}", arguments.to_string());
     }
 }
 
@@ -601,7 +601,6 @@ fn IO_IRQ_BANK0() {
 
 #[interrupt]
 fn TIMER_IRQ_0() {
-    info!("TIMER0");
     cortex_m::interrupt::free(|cs| {
         ALARM0.borrow(cs).borrow_mut().as_mut().unwrap().clear_interrupt();
     });
