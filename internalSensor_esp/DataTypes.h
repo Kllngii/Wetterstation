@@ -3,34 +3,15 @@
 
 #include <stdint.h>
 
-typedef struct _timeStruct {
-    const char dataType[4];
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-} timeStruct;
-
-typedef union _timeBuf {
-    char sendArr[sizeof(timeStruct)];
-    timeStruct sendStruct;
-} timeBuf;
-
 typedef struct _meteoPacketStruct {
     uint16_t packet1;
     uint16_t packet2;
     uint16_t packet3;
 } meteoPacketStruct;
-typedef struct _meteoRawStruct {
-    const char dataType[4];
-    meteoPacketStruct packetData;
-} meteoRawStruct;
 
 typedef union _meteoRawBuffer {
-    char sendArr[sizeof(meteoRawStruct)];
-    meteoRawStruct data;
+    char rawBuffer[sizeof(meteoPacketStruct)];
+    meteoPacketStruct data;
 } meteoRawBuffer;
 
 typedef struct _meteoConvertedStruct {
