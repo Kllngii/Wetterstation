@@ -25,17 +25,16 @@ SoftwareSerial HC12(RX_HC12, TX_HC12);
 SoftwareSerial MeteoDecoder(RX_METEO, TX_METEO);
 
 timeBuf timePacket = {'T','I','M','E'};
-meteoRawBuffer rawMeteoPacket = {'M','T','E','O'};
+meteoRawBuffer rawMeteoPacket;
 meteoConvertedBuffer convertedMeteoPacket = {'M','T','E','O'};
 bmeBuf intBmePacket = {'I','B','M','E'};
-bmeBuf extBmePacket = {'E','B','M','E'};
 co2Buf co2Packet = {'C','O','2','.'};
 
 bool preHeatingFinished = false;
 unsigned long lastBmeSend = 0;
 unsigned long lastCo2Send = 0;
-char dataType[4];
 uint8_t dataTypeCounter;
+int readVal;
 
 void setup()
 {
@@ -121,7 +120,32 @@ void loop()
 {
     while(HC12.available())
     {
-      Serial.write(HC12.read());
+        readVal = HC12.read();
+        if (readVal == 'M' && dataTypeCounter == 0)
+        {
+            dataTypeCounter++;
+        }
+        else if (readVal == 'T' && dataTypeCounter == 1)
+        {
+            dataTypeCounter++;
+        }
+        else if (readVal == 'E' && dataTypeCounter == 3)
+        {
+            dataTypeCounter++;
+        }
+        else if (readVal == 'O' && dataTypeCounter == 4)
+        {
+            for (int i = 0; i < sizeof(meteoRawBuffer); i++)
+            {
+                rawMeteoPacket[i] = HC12.read();
+            }
+            dataTypeCounter = 0;
+        }
+        else 
+        {
+            dataTypeCounter = 0;
+            Serial.write(HC12.read());
+        }
     }
     if (!preHeatingFinished)
     {
