@@ -1,4 +1,7 @@
+/*! Dieses `XPT2046` Modul kümmert sich um die Ansteuerung und Auswertung der Touch-Inputs des Users
 
+    Basiert auf dem Beispiel der SixtyFPS GmbH <info@slint.dev>
+ */
 use core::cell::RefCell;
 use cortex_m::interrupt::Mutex;
 use embedded_hal::blocking::spi::Transfer;
