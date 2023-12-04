@@ -105,7 +105,7 @@ void setup()
 
     // Set data transmission to 8 bits + odd parity + 1 stop bit
     HC12.print("AT+U8N1");
-    while(HC12.available() < 7);
+    //while(HC12.available() < 7);
     for(int i = 0; i < 7; i++)
     {
         rxArray[i] = HC12.read();
@@ -119,12 +119,9 @@ void setup()
 
 void loop()
 {
-    if (HC12.available()){
-        while(HC12.available())
-        {
-            Serial.print(HC12.read());
-        }
-        Serial.println("");
+    while(HC12.available())
+    {
+      Serial.write(HC12.read());
     }
     if (!preHeatingFinished)
     {
@@ -134,14 +131,14 @@ void loop()
     {
         intBmePacket.sendStruct.temp = bme.readTemperature();
         intBmePacket.sendStruct.humidity = bme.readHumidity();
-        intBmePacket.sendStruct.pressure = bme.readPressure();
-        Serial.println(intBmePacket.sendArr);
+        intBmePacket.sendStruct.pressure = bme.readPressure() / 100.0;
+        Serial.write((const uint8_t*)intBmePacket.sendArr, sizeof(intBmePacket));
         lastBmeSend = millis();
     }
     if (((millis() - lastCo2Send) > CO2_SEND_FREQUENCY_MILLIS) && preHeatingFinished)
     {
         co2Packet.sendStruct.concentration = MHZ.getCarbonDioxide();
-        Serial.println(co2Packet.sendArr);
+        Serial.write((const uint8_t*)co2Packet.sendArr, sizeof(co2Packet));
         lastCo2Send = millis();
     }
 }

@@ -20,7 +20,7 @@ DCF77 DCF = DCF77(DCF_DATA_PIN, DCF_INTERRUPT_PIN);
 SoftwareSerial HC12(HCSERIAL_RX_PIN, HCSERIAL_TX_PIN);
 
 timeSendBuf timeBuffer = {'T','I','M','E'};
-sensorSendBuf sensorBuffer = {'S','E','N','S'};  
+sensorSendBuf sensorBuffer = {'E','B','M','E'};  
 meteoSendBuf meteoBuffer = {'M','T','E','O'};
 
 bool timeValid = false;
@@ -121,6 +121,14 @@ void loop() {
           lastTimeSend = millis();
         }
         timeValid = true;   // Begin transmission of time
+        Serial.println("Send time");
+        timeBuffer.dcfTime.hour = hour();
+        timeBuffer.dcfTime.minute = minute();
+        timeBuffer.dcfTime.second = second();
+        timeBuffer.dcfTime.year = year();
+        timeBuffer.dcfTime.month = month();
+        timeBuffer.dcfTime.day = day();
+        HC12.write((const uint8_t*)timeBuffer.timeBuf, sizeof(timeBuffer));
     }
 
     if (DCF.isMeteoReady())
@@ -130,7 +138,7 @@ void loop() {
         Serial.print(meteoBuffer.data.packetData.packet1, BIN);
         Serial.print(meteoBuffer.data.packetData.packet2, BIN);
         Serial.println(meteoBuffer.data.packetData.packet3, BIN);
-        HC12.print(meteoBuffer.meteoBuf);
+        HC12.write((const uint8_t*)meteoBuffer.meteoBuf, sizeof(meteoBuffer));
     }
     
     // Send BME Data
@@ -141,10 +149,11 @@ void loop() {
         sensorBuffer.sensor.temp = bme.readTemperature();
         sensorBuffer.sensor.humidity = bme.readHumidity();
         sensorBuffer.sensor.pressure = bme.readPressure();
-        HC12.print(sensorBuffer.sensorBuf);
+        HC12.write((const uint8_t*)sensorBuffer.sensorBuf, sizeof(sensorBuffer));
         lastSensorSend = millis();
     }
     // Send DCF Data
+    /*
     if (((millis() - lastTimeSend) > TIME_SEND_FREQUENCY_MILLIS) && timeValid)
     {
         Serial.println("Send time");
@@ -154,7 +163,8 @@ void loop() {
         timeBuffer.dcfTime.year = year();
         timeBuffer.dcfTime.month = month();
         timeBuffer.dcfTime.day = day();
-        HC12.print(timeBuffer.timeBuf);
+        HC12.write((const uint8_t*)timeBuffer.timeBuf, sizeof(timeBuffer));
         lastTimeSend = millis();
     }
+    */
 }
