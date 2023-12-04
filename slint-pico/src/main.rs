@@ -3,8 +3,7 @@
 //#![feature(type_alias_impl_trait)]
 //#![feature(async_fn_in_trait)]
 
-#[cfg(feature = "panic-probe")]
-use defmt::*;
+
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
 #[cfg(feature = "panic-probe")]

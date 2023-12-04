@@ -1,21 +1,18 @@
-use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
-use cortex_m::prelude::_embedded_hal_serial_Read;
+use crate::alloc::string::ToString;
 extern crate alloc;
 
+use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
+use cortex_m::prelude::_embedded_hal_serial_Read;
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec;
 use core::cell::RefCell;
 use core::convert::Infallible;
-use core::time;
 use cortex_m::interrupt::Mutex;
 use cortex_m::singleton;
 use hal::uart::StopBits;
-//pub use cortex_m_rt::entry;
 use core::time::Duration;
-#[cfg(feature = "panic-probe")]
-use defmt::*;
 use embedded_alloc::Heap;
 use embedded_hal::blocking::spi::Transfer;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
@@ -25,18 +22,18 @@ use hal::dma::{DMAExt, SingleChannel, WriteTarget};
 use hal::uart::DataBits;
 use heapless::spsc::Queue;
 use renderer::Rgb565Pixel;
-use rp_pico::hal::gpio::DynFunction::I2c;
-use rp_pico::hal::gpio::{self, Interrupt as GpioInterrupt, Pin};
+use rp_pico::hal::gpio::{self, Interrupt as GpioInterrupt};
 use rp_pico::hal::pac::interrupt;
 use rp_pico::hal::timer::{Alarm, Alarm0};
-use rp_pico::hal::uart::Pins;
 use rp_pico::hal::I2C;
-use rp_pico::hal::{self, pac, prelude::*, Clock, Sio, Timer};
-use rp_pico::pac::{Peripherals, I2C0};
+use rp_pico::hal::{self, pac, prelude::*, Clock, Timer};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use slint::{format, SharedString, TimerMode};
+use slint::{SharedString, TimerMode};
+
+#[cfg(feature = "panic-probe")]
+use defmt::*;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
@@ -52,7 +49,7 @@ static mut HEAP: [u8; HEAP_SIZE] = [0; HEAP_SIZE];
 #[global_allocator]
 static ALLOCATOR: Heap = Heap::empty();
 
-// berechnet nach der minimalen Zeit eines Schreibzykluses (siehe S.43) https://www.waveshare.com/w/upload/a/ae/ST7789_Datasheet.pdf
+// berechnet nach der minimalen Zeit eines Schreibzyklus (siehe S.43) https://www.waveshare.com/w/upload/a/ae/ST7789_Datasheet.pdf
 const SPI_ST7789VW_MAX_FREQ: Hertz<u32> = Hertz::<u32>::Hz(62_500_000);
 
 const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
@@ -67,16 +64,16 @@ type SpiPins = (
     gpio::Pin<gpio::bank0::Gpio10, gpio::FunctionSpi, gpio::PullDown>,
 );
 type UartPins = (
-    hal::gpio::Pin<hal::gpio::bank0::Gpio0, hal::gpio::FunctionUart, hal::gpio::PullNone>,
-    hal::gpio::Pin<hal::gpio::bank0::Gpio1, hal::gpio::FunctionUart, hal::gpio::PullNone>,
+    gpio::Pin<hal::gpio::bank0::Gpio0, hal::gpio::FunctionUart, hal::gpio::PullNone>,
+    gpio::Pin<hal::gpio::bank0::Gpio1, hal::gpio::FunctionUart, hal::gpio::PullNone>,
 );
 type I2CPins = (
-    hal::gpio::Pin<hal::gpio::bank0::Gpio20, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
-    hal::gpio::Pin<hal::gpio::bank0::Gpio21, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
+    gpio::Pin<hal::gpio::bank0::Gpio20, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
+    gpio::Pin<hal::gpio::bank0::Gpio21, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
 );
 type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
 type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
-type EnabledI2C = hal::i2c::I2C<pac::I2C0, I2CPins>;
+type EnabledI2C = I2C<pac::I2C0, I2CPins>;
 
 static ALARM0: Mutex<RefCell<Option<Alarm0>>> = Mutex::new(RefCell::new(None));
 static TIMER: Mutex<RefCell<Option<Timer>>> = Mutex::new(RefCell::new(None));
@@ -115,7 +112,7 @@ impl Transfer<u8> for SharedSpiWithFreq {
     }
 }
 
-//TODO Wird diese impl noch benötigt? Evtl. entfernen
+//TODO Wird diese impl noch benötigt? Eventuell entfernen?
 impl UartQueueRx {
     fn read_byte(&self) -> Option<u8> {
         cortex_m::interrupt::free(|cs| {
@@ -203,8 +200,9 @@ pub fn init() {
         DISPLAY_SIZE.width as _,
         DISPLAY_SIZE.height as _,
     );
+    //TODO LandscapeSwapped wäre eigentlich besser, der Touch wird aber derzeit nicht mit invertiert
     display.init(&mut delay).unwrap();
-    display.set_orientation(st7789::Orientation::LandscapeSwapped).unwrap();
+    display.set_orientation(st7789::Orientation::Landscape).unwrap();
 
     let touch_irq = pins.gpio17.into_pull_up_input();
     touch_irq.set_interrupt_enabled(GpioInterrupt::LevelLow, true);
@@ -246,8 +244,8 @@ pub fn init() {
         stolen_pin: (dc_copy, cs_copy),
     };
 
-    let _i2c_sda: hal::gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio20.reconfigure();
-    let _i2c_scl: hal::gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio21.reconfigure();
+    let _i2c_sda: gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio20.reconfigure();
+    let _i2c_scl: gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio21.reconfigure();
 
     let i2c = I2C::new_controller(
         pac.I2C0,
@@ -276,7 +274,7 @@ pub fn init() {
 
     unsafe {
         //UART Interrupt aktivieren
-        pac::NVIC::unmask(hal::pac::Interrupt::UART0_IRQ);
+        pac::NVIC::unmask(pac::Interrupt::UART0_IRQ);
     }
 
     uart.enable_rx_interrupt(); //IRQ wenn Platz im TX Buffer
@@ -296,7 +294,7 @@ pub fn init() {
 pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
     let timer: slint::Timer = slint::Timer::default();
     let mut time: [u8; 7] = [0u8; 7];
-    timer.start(TimerMode::Repeated, time::Duration::from_millis(1000), move || {
+    timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
         let ui = ui_handle.upgrade().unwrap();
 
         static mut I2C: Option<EnabledI2C> = None;
@@ -428,7 +426,7 @@ impl<
 
                     window.dispatch_event(event);
 
-                    //evtl. Hover-State über Widgets zurücknehmen
+                    //Eventuellen Hover-State über Widgets zurücknehmen
                     if is_pointer_release_event {
                         window.dispatch_event(WindowEvent::PointerExited);
                     }
@@ -481,7 +479,6 @@ impl<
     }
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
-        use alloc::string::ToString;
         debug!("{=str}", arguments.to_string());
     }
 }
