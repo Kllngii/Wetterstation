@@ -1,10 +1,7 @@
-use crate::alloc::string::ToString;
 extern crate alloc;
 
 use alloc::boxed::Box;
-use alloc::fmt::format;
 use alloc::rc::Rc;
-use alloc::string::String;
 use alloc::vec;
 use core::cell::RefCell;
 use core::convert::Infallible;
@@ -582,6 +579,7 @@ impl<
     }
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
+        use alloc::string::ToString;
         debug!("{=str}", arguments.to_string());
     }
 }
