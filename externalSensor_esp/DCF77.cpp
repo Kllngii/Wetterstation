@@ -439,4 +439,12 @@ int DCF77::trailingEdge=0;
 int DCF77::PreviousLeadingEdge=0;
 bool DCF77::Up= false;
 
+// DCF77 and internal timestamps
+time_t DCF77::latestupdatedTime= 0;
+time_t DCF77::previousUpdatedTime= 0;
+time_t DCF77::processingTimestamp= 0;
+time_t DCF77::previousProcessingTimestamp=0;
+unsigned char DCF77::CEST=0;
+DCF77::ParityFlags DCF77::flags = {0,0,0,0};
+
 // DCF
