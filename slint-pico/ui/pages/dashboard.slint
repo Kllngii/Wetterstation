@@ -96,17 +96,24 @@ export component Dashboard inherits Page {
 
         Row {
             ValueTile {
-                title: OverviewAdapter.production-title;
-                model: OverviewAdapter.production-model;
+                title: OverviewAdapter.temperature-title;
+                model: OverviewAdapter.temperature-model;
                 active: root.active;
              }
 
              ValueTile {
-                title: OverviewAdapter.self-consumption-title;
-                model: OverviewAdapter.self-consumption-model;
+                title: OverviewAdapter.humidity-title;
+                model: OverviewAdapter.humidity-model;
                 alternative-colors: true;
                 active: root.active;
              }
+
+            ValueTile {
+                title: OverviewAdapter.pressure-title;
+                model: OverviewAdapter.pressure-model;
+                active: root.active;
+            }
+            //TODO CO2 hinzufügen
         }
 
         Row {

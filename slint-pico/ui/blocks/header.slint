@@ -8,14 +8,12 @@ export global HeaderAdapter {
     in property <string> date: "Sunday 8th, January 2023";
     in property <string> time: "5:20";
     in property <string> time-suffix: "PM";
-    in property <image> logo: Images.slint-logo;
 }
 
 export component Header {
     in property <string> date <=> HeaderAdapter.date;
     in property <string> time <=> HeaderAdapter.time;
     in property <string> time-suffix <=> HeaderAdapter.time-suffix;
-    in property <image> logo <=> HeaderAdapter.logo;
 
     min-height: 50px;
     vertical-stretch: 0;
@@ -33,15 +31,6 @@ export component Header {
                 text: date;
                 font-size: Theme.typo.header-item.size;
                 font-weight: Theme.typo.header-item.weight;
-            }
-        }
-
-        Rectangle {
-            horizontal-stretch: 1;
-
-            Image {
-                height: 30px;
-                source: logo;
             }
         }
 

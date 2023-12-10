@@ -25,7 +25,7 @@ export component SmallMain {
             index: 0;
             current-index: i-navigation.current-index;
         }
-
+        /*
         if(i-navigation.current-index >= 0 && i-navigation.current-index <= 2 && !i-menu.open) : Usage {
             index: 1;
             current-index: i-navigation.current-index;
@@ -35,16 +35,16 @@ export component SmallMain {
             index: 2;
             current-index: i-navigation.current-index;
         }
-
-        if(i-navigation.current-index >= 2 && i-navigation.current-index <= 4 && !i-menu.open) : Weather {
-            index: 3;
+        */
+        if(i-navigation.current-index >= 0 && i-navigation.current-index <= 2 && !i-menu.open) : Weather {
+            index: 1;
             current-index: i-navigation.current-index;
         }
-
-        if(i-navigation.current-index >= 3 && i-navigation.current-index <= 5 && !i-menu.open) : About {
-            index: 4;
+        /*
+        if(i-navigation.current-index >= 1 && i-navigation.current-index <= 3 && !i-menu.open) : About {
+            index: 2;
             current-index: i-navigation.current-index;
-        }
+        }*/
     }
 
     i-menu := Menu {

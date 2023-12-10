@@ -6,14 +6,14 @@ import { GroupBox, Tile, BarTiles, BarTileModel } from "../widgets/widgets.slint
 import { Images } from "../images.slint";
 
 export global WeatherAdapter {
-    in property <string> title: "Weather";
+    in property <string> title: "Wetter";
     in property <image> current-temperature-icon: Images.cloud;
-    in property <string> current-temperature: "22°";
-    in property <string> current-day: "May 6th 2023";
-    in property <string> current-weather-description: "Very cloudy";
+    in property <string> current-temperature: "23°";
+    in property <string> current-day: "Sonntag 23.6.";
+    in property <string> current-weather-description: "Walddörfer, HH";
     in property <[BarTileModel]> week-model: [
         {
-            title: "Thu",
+            title: "Montag",
             icon: Images.cloudy,
             max: 21,
             min: 18,
@@ -22,8 +22,8 @@ export global WeatherAdapter {
             unit: "°"
         },
         {
-            title: "Fri",
-            icon: Images.cloudy,
+            title: "Dienstag",
+            icon: Images.sunny,
             max: 20,
             min: 17,
             absolute-max: 21,
@@ -31,7 +31,7 @@ export global WeatherAdapter {
             unit: "°"
         },
         {
-            title: "Sat",
+            title: "Mittwoch",
             icon: Images.cloudy,
             max: 18,
             min: 15,

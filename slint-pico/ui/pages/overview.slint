@@ -5,39 +5,49 @@ import { Page } from "page.slint";
 import { GroupBox, ValueDisplay, Value } from "../widgets/widgets.slint";
 
 export global OverviewAdapter {
-    in property <string> production-title: "Production";
-    in property <string> self-consumption-title: "Self-consumption";
-    in property <[Value]> production-model: [
+    in property <string> temperature-title: "Temperatur";
+    in property <string> humidity-title: "Luftfeuchtigkeit";
+    in property <string> pressure-title: "Luftdruck";
+    in property <[Value]> temperature-model: [
         {
-            title: "Daily",
-            value: 12.56,
-            unit: "kWh",
+            title: "Innen",
+            value: 21.2,
+            unit: "°C",
         },
         {
-            title: "Weekly",
-            value: 90.28,
-            unit: "kWh",
+            title: "Außen",
+            value: 9.2,
+            unit: "°C",
         }
     ];
-    in property <[Value]> self-consumption-model: [
+    in property <[Value]> humidity-model: [
         {
-            title: "Weekly",
-            value: 54.08,
-            unit: "kWh",
+            title: "Innen",
+            value: 54,
+            unit: "%",
         },
         {
-            title: "Monthly",
-            value: 320.18,
-            unit: "kWh",
+            title: "Außen",
+            value: 10,
+            unit: "%",
+        }
+    ];
+    in property <[Value]> pressure-model: [
+        {
+            title: "Außen",
+            value: 1013,
+            unit: "hPa",
         }
     ];
 }
 
 export component Overview inherits Page {
-    in property <string> production-title <=> OverviewAdapter.production-title;
-    in property <string> self-consumption-title <=>  OverviewAdapter.self-consumption-title;
-    in property <[Value]> production-model <=> OverviewAdapter.production-model;
-    in property <[Value]> self-consumption-model <=> OverviewAdapter.self-consumption-model;
+    in property <string> temperature-title <=> OverviewAdapter.temperature-title;
+    in property <string> humidity-title <=>  OverviewAdapter.humidity-title;
+    in property <string> pressure-title <=>  OverviewAdapter.pressure-title;
+    in property <[Value]> temperature-model <=> OverviewAdapter.temperature-model;
+    in property <[Value]> humidity-model <=> OverviewAdapter.humidity-model;
+    in property <[Value]> pressure-model <=> OverviewAdapter.pressure-model;
 
     width: 100%;
     height: 100%;
@@ -45,23 +55,32 @@ export component Overview inherits Page {
     VerticalLayout {
         spacing: 12px;
 
-        i-production-group := GroupBox {
-            title: root.production-title;
+        i-temperature-group := GroupBox {
+            title: root.temperature-title;
 
             ValueDisplay {
                 active: root.active;
-                model: root.production-model;
+                model: root.temperature-model;
             }
         }
 
-        i-self-consumption-group := GroupBox {
-            title: root.self-consumption-title;
+        i-humidity-group := GroupBox {
+            title: root.humidity-title;
 
             ValueDisplay {
                 active: root.active;
                 alternative-colors: true;
 
-                model: root.self-consumption-model;
+                model: root.humidity-model;
+            }
+        }
+
+        i-pressure-group := GroupBox {
+            title: root.pressure-title;
+
+            ValueDisplay {
+                active: root.active;
+                model: root.pressure-model;
             }
         }
     }
