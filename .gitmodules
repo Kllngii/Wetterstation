@@ -1,0 +1,3 @@
+[submodule "externalSensor_msp/msp430g2553_i2c"]
+	path = externalSensor_msp/msp430g2553_i2c
+	url = https://github.com/heliocapella/msp430g2553_i2c.git
