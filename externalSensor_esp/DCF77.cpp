@@ -65,6 +65,12 @@ void DCF77::initialize(void)
 	meteoData.packet1 = 0;
 	meteoData.packet2 = 0;
 	meteoData.packet3 = 0;
+	meteoData.minute = 0;
+	meteoData.hour = 0;
+	meteoData.date = 0;
+	meteoData.month = 0;
+	meteoData.dayInWeek = 0;
+	meteoData.year = 0;
 	meteoPacketNumber     = 0;
 	meteoDataReady        = false;
 }
@@ -302,6 +308,12 @@ bool DCF77::processBuffer(void) {
 				case 2:
 					meteoData.packet2 = rx_buffer->meteoBits;
 					meteoPacketNumber = 0;
+					meteoData.minute = rx_buffer->Min << 1;
+					meteoData.hour = rx_buffer->Hour << 2;
+					meteoData.date = rx_buffer->Day << 2;
+					meteoData.month = rx_buffer->Month;
+					meteoData.dayInWeek = rx_buffer->Weekday;
+					meteoData.year = rx_buffer->Year;
 					meteoDataReady = true;
 				break;
 				default:
@@ -417,10 +429,4 @@ int DCF77::trailingEdge=0;
 int DCF77::PreviousLeadingEdge=0;
 bool DCF77::Up= false;
 
-// DCF77 and internal timestamps
-time_t DCF77::latestupdatedTime= 0;
-time_t DCF77::previousUpdatedTime= 0;
-time_t DCF77::processingTimestamp= 0;
-time_t DCF77::previousProcessingTimestamp=0;
-unsigned char DCF77::CEST=0;
-DCF77::ParityFlags DCF77::flags = {0,0,0,0};
+// DCF
