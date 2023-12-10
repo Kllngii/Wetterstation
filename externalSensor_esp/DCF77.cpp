@@ -292,10 +292,20 @@ bool DCF77::processBuffer(void) {
         flags.parityDate == rx_buffer->P3 &&
 		rx_buffer->CEST != rx_buffer->CET) 
     { 
-      //Merge MeteoTime Data
-	    if (!meteoDataReady)
-	    {
-			switch(meteoPacketNumber)
+	  //convert the received buffer into time	  	 
+      time.Second = 0;
+	  time.Minute = rx_buffer->Min-((rx_buffer->Min/16)*6);
+      time.Hour   = rx_buffer->Hour-((rx_buffer->Hour/16)*6);
+      time.Day    = rx_buffer->Day-((rx_buffer->Day/16)*6); 
+      time.Month  = rx_buffer->Month-((rx_buffer->Month/16)*6);
+      time.Year   = 2000 + rx_buffer->Year-((rx_buffer->Year/16)*6) -1970;
+	  latestupdatedTime = makeTime(time);	 
+	  CEST = rx_buffer->CEST;
+
+		//Merge MeteoTime Data
+		if (!meteoDataReady)
+		{
+			switch(time.Minute % 3)
 			{
 				case 0:
 					meteoData.packet1 = rx_buffer->meteoBits;
@@ -306,30 +316,30 @@ bool DCF77::processBuffer(void) {
 					meteoPacketNumber++;
 				break;
 				case 2:
-					meteoData.packet2 = rx_buffer->meteoBits;
-					meteoPacketNumber = 0;
+					meteoData.packet3 = rx_buffer->meteoBits;
 					meteoData.minute = rx_buffer->Min << 1;
 					meteoData.hour = rx_buffer->Hour << 2;
 					meteoData.date = rx_buffer->Day << 2;
 					meteoData.month = rx_buffer->Month;
 					meteoData.dayInWeek = rx_buffer->Weekday;
 					meteoData.year = rx_buffer->Year;
-					meteoDataReady = true;
+					if (meteoPacketNumber == 2)
+					{
+						meteoDataReady = true;
+					}
+					else
+					{
+						meteoDataReady = false;
+					}
+					meteoPacketNumber = 0;
 				break;
 				default:
 					LogLn("Invalid meteo packet number.");
 					// This stays unhandled. 
 			}
-	    } 
-	  //convert the received buffer into time	  	 
-      time.Second = 0;
-	  time.Minute = rx_buffer->Min-((rx_buffer->Min/16)*6);
-      time.Hour   = rx_buffer->Hour-((rx_buffer->Hour/16)*6);
-      time.Day    = rx_buffer->Day-((rx_buffer->Day/16)*6); 
-      time.Month  = rx_buffer->Month-((rx_buffer->Month/16)*6);
-      time.Year   = 2000 + rx_buffer->Year-((rx_buffer->Year/16)*6) -1970;
-	  latestupdatedTime = makeTime(time);	 
-	  CEST = rx_buffer->CEST;
+		} 
+
+
 	  //Parity correct
 	  return true;
 	} else {
