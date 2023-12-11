@@ -2,5 +2,5 @@
 SPDX-License-Identifier: MIT -->
 
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path transform="rotate(180 12 12)" d="M12 20L10.575 18.6L16.175 13H4V11H16.175L10.575 5.4L12 4L20 12L12 20Z" fill="white"/>
+<path d="M9.55001 18L3.85001 12.3L5.27501 10.875L9.55001 15.15L18.725 5.97501L20.15 7.40001L9.55001 18Z" fill="#DEFB3A"/>
 </svg>

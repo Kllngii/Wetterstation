@@ -1,18 +1,15 @@
-use crate::alloc::string::ToString;
 extern crate alloc;
 
-use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
-use cortex_m::prelude::_embedded_hal_serial_Read;
 use alloc::boxed::Box;
 use alloc::rc::Rc;
-use alloc::string::String;
 use alloc::vec;
 use core::cell::RefCell;
 use core::convert::Infallible;
-use cortex_m::interrupt::Mutex;
-use cortex_m::singleton;
-use hal::uart::StopBits;
 use core::time::Duration;
+use cortex_m::interrupt::Mutex;
+use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
+use cortex_m::prelude::_embedded_hal_serial_Read;
+use cortex_m::singleton;
 use embedded_alloc::Heap;
 use embedded_hal::blocking::spi::Transfer;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
@@ -20,6 +17,7 @@ use embedded_hal::spi::FullDuplex;
 use fugit::{Hertz, RateExtU32};
 use hal::dma::{DMAExt, SingleChannel, WriteTarget};
 use hal::uart::DataBits;
+use hal::uart::StopBits;
 use heapless::spsc::Queue;
 use renderer::Rgb565Pixel;
 use rp_pico::hal::gpio::{self, Interrupt as GpioInterrupt};
@@ -295,8 +293,36 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
     let timer: slint::Timer = slint::Timer::default();
     let mut time: [u8; 7] = [0u8; 7];
 
-    let id_ibme = [u8::try_from('I').unwrap(), u8::try_from('B').unwrap(), u8::try_from('M').unwrap(), u8::try_from('E').unwrap()];
-    let id_co2 = [u8::try_from('C').unwrap(), u8::try_from('O').unwrap(), u8::try_from('2').unwrap(), u8::try_from('.').unwrap()];
+    let id_ibme = [
+        u8::try_from('I').unwrap(),
+        u8::try_from('B').unwrap(),
+        u8::try_from('M').unwrap(),
+        u8::try_from('E').unwrap(),
+    ];
+    let id_ebme = [
+        u8::try_from('E').unwrap(),
+        u8::try_from('B').unwrap(),
+        u8::try_from('M').unwrap(),
+        u8::try_from('E').unwrap(),
+    ];
+    let id_co2 = [
+        u8::try_from('C').unwrap(),
+        u8::try_from('O').unwrap(),
+        u8::try_from('2').unwrap(),
+        u8::try_from('.').unwrap(),
+    ];
+    let id_time = [
+        u8::try_from('T').unwrap(),
+        u8::try_from('I').unwrap(),
+        u8::try_from('M').unwrap(),
+        u8::try_from('E').unwrap(),
+    ];
+    let id_meteo = [
+        u8::try_from('M').unwrap(),
+        u8::try_from('T').unwrap(),
+        u8::try_from('E').unwrap(),
+        u8::try_from('O').unwrap(),
+    ];
 
     timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
         let ui = ui_handle.upgrade().unwrap();
@@ -363,6 +389,27 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     info!("co2: {}ppm", co2);
                     ui.set_co2(format!("{:.1}", co2).into());
                 }
+                if let Some(ebme_start) = find_identifier::<u8>(&data, &id_ebme) {
+                    let temperature: f32 = data.to_f32(ebme_start);
+                    let humidity: f32 = data.to_f32(ebme_start + 4);
+                    let pressure: f32 = data.to_f32(ebme_start + 8);
+
+                    //TODO auch hier wieder unnötige .into(), dem Linter des RR sei Dank!
+                    info!("ext. Temperatur: {}", temperature);
+                    info!("ext. Luftfeuchtigkeit: {}", humidity);
+                    info!("ext. Luftdruck: {}", pressure);
+                }
+                if let Some(time_start) = find_identifier::<u8>(&data, &id_time) {
+                    let hour: u8 = data[time_start];
+                    let minute: u8 = data[time_start + 1];
+                    let second: u8 = data[time_start + 2];
+                    let year: i16 = data.to_i16(time_start + 3);
+                    let month: u8 = data[time_start + 5];
+                    let day: u8 = data[time_start + 6];
+
+                    info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
+
+                }
             }
         });
     });
@@ -370,22 +417,37 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
     timer
 }
 
-trait NumbersFromSlice<T: PartialEq+Sized = Self> {
+trait NumbersFromSlice<T: PartialEq + Sized = Self> {
     fn to_f32(&self, start_index: usize) -> f32;
     fn to_i16(&self, start_index: usize) -> i16;
+    fn to_u16(&self, start_index: usize) -> u16;
 }
 
 impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
     fn to_f32(&self, start_index: usize) -> f32 {
-        f32::from_be_bytes([self[start_index + 3], self[start_index + 2], self[start_index + 1], self[start_index]])
+        f32::from_be_bytes([
+            self[start_index + 3],
+            self[start_index + 2],
+            self[start_index + 1],
+            self[start_index],
+        ])
     }
     fn to_i16(&self, start_index: usize) -> i16 {
         i16::from_be_bytes([self[start_index + 1], self[start_index]])
     }
+    fn to_u16(&self, start_index: usize) -> u16 {
+        u16::from_be_bytes([self[start_index + 1], self[start_index]])
+    }
 }
 
-fn find_identifier<T>(haystack: &[T], needle: &[T]) -> Option<usize> where for<'a> &'a [T]: PartialEq {
-    haystack.windows(needle.len()).position(|window| window == needle).map(|index| index + needle.len())
+fn find_identifier<T>(haystack: &[T], needle: &[T]) -> Option<usize>
+where
+    for<'a> &'a [T]: PartialEq,
+{
+    haystack
+        .windows(needle.len())
+        .position(|window| window == needle)
+        .map(|index| index + needle.len())
 }
 
 struct PicoBackend<DrawBuffer, Touch> {
@@ -517,6 +579,7 @@ impl<
     }
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
+        use alloc::string::ToString;
         debug!("{=str}", arguments.to_string());
     }
 }
