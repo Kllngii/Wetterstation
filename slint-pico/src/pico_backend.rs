@@ -138,6 +138,84 @@ impl UartQueueRx {
     }
 }
 
+enum WeatherType {
+    Error,
+    Sonnig,
+    Klar,
+    Leicht_bewölkt,
+    Vorwiegend_bewölkt,
+    Bedeckt,
+    Hochnebel,
+    Nebel,
+    Regenschauer,
+    Leichter_Regen,
+    Starker_Regen,
+    Fronten_Gewitter,
+    Wärme_Gewitter,
+    Schneeregen_Schauer,
+    Schneeschauer,
+    Schneeregen,
+    Schneefall,
+    //Extrema
+    Große_Hitze,
+    Dichter_Nebel,
+    Kurzer_Starkregen,
+    Extreme_Niederschläge,
+    Starke_Gewitter,
+    Starke_Niederschläge,
+}
+
+fn get_extrem_weather_type(weather: WeatherType) -> WeatherType {
+    match weather {
+        WeatherType::Sonnig => WeatherType::Große_Hitze,
+        WeatherType::Nebel => WeatherType::Dichter_Nebel,
+        WeatherType::Regenschauer => WeatherType::Kurzer_Starkregen,
+        WeatherType::Starker_Regen => WeatherType::Extreme_Niederschläge,
+        WeatherType::Fronten_Gewitter => WeatherType::Starke_Gewitter,
+        WeatherType::Schneeregen_Schauer => WeatherType::Starke_Niederschläge,
+        WeatherType::Schneeregen => WeatherType::Starke_Niederschläge,
+        WeatherType::Schneefall => WeatherType::Starke_Niederschläge,
+        _ => weather,
+    }
+}
+fn get_weather_type(weather: u8, extrema: u8, is_day: bool) -> WeatherType {
+    //u8 day_weather, u8 night_weather, u8 extrema, u8 rainfall, u8 anomaly, u8 temperature
+    let weather_type = match weather {
+        1 => {
+            if is_day {WeatherType::Sonnig} else {WeatherType::Klar}
+        },
+        2 => WeatherType::Leicht_bewölkt,
+        3 => WeatherType::Vorwiegend_bewölkt,
+        4 => WeatherType::Bedeckt,
+        5 => WeatherType::Hochnebel,
+        6 => WeatherType::Nebel,
+        7 => WeatherType::Regenschauer,
+        8 => WeatherType::Leichter_Regen,
+        9 => WeatherType::Starker_Regen,
+        10 => WeatherType::Fronten_Gewitter,
+        11 => WeatherType::Wärme_Gewitter,
+        12 => WeatherType::Schneeregen_Schauer,
+        13 => WeatherType::Schneeschauer,
+        14 => WeatherType::Schneeregen,
+        15 => WeatherType::Schneeregen,
+        _ => WeatherType::Error,
+    };
+    match extrema {
+        0 => weather_type, //Kein Extremwetter
+        1 => { //24h Extremwetter
+            get_extrem_weather_type(weather_type)
+        }
+        2 => { //Nur am Tag Extremwetter
+            if is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+        }
+        3 => { //Nur in der Nacht Extremwetter
+            if !is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+        }
+        //TODO Weitere Extremwetter hinzufügen
+        _ => WeatherType::Error
+    }
+}
+
 pub fn init() {
     // *** Zugriff auf Systemressourcen übernehmen ***
     let mut pac = pac::Peripherals::take().unwrap();
@@ -394,6 +472,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
             }
             if count > 0 {
+                info!("");
                 let temperature_modelrc: ModelRc<Value> = overview_adapter.get_temperature_model();
                 let humidity_modelrc: ModelRc<Value> = overview_adapter.get_humidity_model();
                 let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
@@ -402,9 +481,10 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 let humi_mod = humidity_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
                 let pres_mod = pressure_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
 
-                info!("count: {}", count);
+                //info!("count: {}", count);
 
                 if let Some(ibme_start) = find_identifier::<u8>(&data, &id_ibme) {
+                    info!("Internes Paket");
                     let temperature: f32 = data.to_f32(ibme_start);
                     let humidity: f32 = data.to_f32(ibme_start + 4);
                     let pressure: f32 = data.to_f32(ibme_start + 8);
@@ -423,10 +503,18 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
                 if let Some(co2_start) = find_identifier::<u8>(&data, &id_co2) {
                     let co2: i16 = data.to_i16(co2_start);
-                    info!("co2: {}ppm", co2);
-                    //TODO neue GUI anbinden
+                    match co2 {
+                        -1 => warn!("Ungültiger CO2 Wert"),
+                        co2 => {
+                            info!("co2: {}ppm", co2);
+                            //TODO neue GUI anbinden
+                        }
+                    };
+
+
                 }
                 if let Some(ebme_start) = find_identifier::<u8>(&data, &id_ebme) {
+                    info!("Externes Paket");
                     let temperature: f32 = data.to_f32(ebme_start);
                     let humidity: f32 = data.to_f32(ebme_start + 4);
                     //let _pressure: f32 = data.to_f32(ebme_start + 8);
@@ -449,6 +537,9 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     let day: u8 = data[time_start + 6];
 
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
+                }
+                if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
+                    info!("Meteo Paket");
                 }
             }
         });
