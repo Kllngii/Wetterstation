@@ -56,7 +56,6 @@ void setup()
     Serial.begin(115200);
     HC12.begin(9600);
 
-    Serial.println("Ping");
     // Define pins for meteo decoder
     pinMode(METEO_DATA_IN, OUTPUT);
     pinMode(METEO_DATA_OUT, INPUT);
@@ -65,7 +64,6 @@ void setup()
     pinMode(METEO_RDY, INPUT);
     digitalWrite(METEO_DATA_IN, LOW);
     digitalWrite(METEO_CLK_IN, LOW);
-    Serial.println("Pong");
 
     // Start i2c communication
     if(!bme.begin(0x76))
@@ -74,8 +72,7 @@ void setup()
     }
 
     // Enable Setting Mode in HC-12
-    pinMode(SET_PIN, OUTPUT);
-    digitalWrite(SET_PIN, LOW);
+    digitalWrite(SET_PIN, OUTPUT);
 
     // Set Baudrate to 9600
     delay(100);
@@ -133,7 +130,7 @@ void setup()
     Serial.println(rxArray);
 
     // Disable Setting Mode in HC-12
-    pinMode(SET_PIN, INPUT);
+    digitalWrite(SET_PIN, INPUT);
 }
 
 void loop()
