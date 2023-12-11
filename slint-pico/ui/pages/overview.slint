@@ -15,7 +15,7 @@ export global OverviewAdapter {
             unit: "°C",
         },
         {
-            title: "Außen",
+            title: "Aussen",
             value: 9.2,
             unit: "°C",
         }
@@ -27,14 +27,14 @@ export global OverviewAdapter {
             unit: "%",
         },
         {
-            title: "Außen",
+            title: "Aussen",
             value: 10,
             unit: "%",
         }
     ];
     in property <[Value]> pressure-model: [
         {
-            title: "Außen",
+            title: "Innen",
             value: 1013,
             unit: "hPa",
         }
@@ -53,7 +53,7 @@ export component Overview inherits Page {
     height: 100%;
 
     VerticalLayout {
-        spacing: 12px;
+        spacing: 3px;
 
         i-temperature-group := GroupBox {
             title: root.temperature-title;

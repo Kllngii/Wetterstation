@@ -1,5 +1,8 @@
+use alloc::borrow::ToOwned;
+use slint::{ComponentHandle, Model, ModelRc, VecModel};
 extern crate alloc;
 
+use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel};
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
@@ -284,7 +287,6 @@ pub fn init() {
         window: Default::default(),
         buffer_provider: buffer_provider.into(),
         touch: touch.into(),
-        //i2c: i2c.into(), //FIXME WIE?!
     }))
     .expect("backend already initialized");
 }
@@ -327,6 +329,9 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
     timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
         let ui = ui_handle.upgrade().unwrap();
 
+        let overview_adapter = ui.global::<OverviewAdapter>();
+        let time_adapter = ui.global::<TimeAdapter>();
+
         static mut I2C: Option<EnabledI2C> = None;
         unsafe {
             if I2C.is_none() {
@@ -339,12 +344,34 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
                 //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
 
-                //TODO Für den schlechten Linter des Editors hier ein unnötiges .into() Nach nächstem Update des Linters entfernen...
-                let time_str: SharedString = slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]).into();
-                let date_str: SharedString = slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]).into();
+                //TODO ebenfalls unnötige .into() hier, nach Linter-Update entfernen
+                let weekday: SharedString = match time[3] {
+                    1 => "Mo".into(),
+                    2 => "Di".into(),
+                    3 => "Mi".into(),
+                    4 => "Do".into(),
+                    5 => "Fr".into(),
+                    6 => "Sa".into(),
+                    7 => "So".into(),
+                    _ => {
+                        warn!("Ungültiger Wochentag!");
+                        "Mo".into()
+                    }
+                };
+                //TODO Makro oder impl für diese Umwandlung?
+                let mut current_time: TimeModel = time_adapter.get_time(); //(i >> 4) * 10 + (i & 0xF)
+                current_time.hours = ((time[2] >> 4) * 10 + (time[2] & 0xF)) as i32;
+                current_time.minutes = ((time[1] >> 4) * 10 + (time[1] & 0xF)) as i32;
+                current_time.seconds = ((time[0] >> 4) * 10 + (time[0] & 0xF)) as i32;
 
-                ui.set_time(time_str);
-                ui.set_date(date_str);
+                let mut current_date: DateModel = time_adapter.get_date();
+                current_date.day = ((time[4] >> 4) * 10 + (time[4] & 0xF)) as i32;
+                current_date.month = ((time[5] >> 4) * 10 + (time[5] & 0xF)) as i32;
+                current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
+                current_date.weekday = weekday;
+
+                time_adapter.set_time(current_time);
+                time_adapter.set_date(current_date);
             } else {
                 warn!("I2C nicht initialisiert!");
             }
@@ -367,37 +394,51 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
             }
             if count > 0 {
-                /*
-                let str = String::from_utf8(data.to_vec());
-                match str {
-                    Ok(s) => info!("{}", s.as_str()),
-                    Err(e) => error!("Fehler"),
-                } */
+                let temperature_modelrc: ModelRc<Value> = overview_adapter.get_temperature_model();
+                let humidity_modelrc: ModelRc<Value> = overview_adapter.get_humidity_model();
+                let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
+
+                let temp_mod = temperature_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                let humi_mod = humidity_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                let pres_mod = pressure_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+
                 info!("count: {}", count);
+
                 if let Some(ibme_start) = find_identifier::<u8>(&data, &id_ibme) {
                     let temperature: f32 = data.to_f32(ibme_start);
                     let humidity: f32 = data.to_f32(ibme_start + 4);
                     let pressure: f32 = data.to_f32(ibme_start + 8);
 
-                    //TODO auch hier wieder unnötige .into(), dem Linter des RR sei Dank!
-                    ui.set_temperature(format!("{:.1}", temperature).into());
-                    ui.set_humidity(format!("{:.1}", humidity).into());
-                    ui.set_pressure(format!("{:.1}", pressure).into());
+                    let mut temp_data = temp_mod.row_data(0).unwrap();
+                    let mut humi_data = humi_mod.row_data(0).unwrap();
+                    let mut pres_data = pres_mod.row_data(0).unwrap();
+
+                    temp_data.value = temperature;
+                    humi_data.value = humidity;
+                    pres_data.value = pressure;
+
+                    temp_mod.set_row_data(0, temp_data);
+                    humi_mod.set_row_data(0, humi_data);
+                    pres_mod.set_row_data(0, pres_data);
                 }
                 if let Some(co2_start) = find_identifier::<u8>(&data, &id_co2) {
                     let co2: i16 = data.to_i16(co2_start);
                     info!("co2: {}ppm", co2);
-                    ui.set_co2(format!("{:.1}", co2).into());
+                    //TODO neue GUI anbinden
                 }
                 if let Some(ebme_start) = find_identifier::<u8>(&data, &id_ebme) {
                     let temperature: f32 = data.to_f32(ebme_start);
                     let humidity: f32 = data.to_f32(ebme_start + 4);
-                    let pressure: f32 = data.to_f32(ebme_start + 8);
+                    //let _pressure: f32 = data.to_f32(ebme_start + 8);
 
-                    //TODO auch hier wieder unnötige .into(), dem Linter des RR sei Dank!
-                    info!("ext. Temperatur: {}", temperature);
-                    info!("ext. Luftfeuchtigkeit: {}", humidity);
-                    info!("ext. Luftdruck: {}", pressure);
+                    let mut temp_data = temp_mod.row_data(1).unwrap();
+                    let mut humi_data = humi_mod.row_data(1).unwrap();
+
+                    temp_data.value = temperature;
+                    humi_data.value = humidity;
+
+                    temp_mod.set_row_data(1, temp_data);
+                    humi_mod.set_row_data(1, humi_data);
                 }
                 if let Some(time_start) = find_identifier::<u8>(&data, &id_time) {
                     let hour: u8 = data[time_start];
@@ -408,7 +449,6 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     let day: u8 = data[time_start + 6];
 
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
-
                 }
             }
         });
