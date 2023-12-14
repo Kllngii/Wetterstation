@@ -33,6 +33,7 @@ use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
+use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
@@ -52,6 +53,8 @@ static ALLOCATOR: Heap = Heap::empty();
 const SPI_ST7789VW_MAX_FREQ: Hertz<u32> = Hertz::<u32>::Hz(62_500_000);
 
 const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
+
+const DISPLAY_ORIENTATION: Orientation = Orientation::LandscapeSwapped;
 
 const UART_RX_QUEUE_MAX_SIZE: usize = 256;
 
@@ -277,9 +280,8 @@ pub fn init() {
         DISPLAY_SIZE.width as _,
         DISPLAY_SIZE.height as _,
     );
-    //TODO LandscapeSwapped wäre eigentlich besser, der Touch wird aber derzeit nicht mit invertiert
     display.init(&mut delay).unwrap();
-    display.set_orientation(st7789::Orientation::Landscape).unwrap();
+    display.set_orientation(DISPLAY_ORIENTATION).unwrap();
 
     let touch_irq = pins.gpio17.into_pull_up_input();
     touch_irq.set_interrupt_enabled(GpioInterrupt::LevelLow, true);
@@ -291,6 +293,7 @@ pub fn init() {
         &IRQ_PIN,
         pins.gpio16.into_push_pull_output(),
         SharedSpiWithFreq { mutex: spi_mutex, freq: xpt2046::SPI_FREQ },
+        DISPLAY_ORIENTATION,
     )
     .unwrap();
 

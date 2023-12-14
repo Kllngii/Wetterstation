@@ -4,10 +4,17 @@
  */
 use core::cell::RefCell;
 use cortex_m::interrupt::Mutex;
+use defmt::{info, warn};
 use embedded_hal::blocking::spi::Transfer;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
 use euclid::default::Point2D;
 use fugit::Hertz;
+use st7789::Orientation;
+
+#[cfg(feature = "panic-probe")]
+extern crate defmt_rtt;
+#[cfg(feature = "panic-probe")]
+extern crate panic_probe;
 
 pub const SPI_FREQ: Hertz<u32> = Hertz::<u32>::Hz(3_000_000);
 
@@ -15,6 +22,7 @@ pub struct XPT2046<IRQ: InputPin + 'static, CS: OutputPin, SPI: Transfer<u8>> {
     irq: &'static Mutex<RefCell<Option<IRQ>>>,
     cs: CS,
     spi: SPI,
+    orientation: Orientation,
     pressed: bool,
 }
 
@@ -25,9 +33,10 @@ XPT2046<IRQ, CS, SPI>
         irq: &'static Mutex<RefCell<Option<IRQ>>>,
         mut cs: CS,
         spi: SPI,
+        orientation: Orientation
     ) -> Result<Self, PinE> {
         cs.set_high()?;
-        Ok(Self { irq, cs, spi, pressed: false })
+        Ok(Self { irq, cs, spi, orientation, pressed: false })
     }
 
     pub fn read(&mut self) -> Result<Option<Point2D<f32>>, Error<PinE, SPI::Error>> {
@@ -99,10 +108,25 @@ XPT2046<IRQ, CS, SPI>
 
             point /= 10;
             self.pressed = true;
-            Ok(Some(euclid::point2(
-                point.x.saturating_sub(MIN_X) as f32 / (MAX_X - MIN_X) as f32,
-                point.y.saturating_sub(MIN_Y) as f32 / (MAX_Y - MIN_Y) as f32,
-            )))
+            match self.orientation {
+                Orientation::LandscapeSwapped => {
+                    Ok(Some(euclid::point2(
+                        1f32 - (point.x.saturating_sub(MIN_X) as f32 / (MAX_X - MIN_X) as f32),
+                        1f32 - (point.y.saturating_sub(MIN_Y) as f32 / (MAX_Y - MIN_Y) as f32),
+                    )))
+                }
+                Orientation::Landscape => {
+                    Ok(Some(euclid::point2(
+                        point.x.saturating_sub(MIN_X) as f32 / (MAX_X - MIN_X) as f32,
+                        point.y.saturating_sub(MIN_Y) as f32 / (MAX_Y - MIN_Y) as f32,
+                    )))
+                }
+                _ => {
+                    warn!("Touch für diese Ausrichtung noch nicht implementiert!");
+                    Ok(None)
+                }
+            }
+
         } else {
             Ok(None)
         }
