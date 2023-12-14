@@ -1,5 +1,3 @@
-use alloc::borrow::ToOwned;
-use slint::{ComponentHandle, Model, ModelRc, VecModel};
 extern crate alloc;
 
 use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel};
@@ -31,7 +29,7 @@ use rp_pico::hal::{self, pac, prelude::*, Clock, Timer};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use slint::{format, SharedString, TimerMode};
+use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
@@ -65,12 +63,12 @@ type SpiPins = (
     gpio::Pin<gpio::bank0::Gpio10, gpio::FunctionSpi, gpio::PullDown>,
 );
 type UartPins = (
-    gpio::Pin<hal::gpio::bank0::Gpio0, hal::gpio::FunctionUart, hal::gpio::PullNone>,
-    gpio::Pin<hal::gpio::bank0::Gpio1, hal::gpio::FunctionUart, hal::gpio::PullNone>,
+    gpio::Pin<gpio::bank0::Gpio0, gpio::FunctionUart, gpio::PullNone>,
+    gpio::Pin<gpio::bank0::Gpio1, gpio::FunctionUart, gpio::PullNone>,
 );
 type I2CPins = (
-    gpio::Pin<hal::gpio::bank0::Gpio20, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
-    gpio::Pin<hal::gpio::bank0::Gpio21, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
+    gpio::Pin<gpio::bank0::Gpio20, gpio::FunctionI2C, gpio::PullUp>,
+    gpio::Pin<gpio::bank0::Gpio21, gpio::FunctionI2C, gpio::PullUp>,
 );
 type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
 type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
@@ -142,39 +140,39 @@ enum WeatherType {
     Error,
     Sonnig,
     Klar,
-    Leicht_bewölkt,
-    Vorwiegend_bewölkt,
+    LeichtBewölkt,
+    VorwiegendBewölkt,
     Bedeckt,
     Hochnebel,
     Nebel,
     Regenschauer,
-    Leichter_Regen,
-    Starker_Regen,
-    Fronten_Gewitter,
-    Wärme_Gewitter,
-    Schneeregen_Schauer,
+    LeichterRegen,
+    StarkerRegen,
+    FrontenGewitter,
+    WärmeGewitter,
+    SchneeregenSchauer,
     Schneeschauer,
     Schneeregen,
     Schneefall,
     //Extrema
-    Große_Hitze,
-    Dichter_Nebel,
-    Kurzer_Starkregen,
-    Extreme_Niederschläge,
-    Starke_Gewitter,
-    Starke_Niederschläge,
+    GroßeHitze,
+    DichterNebel,
+    KurzerStarkregen,
+    ExtremeNiederschläge,
+    StarkeGewitter,
+    StarkeNiederschläge,
 }
 
 fn get_extrem_weather_type(weather: WeatherType) -> WeatherType {
     match weather {
-        WeatherType::Sonnig => WeatherType::Große_Hitze,
-        WeatherType::Nebel => WeatherType::Dichter_Nebel,
-        WeatherType::Regenschauer => WeatherType::Kurzer_Starkregen,
-        WeatherType::Starker_Regen => WeatherType::Extreme_Niederschläge,
-        WeatherType::Fronten_Gewitter => WeatherType::Starke_Gewitter,
-        WeatherType::Schneeregen_Schauer => WeatherType::Starke_Niederschläge,
-        WeatherType::Schneeregen => WeatherType::Starke_Niederschläge,
-        WeatherType::Schneefall => WeatherType::Starke_Niederschläge,
+        WeatherType::Sonnig => WeatherType::GroßeHitze,
+        WeatherType::Nebel => WeatherType::DichterNebel,
+        WeatherType::Regenschauer => WeatherType::KurzerStarkregen,
+        WeatherType::StarkerRegen => WeatherType::ExtremeNiederschläge,
+        WeatherType::FrontenGewitter => WeatherType::StarkeGewitter,
+        WeatherType::SchneeregenSchauer => WeatherType::StarkeNiederschläge,
+        WeatherType::Schneeregen => WeatherType::StarkeNiederschläge,
+        WeatherType::Schneefall => WeatherType::StarkeNiederschläge,
         _ => weather,
     }
 }
@@ -184,17 +182,17 @@ fn get_weather_type(weather: u8, extrema: u8, is_day: bool) -> WeatherType {
         1 => {
             if is_day {WeatherType::Sonnig} else {WeatherType::Klar}
         },
-        2 => WeatherType::Leicht_bewölkt,
-        3 => WeatherType::Vorwiegend_bewölkt,
+        2 => WeatherType::LeichtBewölkt,
+        3 => WeatherType::VorwiegendBewölkt,
         4 => WeatherType::Bedeckt,
         5 => WeatherType::Hochnebel,
         6 => WeatherType::Nebel,
         7 => WeatherType::Regenschauer,
-        8 => WeatherType::Leichter_Regen,
-        9 => WeatherType::Starker_Regen,
-        10 => WeatherType::Fronten_Gewitter,
-        11 => WeatherType::Wärme_Gewitter,
-        12 => WeatherType::Schneeregen_Schauer,
+        8 => WeatherType::LeichterRegen,
+        9 => WeatherType::StarkerRegen,
+        10 => WeatherType::FrontenGewitter,
+        11 => WeatherType::WärmeGewitter,
+        12 => WeatherType::SchneeregenSchauer,
         13 => WeatherType::Schneeschauer,
         14 => WeatherType::Schneeregen,
         15 => WeatherType::Schneeregen,
@@ -340,8 +338,8 @@ pub fn init() {
     });
 
     let uart_pins = (
-        pins.gpio0.reconfigure::<hal::gpio::FunctionUart, hal::gpio::PullNone>(),
-        pins.gpio1.reconfigure::<hal::gpio::FunctionUart, hal::gpio::PullNone>(),
+        pins.gpio0.reconfigure::<gpio::FunctionUart, gpio::PullNone>(),
+        pins.gpio1.reconfigure::<gpio::FunctionUart, gpio::PullNone>(),
     );
 
     let mut uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
@@ -710,7 +708,7 @@ impl<
     }
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
-        use alloc::string::ToString;
+        use alloc::string::ToString; //TODO vom Linter fälschlicherweise als "unused" markiert
         debug!("{=str}", arguments.to_string());
     }
 }
@@ -814,6 +812,7 @@ unsafe impl embedded_dma::ReadBuffer for PartialReadBuffer {
 
     unsafe fn read_buffer(&self) -> (*const <Self as embedded_dma::ReadBuffer>::Word, usize) {
         let act_slice = &self.0[self.1.clone()];
+        //TODO laut Linter kann das optimiert werden zu core::mem::size_of_val(act_slice)
         (act_slice.as_ptr() as *const u8, act_slice.len() * core::mem::size_of::<Rgb565Pixel>())
     }
 }
