@@ -1,11 +1,12 @@
 extern crate alloc;
 
-use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel};
+use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel, WeatherAdapter, BarTileModel};
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
 use core::cell::RefCell;
 use core::convert::Infallible;
+use core::fmt::Display;
 use core::time::Duration;
 use cortex_m::interrupt::Mutex;
 use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
@@ -166,6 +167,36 @@ enum WeatherType {
     StarkeNiederschläge,
 }
 
+impl Display for WeatherType {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            WeatherType::Error => core::write!(f, "Error"),
+            WeatherType::Sonnig => core::write!(f, "Sonnig"),
+            WeatherType::Klar => core::write!(f, "Klar"),
+            WeatherType::LeichtBewölkt => core::write!(f, "Leicht Bewölkt"),
+            WeatherType::VorwiegendBewölkt => core::write!(f, "Vorwiegend Bewölkt"),
+            WeatherType::Bedeckt => core::write!(f, "Bedeckt"),
+            WeatherType::Hochnebel => core::write!(f, "Hochnebel"),
+            WeatherType::Nebel => core::write!(f, "Nebel"),
+            WeatherType::Regenschauer => core::write!(f, "Regenschauer"),
+            WeatherType::LeichterRegen => core::write!(f, "Leichter Regen"),
+            WeatherType::StarkerRegen => core::write!(f, "Starker Regen"),
+            WeatherType::FrontenGewitter => core::write!(f, "Frontengewitter"),
+            WeatherType::WärmeGewitter => core::write!(f, "Wärmegewitter"),
+            WeatherType::SchneeregenSchauer => core::write!(f, "Schneeregenschauer"),
+            WeatherType::Schneeschauer => core::write!(f, "Schneeschauer"),
+            WeatherType::Schneeregen => core::write!(f, "Schneeregen"),
+            WeatherType::Schneefall => core::write!(f, "Schneefall"),
+            WeatherType::GroßeHitze => core::write!(f, "Große Hitze"),
+            WeatherType::DichterNebel => core::write!(f, "Dichter Nebel"),
+            WeatherType::KurzerStarkregen => core::write!(f, "Kurzer Starkregen"),
+            WeatherType::ExtremeNiederschläge => core::write!(f, "Extreme Niederschläge"),
+            WeatherType::StarkeGewitter => core::write!(f, "Starke Gewitter"),
+            WeatherType::StarkeNiederschläge => core::write!(f, "Starke Niederschläge"),
+        }
+    }
+}
+
 fn get_extrem_weather_type(weather: WeatherType) -> WeatherType {
     match weather {
         WeatherType::Sonnig => WeatherType::GroßeHitze,
@@ -179,7 +210,7 @@ fn get_extrem_weather_type(weather: WeatherType) -> WeatherType {
         _ => weather,
     }
 }
-fn get_weather_type(weather: u8, extrema: u8, is_day: bool) -> WeatherType {
+fn get_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) -> WeatherType {
     //u8 day_weather, u8 night_weather, u8 extrema, u8 rainfall, u8 anomaly, u8 temperature
     let weather_type = match weather {
         1 => {
@@ -201,19 +232,24 @@ fn get_weather_type(weather: u8, extrema: u8, is_day: bool) -> WeatherType {
         15 => WeatherType::Schneeregen,
         _ => WeatherType::Error,
     };
-    match extrema {
-        0 => weather_type, //Kein Extremwetter
-        1 => { //24h Extremwetter
-            get_extrem_weather_type(weather_type)
+    if !anomaly {
+        match extrema {
+            0 => weather_type, //Kein Extremwetter
+            1 => { //24h Extremwetter
+                get_extrem_weather_type(weather_type)
+            }
+            2 => { //Nur am Tag Extremwetter
+                if is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+            }
+            3 => { //Nur in der Nacht Extremwetter
+                if !is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+            }
+            //TODO Weitere Extremwetter hinzufügen
+            _ => WeatherType::Error
         }
-        2 => { //Nur am Tag Extremwetter
-            if is_day {get_extrem_weather_type(weather_type)} else {weather_type}
-        }
-        3 => { //Nur in der Nacht Extremwetter
-            if !is_day {get_extrem_weather_type(weather_type)} else {weather_type}
-        }
-        //TODO Weitere Extremwetter hinzufügen
-        _ => WeatherType::Error
+    } else {
+        //TODO Extremwetter für anomaly = 1 hinzufügen
+        weather_type
     }
 }
 
@@ -410,6 +446,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
 
         let overview_adapter = ui.global::<OverviewAdapter>();
         let time_adapter = ui.global::<TimeAdapter>();
+        let weather_adapter = ui.global::<WeatherAdapter>();
 
         static mut I2C: Option<EnabledI2C> = None;
         unsafe {
@@ -451,6 +488,31 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
 
                 time_adapter.set_time(current_time);
                 time_adapter.set_date(current_date);
+
+                let weekdays = match time_adapter.get_date().weekday.as_str() {
+                    "Mo" => ("Montag", "Di", "Mi", "Do"),
+                    "Di" => ("Dienstag", "Mi", "Do", "Fr"),
+                    "Mi" => ("Mittwoch", "Do", "Fr", "Sa"),
+                    "Do" => ("Donnerstag", "Fr", "Sa", "So"),
+                    "Fr" => ("Freitag", "Sa", "So", "Mo"),
+                    "Sa" => ("Samstag", "So", "Mo", "Di"),
+                    _ => ("Sonntag", "Mo", "Di", "Mi"),
+                };
+
+                weather_adapter.set_current_day(weekdays.0.into());
+                let week = weather_adapter.get_week_model();
+                let week_model = week.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("muss gehen");
+                let mut first_day = week_model.row_data(0).unwrap();
+                let mut second_day = week_model.row_data(1).unwrap();
+                let mut third_day = week_model.row_data(2).unwrap();
+
+                first_day.title = weekdays.1.into();
+                second_day.title = weekdays.2.into();
+                third_day.title = weekdays.3.into();
+
+                week_model.set_row_data(0, first_day);
+                week_model.set_row_data(1, second_day);
+                week_model.set_row_data(2, third_day);
             } else {
                 warn!("I2C nicht initialisiert!");
             }
@@ -541,6 +603,18 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
                 if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
                     info!("Meteo Paket");
+                    let day_weather = data[meteo_start];
+                    let night_weather = data[meteo_start + 1];
+                    let extrema = data[meteo_start + 2];
+                    let rainfall = data[meteo_start + 3];
+                    let anomaly = !matches!(data[meteo_start + 4], 0);
+                    let temperature = -22i32 + data[meteo_start + 5] as i32;
+                    //TODO weitere Inhalte des Structs auslesen
+
+                    let day = get_weather_type(day_weather, extrema, true, anomaly);
+                    let night = get_weather_type(night_weather, extrema, false, anomaly);
+                    info!("day: {}", defmt::Display2Format(&day));
+                    info!("night: {}", defmt::Display2Format(&night));
                 }
             }
         });
@@ -686,7 +760,7 @@ impl<
                 }
             };
 
-            //Gute Nacht 😴
+            //Gute Nacht 😴💤
             cortex_m::interrupt::free(|cs| {
                 if let Some(duration) = sleep_duration {
                     ALARM0.borrow(cs).borrow_mut().as_mut().unwrap().schedule(duration).unwrap();
