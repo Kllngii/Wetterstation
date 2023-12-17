@@ -20,6 +20,7 @@
 \usepackage{xcolor}     % Code farbig machen
 \usepackage{longtable}  % Tabellen mit Seitenumbruch
 \usepackage{textcomp}
+\usepackage{url}
 \usepackage[font=footnotesize, labelfont=bf]{caption}
 \usetikzlibrary{shapes,arrows}
 \pgfplotsset{compat = newest}
@@ -273,6 +274,44 @@ Der Sensor ist über eine UART-Schnittstelle konfigurier- und auslesbar, außerd
 
 \subsubsection{DCF77}
 \label{subsubsub:dcf77}
+
+Bei DCF77 handelt es sich um einen Zeitzeichensender in der Nähe von Frankfurt am Main, welcher mit einer Trägerfrequenz von 77,5 kHz ein Zeitsignal überträgt. 
+Das Signal ist europaweit empfangbar und wird von den meisten Funkuhren als Referenzsignal verwendet.  
+
+\noindent
+Die Datenübertragung erfolgt durch einfache Amplitudenmodulation, indem die Amplitude für eine Dauer von 100 ms (Bit 0) oder 200 ms (Bit 1) auf 25\% der Ausgangsamplitude abgesenkt wird. 
+Damit wird eine Bitrate von 1 Bit pro Sekunde erreicht. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{dcf77Code}
+  \caption{Kodierungsschema der DCF77 Zeitinformationen \\
+           \url{https://www.ptb.de/cms/ptb/fachabteilungen/abt4/fb-44/ag-442/verbreitung-der-gesetzlichen-zeit/dcf77/zeitcode.html}}
+  \label{fig:dcf77Schema}
+\end{figure}
+
+\noindent
+Abbildung \ref{fig:dcf77Schema} zeigt die Kodierung aller Datenbits innerhalb einer Minute. Daraus ist erkennbar, dass ein Datenpaket 59 Bits lang ist und
+die Übertragung eine Minute dauert. Ein Paket beginnt zu jeder neuen Minute. In der letzten Sekunde einer Minute erfolgt keine Absenkung des Trägers, sodass anhanddessen
+das Ende eines Pakets abgeleitet werden kann. 
+
+\vspace{0.2cm}
+\noindent
+Die neue Minute beginnt mit dem nullten Bit, das immer den Wert null hat. Darauf folgen 14 Bits mit verschlüsselten Wetterinformationen der Firma MeteoTime.
+Diese werden im nächsten Abschnitt weiter beschrieben. \\
+Bit 15 (R) ist ein Rufbit, dass zur Alarmierung der PTB Mitarbeiter dient, wenn Unregelmäßigkeiten vorliegen. \\
+Bit 16 (A1) zeigt an, dass am Ende der Stunde ein Wechsel von Sommer- zu Winterzeit stattfindet. \\
+Bit 17 (Z1) ist eine Flag für die Sommerzeit. \\
+Bit 18 (Z2) ist eine Flag für die Winterzeit. \\
+Bit 19 (A2) zeigt an, dass am Ende der Stunde eine Schaltsekunde eingefügt wird. \\
+Bit 20 (S) markiert den Beginn der Zeitinformationen und hat den Wert eins. 
+
+\vspace{0.2cm}
+\noindent
+Wie schon aus der Abbildung hervorgeht, werden in den restlichen Sekunden Informationen zu Zeit und Datum übertragen, Minute, Stunde und Datum haben jeweils ein
+Paritätsbit eingefügt, um Fehler erkennen zu können. Eine Fehlerkorrektur ist damit allerdings nicht möglich. 
+
+
 
 \subsubsubsection{MeteoTime}
 \label{subsubsubsub:meteotime}
