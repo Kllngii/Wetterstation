@@ -1,6 +1,7 @@
 #include <msp430.h> 
-#include "msp430g2553_i2c/i2c.h"
-
+#include "bme280/bme280.h"
+#include <stdbool.h>
+#include "drivers/board/board.h"
 
 /**
  * main.c
@@ -8,11 +9,18 @@
 int main(void)
 {
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
-	// Init
-	I2C_init(0x76);
 
-	P2IN = 0x06;
-	P2OUT = 0x00;
-	
+	board_init();
+    volatile float temperature, humidity, pressure;
+
+	if (bme280_init() == 0xff)
+	{
+		return 0;
+	}
+
+	temperature = bme280_readTemperature();
+	humidity = bme280_readHumidity();
+	pressure = bme280_readPressure();
+
 	return 0;
 }
