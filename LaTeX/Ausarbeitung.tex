@@ -423,14 +423,19 @@ Es können nur die Kanäle 1 bis 4 genutzt werden.
 Je nach übertragener Information werden unterschiedliche Datenpakete verwendet, die zur Identifikation jeweils mit einem 4-Byte langen Identifier ausgestattet sind. \\
 Aktuell gibt es fünf verschiedene Identifier:
 \begin{itemize}
-  \item "IBME" Internal BME
-  \item "EBME" External BME
-  \item "CO2." Co2 Konzentration
-  \item "TIME" Aktuelle Zeit
-  \item "MTEO" Wettervorhersage
+  \item 'IBME' Internal BME
+  \item 'EBME' External BME
+  \item 'CO2.' Co2 Konzentration
+  \item 'TIME' Aktuelle Zeit
+  \item 'MTEO' Wettervorhersage
 \end{itemize}
 
-Die Datenpakete haben unterschiedliche Längen und sind in Form von Structs in C definiert. Zum Senden der Date werden diese dann in char arrays umgewandelt. 
+\noindent
+Die Datenpakete haben unterschiedliche Längen und sind in Form von Structs in C definiert. Zum Senden der Date werden diese dann in char arrays umgewandelt. \\
+Alle Datenpakete sind im folgenden dargestellt:
+
+\lstinputlisting[language=C, caption=Datenpakete]{dataTypes.c}
+
 
 \section{Modulbeschreibung}
 \label{sub:modulbeschreibung}
