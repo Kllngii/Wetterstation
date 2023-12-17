@@ -10,8 +10,8 @@
 #define UART0_TX        0
 #define UART0_RX        1
 
-#define HC12_TX         6
-#define HC12_RX         7
+#define HC12_TX         8
+#define HC12_RX         9
 #define HC12_SET_PIN    3
 
 #define CO2_PWM_PIN     15
@@ -127,6 +127,37 @@ void loop()
 {
     static char readVal = 0;
     static int dataTypeCounter = 0;
+
+    if (Serial.available() == 4)
+    {
+        char buf[5];
+        for(int i = 0; i < 4; i++)
+        {
+            Serial.readBytes(buf, 4);
+        }
+        buf[4] = '\0';
+        Serial.print("Received: ");
+        Serial.println(buf);
+        MeteoRawBuffer testBuffer;
+        testBuffer.data.packet1 = 0x1d88;
+        testBuffer.data.packet2 = 0x3453;
+        testBuffer.data.packet3 = 0x32e4;
+        testBuffer.data.minute = 0x40;
+        testBuffer.data.hour = 0;
+        testBuffer.data.date = 0xe8;
+        testBuffer.data.month = 9;
+        testBuffer.data.dayInWeek = 0x7;
+        testBuffer.data.year = 0xc4;
+        Serial.println(testBuffer.data.packet1, BIN);
+        if (meteo.getNewData(testBuffer))
+        {
+            Serial.println("Meteo Packet accepted");
+        }
+        else
+        {
+            Serial.println("Meteo packet not accepted");
+        }
+    }
     
     while(Serial2.available())
     {
@@ -180,7 +211,7 @@ void loop()
     {
         MeteoConvertedBuffer convertedBuffer = meteo.getConvertedBuffer();
         Serial1.write((const uint8_t*)convertedBuffer.sendArr, sizeof(convertedBuffer));
-        Serial.print("Transmitted decoded meteo data");
+        Serial.println("Transmitted decoded meteo data");
     }
     if (((millis() - lastCo2Send) > CO2_SEND_FREQUENCY_MILLIS) && co2Ready)
     {
@@ -188,15 +219,19 @@ void loop()
         Serial1.write((const uint8_t*)co2Buffer.sendArr, sizeof(co2Buffer));
         lastCo2Send = millis();
         Serial.print("Sent Co2 data. Concentration is: ");
-        Serial.println(co2Buffer.
+        Serial.println(co2Buffer.sendStruct.concentration);
     }
     if ((millis() - lastBmeSend) > BME_SEND_FREQUENCY_MILLIS)
     {
         iBmeBuffer.sendStruct.temp = bme.readTemperature();
         iBmeBuffer.sendStruct.humidity = bme.readHumidity();
-        iBmeBuffer.sendStruct.pressure = bme.readPressure();
+        iBmeBuffer.sendStruct.pressure = bme.readPressure() / 100.0;
         Serial1.write((const uint8_t*)iBmeBuffer.sendArr, sizeof(iBmeBuffer));
         lastBmeSend = millis();
+        Serial.println("Set BME Data. Values are: Temp, Hum, Press: ");
+        Serial.println(iBmeBuffer.sendStruct.temp);
+        Serial.println(iBmeBuffer.sendStruct.humidity);
+        Serial.println(iBmeBuffer.sendStruct.pressure);
     }
 }
 
@@ -215,7 +250,14 @@ void loop1()
 
     if (meteo.isNewMeteo())
     {
-        meteo.decode();
-        Serial.println("Just finished decoding");
+        if (!digitalRead(METEO_RDY))
+        {
+            meteo.decode();
+            Serial.println("Just finished decoding");
+        }
+        else
+        {
+            Serial.println("Meteo decoder is not ready yet...");
+        }
     }
 }

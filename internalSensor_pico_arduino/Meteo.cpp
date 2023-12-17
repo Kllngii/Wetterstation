@@ -26,11 +26,11 @@ bool Meteo::getNewData(MeteoRawBuffer buffer)
 void Meteo::decode()
 {
     int meteoBit = 0;
-    uint32_t bitPattern;
     uint32_t meteoPattern;
+    
     for (int i = 0; i < 3; i++)
     {
-        for (int j = 0; j < 14; j++)
+        for (int j = 13; j >= 0; j--)
         {
             if (i == 0)
             {
@@ -46,56 +46,46 @@ void Meteo::decode()
             }
         }
     }
-    for (int i = 0; i < 8; i++)
+    for (int i = 7; i >= 0; i--)
     {
         writeToMeteo((rawBuffer.data.minute & (1 << i)) >> i);
     }
-    for (int i = 0; i < 8; i++)
+    for (int i = 7; i >= 0; i--)
     {
         writeToMeteo((rawBuffer.data.hour & (1 << i)) >> i);
     }
-    for (int i = 0; i < 8; i++)
+    for (int i = 7; i >= 0; i--)
     {
         writeToMeteo((rawBuffer.data.date & (1 << i)) >> i);
     }
-    for (int i = 0; i < 5; i++)
+    for (int i = 4; i >= 0; i--)
     {
         writeToMeteo((rawBuffer.data.month & (1 << i)) >> i);
     }
-    for (int i = 0; i < 3; i++)
+    for (int i = 2; i >= 0; i--)
     {
         writeToMeteo((rawBuffer.data.dayInWeek & (1 << i)) >> i);
     }
-    for (int i = 0; i < 8; i++)
+    for (int i = 7; i >= 0; i--)
     {
         writeToMeteo((rawBuffer.data.year & (1 << i)) >> i);
     }
 
     while(!digitalRead(METEO_CLK_OUT));
-    bitPattern = 0;
     meteoPattern = 0;
 
     for (int i = 0; i < 24; i++)
     {
         while (!digitalRead(METEO_CLK_OUT));
         meteoBit = digitalRead(METEO_DATA_OUT);
-        bitPattern += meteoBit;
-        bitPattern <<= 1;
+        meteoPattern += meteoBit;
+        meteoPattern <<= 1;
         digitalWrite(METEO_CLK_IN, HIGH);
         while (digitalRead(METEO_CLK_OUT));
         digitalWrite(METEO_CLK_IN, LOW);
     }
-    for (int i = 0; i < 25; i++)
-    {
-        meteoBit = (bitPattern >> i) & 0x01;
-        meteoPattern += meteoBit;
-        meteoPattern <<= 1;
-    }
-    meteoPattern >>= 1;
     Serial.print("Decoded weather: ");
     Serial.println(meteoPattern, BIN);
-
-
 
     newMeteoData = false;
     meteoDataReady = true;
