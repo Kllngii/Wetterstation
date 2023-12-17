@@ -410,7 +410,11 @@ von 115200 bd genutzt. Die Drahtloskommunikation erfolt über einen 433 MHz Tran
 Bei den Funkmodulen handelt es sich um "HC-12 Wireless RF communicatio module V2.4" Module. Diese versprechen eine Übertragungsdistanz von bis zu 1800 m
 und eine einfache Ansteuerung über UART. \\
 Die Module haben eine Sendeleistung von bis zu 100 mW und können auf 100 verschiedenen, einstellbaren Kanälen funken (433,4 MHz bis 473 MHz). Die Baudrate ist einstellbar
-zwischen 1200 bps und 115200 bd. 
+zwischen 1200 bps und 115200 bd.
+
+\vspace{0.2cm}
+\noindent
+Aktuell wird eine Baudrate von 9600 bd verwendet, um ein gutes Mittel zwischen Distanz und Geschwindigkeit zu erzielen. 
 
 \vspace{0.5cm}
 \noindent
@@ -442,6 +446,27 @@ Alle Datenpakete sind im folgenden dargestellt:
 
 \subsection{Sensormodul extern}
 \label{subsub:sensorModul_ext}
+
+Das externe Sensormodul soll für den Außenbereich konzipiert werden und möglichst effizient und langfristig mit Batterien betrieben werden können. \\
+Wie schon aus den vorherigen Abschnitten hervorgeht, verfügt das Modul über einen BME280 und eine Antenne zum Empfang von DCF77 Signalen. 
+Die empfangenen Daten werden dann zyklisch via 433 MHz an den Sensorhub gesendet.
+
+\vspace{0.2cm}
+\noindent
+Für den DCF77 Empfang wird ein Shield verwendet, das eine auf 77,5 kHz abgestimmte Antenne hat und das Signal filtert und in saubere TTL Pegel umwandelt.
+Im Mikrocontroller wird eine Bibliothek verwendet, die mit Interrupts auf steigende- und fallende Taktflanke arbeitet und jeweils die Zeiten der Absenkung misst. 
+Da in der letzten Sekunde einer Minute keine Absenkung stattfindet, kann anhanddessen das Ende eines Datenpakets ermittelt werden. Die empfangenen Daten werden anschließend
+in einem Datenpaket gespeichert und versendet. Wird eine Pegeländerung außerhalb des gültigen Bereichs erkannt, wird aktuell das ganze Minutenpaket als ungültig deklariert
+und ignoriert. Alle drei Minuten ist außerdem ein MeteoTime Paket Sendebereit, dieses wird anhand der aktuellen Zeit auf Relevanz geprüft und verworfen, wenn die Region irrelevant ist. 
+Die BME280 Daten werden zyklisch alle 30 Sekunden gelesen und dann gesendet. 
+
+\vspace{0.2cm}
+\noindent
+Als Mikrocontroller wird aktuell ein ESP8266 verwendet, der mit einer Stromaufnahme von ca. 20 mA relativ viel Strom benötigt. Wegen des Zeitsignals kommen Schlafmodi nicht infrage. 
+Damit wäre der Batteriebetrieb mit langen Laufzeiten nur schwer realisierbar. Als Alternative wurde daher ein MSP430G2553 ausgewählt, der über einen I2C und einen 
+UART Bus verfügt und bei 1 MHz Takt einen Stromverbrauch von nur 230 $\mu$A hat. Damit wäre ein langfristiger Betrieb mit Batterie möglich. 
+Das HC-12 Modul hat im Sendebetrieb allerdings eine Stromaufnahme von bis zu 100 mA, die sich bei häufiger Sendefrequenz sehr negativ auswirken würde. 
+Die Sendefrequenz muss daher so niedrig wie nötig gewählt werden. 
 
 \subsection{Sensormodul intern}
 \label{subsub:sensorModul_int}
