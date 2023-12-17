@@ -471,9 +471,32 @@ Die Sendefrequenz muss daher so niedrig wie nötig gewählt werden.
 \subsection{Sensormodul intern}
 \label{subsub:sensorModul_int}
 
+Das interne Sensormodul darf im Gegensatz zum externen Modul mehr Energie verbrauchen, da es mehr Daten verarbeiten muss und über einen Netzanschluss verfügt. 
+Das Modul empfängt die über 433 MHz gesendeten Daten und liest zusätzlich zyklisch den BME280 und CO2 Sensor aus. Wird ein kodiertes Paket mit Wetterdaten empfangen, 
+wird dieses außerdem entschlüsselt und dann an das Grafikmodul weitergegeben. 
+
+\vspace{0.3cm}
+\noindent
+Als Mikrocontroller dient hier ein Raspberry Pi Pico, der mit zwei Kernen Multiprocessing erlaubt und damit die Reaktionszeiten beschleunigt. Der Mikrocontroller
+verfügt über zwei UART Busse und zwei I2C Busse, die beiden UART Busse werden zum einen für die Kommunikation mit dem anderen Mikrocontroller, zum anderen zur Datenübertragung
+vom 433 MHz Empfänger verwendet. Der CO2 Sensor hat zwar auch eine UART Schnittstelle, da UART Emulatoren aber regelmäßig falsche Daten geliefert haben, werden die Daten stattdessen
+via PWM ausgelesen. Eine Bibliothek für den Sensor liest den Duty-Cycle aus und ermittelt daraus die CO2 Konzentration. Da das Auslesen des PWM Signals insbesondere bei hohen
+Konzentrationen recht lang dauern kann, erfolgt dies ausschließlich über den zweiten Kern, der neue Werte global zur Verfügung stellt und dies über eine Flag signalisiert. 
+Auf Kern 2 findet außerdem der Dekodierprozess der Wetterdaten statt, um den Hauptprozess nicht zu verlangsamen. Auch hier werden fertige Pakete über eine Flag signalisiert. 
+
 \subsection{Grafikmodul}
 \label{subsub:grafikmodul}
 
 \section{Aktueller Projektstand}
+
+Der Entwicklungsprozess der Software ist bereits weit fortgeschritten, eine funktionierende Grafikoberfläche ist bereits vorhanden und auch die Kommunikation
+zwischen den Sensoren konnte schon erfolgreich getestet werden. Vor kurzem musste der Mikrocontroller des Innenmoduls aus Mangel an GPIO Pins gewechselt werden,
+die Migration der Software war nicht ohne weiteres möglich. Außerdem ist aktuell der Wechsel vom ESP8266 zum MSP430 geplant, durch die stark limitierten Ressourcen
+beim MSP430 und der Wechsel der Programmiersprache von C++ zu C machen den Wechsel aber sehr aufwendig und fehlerbehaftet. Eventuell wird der MSP430 aufgrund des hohen
+Aufwands wieder aus dem Projekt gestrichen, sodass der Testaufbau mit dem (wenig effizienten) ESP8266 stattfinden muss. 
+
+\vspace{0.2cm}
+\noindent
+Auf die fertige Software folgt die Entwicklung und Bestellung von Leiterplatten für die Module, um einen sauberen Aufbau ohne unnötige Kabel möglich zu machen. 
 
 \end{document}
