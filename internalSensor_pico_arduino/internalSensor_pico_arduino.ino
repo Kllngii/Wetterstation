@@ -22,8 +22,8 @@
 Adafruit_BME280 bme;    // BME280, read by core0
 CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
 Meteo meteo;
-co2Buf co2Buffer = {'C','O','2','.'};
-bmeBuf iBmeBuffer = {'I','B','M','E'};
+CO2SendBuf co2Buffer = {'C','O','2','.'};
+BMESendBuf iBmeBuffer = {'I','B','M','E'};
 
 volatile bool co2Ready = false;
 volatile int co2Concentration = 0;
@@ -138,7 +138,7 @@ void loop()
         buf[4] = '\0';
         Serial.print("Received: ");
         Serial.println(buf);
-        MeteoRawBuffer testBuffer;
+        MeteoRawSendBuf testBuffer;
         testBuffer.data.packet1 = 0x1d88;
         testBuffer.data.packet2 = 0x3453;
         testBuffer.data.packet3 = 0x32e4;
@@ -176,10 +176,10 @@ void loop()
         }
         else if (readVal == 'O' && dataTypeCounter == 3)
         {
-            MeteoRawBuffer buffer;
+            MeteoRawSendBuf buffer;
             for(int i = 0; i < sizeof(buffer); i++)
             {
-                buffer.rawBuffer[i] = Serial2.read();
+                buffer.buf[i] = Serial2.read();
             }
             meteo.getNewData(buffer);
             Serial.println("Got new Meteo Data");
@@ -209,29 +209,29 @@ void loop()
     }
     if (meteo.isMeteoReady())
     {
-        MeteoConvertedBuffer convertedBuffer = meteo.getConvertedBuffer();
-        Serial1.write((const uint8_t*)convertedBuffer.sendArr, sizeof(convertedBuffer));
+        MeteoDecodedSendBuf convertedBuffer = meteo.getConvertedBuffer();
+        Serial1.write((const uint8_t*)convertedBuffer.buf, sizeof(convertedBuffer));
         Serial.println("Transmitted decoded meteo data");
     }
     if (((millis() - lastCo2Send) > CO2_SEND_FREQUENCY_MILLIS) && co2Ready)
     {
-        co2Buffer.sendStruct.concentration = co2Concentration;
-        Serial1.write((const uint8_t*)co2Buffer.sendArr, sizeof(co2Buffer));
+        co2Buffer.data.concentration = co2Concentration;
+        Serial1.write((const uint8_t*)co2Buffer.buf, sizeof(co2Buffer));
         lastCo2Send = millis();
         Serial.print("Sent Co2 data. Concentration is: ");
-        Serial.println(co2Buffer.sendStruct.concentration);
+        Serial.println(co2Buffer.data.concentration);
     }
     if ((millis() - lastBmeSend) > BME_SEND_FREQUENCY_MILLIS)
     {
-        iBmeBuffer.sendStruct.temp = bme.readTemperature();
-        iBmeBuffer.sendStruct.humidity = bme.readHumidity();
-        iBmeBuffer.sendStruct.pressure = bme.readPressure() / 100.0;
-        Serial1.write((const uint8_t*)iBmeBuffer.sendArr, sizeof(iBmeBuffer));
+        iBmeBuffer.data.temp = bme.readTemperature();
+        iBmeBuffer.data.humidity = bme.readHumidity();
+        iBmeBuffer.data.pressure = bme.readPressure() / 100.0;
+        Serial1.write((const uint8_t*)iBmeBuffer.buf, sizeof(iBmeBuffer));
         lastBmeSend = millis();
         Serial.println("Set BME Data. Values are: Temp, Hum, Press: ");
-        Serial.println(iBmeBuffer.sendStruct.temp);
-        Serial.println(iBmeBuffer.sendStruct.humidity);
-        Serial.println(iBmeBuffer.sendStruct.pressure);
+        Serial.println(iBmeBuffer.data.temp);
+        Serial.println(iBmeBuffer.data.humidity);
+        Serial.println(iBmeBuffer.data.pressure);
     }
 }
 

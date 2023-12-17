@@ -4,26 +4,26 @@
 #include <stdint.h>
 #include "Meteo.h"
 
-typedef struct _bmeStruct {
+typedef struct {
     const char dataType[4];
     float temp;
     float humidity;
     float pressure;
-} bmeStruct;
+} BMEStruct;
 
-typedef union _bmeBuf {
-    char sendArr[sizeof(bmeStruct)];
-    bmeStruct sendStruct;
-} bmeBuf;
+typedef union {
+    char buf[sizeof(BMEStruct)];
+    BMEStruct data;
+} BMESendBuf;
 
-typedef struct _co2Struct {
+typedef struct {
     const char dataType[4];
     int concentration;
-} co2Struct;
+} CO2Struct;
 
 typedef union _co2Buf {
-    char sendArr[sizeof(co2Struct)];
-    co2Struct sendStruct;
-} co2Buf;
+    char buf[sizeof(CO2Struct)];
+    CO2Struct data;
+} CO2SendBuf;
 
 #endif /* DATATYPES_H */

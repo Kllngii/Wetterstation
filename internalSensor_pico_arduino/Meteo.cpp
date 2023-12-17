@@ -12,11 +12,11 @@ Meteo::~Meteo()
 
 }
 
-bool Meteo::getNewData(MeteoRawBuffer buffer)
+bool Meteo::getNewData(MeteoRawSendBuf rawBuffer)
 {
     if (!meteoDataReady)
     {
-        rawBuffer = buffer;
+        this->rawBuffer = rawBuffer;
         newMeteoData = true;
         return true;
     }
@@ -101,9 +101,9 @@ bool Meteo::isNewMeteo()
     return newMeteoData;
 }
 
-MeteoConvertedBuffer Meteo::getConvertedBuffer()
+MeteoDecodedSendBuf Meteo::getConvertedBuffer()
 {
-    static MeteoConvertedBuffer emptyBuf = {'E','M','T','Y'};
+    static MeteoDecodedSendBuf emptyBuf = {'E','M','T','Y'};
     if (meteoDataReady)
     {
         meteoDataReady = false;

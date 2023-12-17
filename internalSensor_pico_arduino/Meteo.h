@@ -27,41 +27,36 @@ typedef struct {
     uint8_t month; // Only 5 bits used
     uint8_t dayInWeek;  // Only 3 bits used
     uint8_t year;
-} MeteoPacketStruct;
+} MeteoRawStruct;
 
 typedef union {
-    char rawBuffer[sizeof(MeteoPacketStruct)];
-    MeteoPacketStruct data;
-} MeteoRawBuffer;
+    char buf[sizeof(MeteoRawStruct)];
+    MeteoRawStruct data;
+} MeteoRawSendBuf;
 
 typedef struct {
     const char dataType[4];
-    uint8_t day_weather;
-    uint8_t night_weather;
-    uint8_t extrema;
-    uint8_t rainfall;
-    uint8_t anomaly;
-    uint8_t temperature;
-} MeteoConvertedStruct;
+    uint32_t meteoData;
+} MeteoDecodedStruct;
 
 typedef union {
-    char sendArr[sizeof(MeteoConvertedStruct)];
-    MeteoConvertedStruct data;
-} MeteoConvertedBuffer;
+    char buf[sizeof(MeteoDecodedStruct)];
+    MeteoDecodedStruct data;
+} MeteoDecodedSendBuf;
 
 class Meteo {
     public:
         Meteo();
         ~Meteo();
-        bool getNewData(MeteoRawBuffer rawBuffer);
+        bool getNewData(MeteoRawSendBuf rawBuffer);
         void decode();
         bool isMeteoReady();
         bool isNewMeteo();
-        MeteoConvertedBuffer getConvertedBuffer();
+        MeteoDecodedSendBuf getConvertedBuffer();
 
     private:
-        MeteoRawBuffer rawBuffer;
-        MeteoConvertedBuffer convertedBuffer = {'M','T','E','O'};
+        MeteoRawSendBuf rawBuffer;
+        MeteoDecodedSendBuf convertedBuffer = {'M','T','E','O'};
         volatile bool newMeteoData;
         volatile bool meteoDataReady;
 
