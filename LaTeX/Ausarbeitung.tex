@@ -19,6 +19,7 @@
 \usepackage{listings}   % Code darstellen
 \usepackage{xcolor}     % Code farbig machen
 \usepackage{longtable}  % Tabellen mit Seitenumbruch
+\usepackage{textcomp}
 \usepackage[font=footnotesize, labelfont=bf]{caption}
 \usetikzlibrary{shapes,arrows}
 \pgfplotsset{compat = newest}
@@ -229,11 +230,46 @@ zusätzlich die Übertragung der Daten per WLAN an einen Server o.ä. möglich, 
 \subsection{Sensorik}
 \label{subsub:sensorik}
 
+Zur Erfassung der Umweltparameter werden aktuell zwei verschiedene Sensoren eingesetzt. Der BME280 erfasst Lufttemperatur, Luftfeuchtigkeit und Luftdruck. 
+Der MHZ19C wird zur Erfassung der CO2 Konzentration im Raum eingesetzt. In den folgenden beiden Abschnitten werden die Sensoren beschrieben. 
+
+\vspace{0.2cm}
+\noindent
+Das Außenmodul verfügt außerdem über eine 77,5 kHz Empfangsantenne, um das Zeitzeichensignal DCF77 zu empfangen. Daraus lässt sich die aktuelle Zeit ablesen,
+außerdem wird eine Wettervorhersage mit übertragen, die ausgewertet wird. 
+
 \subsubsection{BME280}
 \label{subsubsub:bme280}
 
+Beim BME280 handelt es sich um einen effizienten Sensor von Bosch, der zur Erfassung von Temperatur, Luftfeuchtigkeit und Luftdruck eingesetzt wird. 
+Der Sensor verfügt über ein I2C und SPI Interface.
+Beim zyklischen Auslesen aller Sensordaten mit 1 Hz liegt die Stromaufnahme laut Datenblatt bei 3,6 $\mu$A, weshalb sich der Sensor ideal für die Anwendung in Sensormodulen mit Batteriebetrieb eignet. 
+
+Der Sensor verfügt über die folgenden Messbereiche:
+\begin{itemize}
+  \item Temperatur: -40°C - +85°C ($\pm$ 0,5°C)
+  \item Luftfeuchtigkeit: 0 - 100\% rel. Feuchtigkeit ($\pm$ 3\%)
+  \item Druck: 250 - 1250 hPa ($\pm$ 1 hPa)
+\end{itemize}
+
+\noindent
+Mit diesen Spezifikationen eigent sich der Sensor für die Anwendung im Innen- und Außenbereich. 
+
+\noindent
+Für das Projekt wird ein Sensorshield verwendet, welches nur den I2C Bus herausführt. Die Ansteuerung des Sensors erfolgt daher über I2C. 
+
 \subsubsection{MHZ19C}
 \label{subsubsub:mhz19c}
+
+Der MHZ-19C ist ein Infrarot CO2-Sensor, der die CO2 Konzentration mittels nicht-dispersiver Infrarot-Spektroskopie misst. Dabei wird zyklisch mit einer Infrarotlampe
+und einem Photosensor die CO2-Konzentration anhand der Reflexion des Lichts durch CO2 Partikel gemessen. 
+Der Sensor verfügt über einen Messbereich von 400-5000 ppm, wobei die Genauigkeit $\pm$ 40ppm + 5\% des Messwerts beträgt. 
+Da NDIR Sensoren zum Messwertdrift neigen, verfügt der Sensor über eine automatische Kalibrierung, die alle 24 Stunden erfolgt. Der Sensor ist daher für den Dauerbetrieb ausgelegt
+und sollte dauerhaft aktiv sein. 
+Die Aufheizzeit des Sensors beträgt eine Minute. 
+
+\noindent
+Der Sensor ist über eine UART-Schnittstelle konfigurier- und auslesbar, außerdem verfügt er über einen PWM Ausgang. 
 
 \subsubsection{DCF77}
 \label{subsubsub:dcf77}
@@ -261,5 +297,7 @@ zusätzlich die Übertragung der Daten per WLAN an einen Server o.ä. möglich, 
 
 \subsection{Grafikmodul}
 \label{subsub:grafikmodul}
+
+\section{Aktueller Projektstand}
 
 \end{document}
