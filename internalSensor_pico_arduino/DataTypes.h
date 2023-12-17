@@ -2,38 +2,7 @@
 #define DATATYPES_H_
 
 #include <stdint.h>
-
-typedef struct _meteoPacketStruct {
-    uint16_t packet1;
-    uint16_t packet2;
-    uint16_t packet3;
-    uint8_t minute;
-    uint8_t hour;
-    uint8_t date;
-    uint8_t month; // Only 5 bits used
-    uint8_t dayInWeek;  // Only 3 bits used
-    uint8_t year;
-} meteoPacketStruct;
-
-typedef union _meteoRawBuffer {
-    char rawBuffer[sizeof(meteoPacketStruct)];
-    meteoPacketStruct data;
-} meteoRawBuffer;
-
-typedef struct _meteoConvertedStruct {
-    const char dataType[4];
-    uint8_t day_weather;
-    uint8_t night_weather;
-    uint8_t extrema;
-    uint8_t rainfall;
-    uint8_t anomaly;
-    uint8_t temperature;
-} meteoConvertedStruct;
-
-typedef union _meteoConvertedBuffer {
-    char sendArr[sizeof(meteoConvertedStruct)];
-    meteoConvertedStruct data;
-} meteoConvertedBuffer;
+#include "Meteo.h"
 
 typedef struct _bmeStruct {
     const char dataType[4];

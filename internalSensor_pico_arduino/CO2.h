@@ -64,11 +64,11 @@ class CO2 {
  private:
   static const unsigned long MHZ14A_PREHEATING_TIME = 3L * 60L * 1000L;
   static const unsigned long MHZ14B_PREHEATING_TIME = 1L * 30L * 1000L;
-  static const unsigned long MZ19B_PREHEATING_TIME = 3L * 60L * 1000L;
+  static const unsigned long MHZ19B_PREHEATING_TIME = 3L * 60L * 1000L;
   static const unsigned long MHZ19C_PREHEATING_TIME = 1L * 60L * 1000L;
   static const unsigned long MHZ14A_RESPONSE_TIME = (unsigned long)60 * 1000;
   static const unsigned long MHZ14B_RESPONSE_TIME = (unsigned long)0;
-  static const unsigned long MHZ9B_RESPONSE_TIME = (unsigned long)120 * 1000;
+  static const unsigned long MHZ19B_RESPONSE_TIME = (unsigned long)120 * 1000;
   static const unsigned long MHZ19C_RESPONSE_TIME = (unsigned long)120 * 1000;
   static const int UNUSED_PIN = -1;
 
