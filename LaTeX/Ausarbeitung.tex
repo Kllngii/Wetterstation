@@ -311,10 +311,93 @@ Bit 20 (S) markiert den Beginn der Zeitinformationen und hat den Wert eins.
 Wie schon aus der Abbildung hervorgeht, werden in den restlichen Sekunden Informationen zu Zeit und Datum übertragen, Minute, Stunde und Datum haben jeweils ein
 Paritätsbit eingefügt, um Fehler erkennen zu können. Eine Fehlerkorrektur ist damit allerdings nicht möglich. 
 
-
-
 \subsubsubsection{MeteoTime}
 \label{subsubsubsub:meteotime}
+
+MeteoTime versendet versendet pro Minute 14 Bits mit Wetterinformationen, die von lizensierten Geräten entschlüsselt- und verwendet werden können. 
+Ein Informationspaket besteht aus 42 Bits und benötigt für die Übertragung somit drei Minuten. Ein Tag ist in fünf Abschnitte unterteilt, in denen
+unterschiedliche Informationen übertragen werden. Da die Wettervorhersage 90 Regionen abdeckt, wird jede Vorhersage nur täglich einmal übertragen. \\
+Es gilt folgende Aufteilung: \\
+22:00 Uhr - 03:59 Uhr: Aktueller Tag \\
+04:00 Uhr - 09:59 Uhr: Folgender Tag \\
+10:00 Uhr - 15:59 Uhr: Darauffolgender Tag \\
+16:00 Uhr - 18:59 Uhr: Darauffolgender Tag \\
+19:00 Uhr - 21:59 Uhr: Zusatzregionen mit 2-Tages Prognose. 
+
+\vspace{0.2cm}
+\noindent
+Von den 90 Regionen erhalten 60 die viertägige Vorhersage, die restlichen 30 Regionen erhalten nur eine 2-Tages Vorhersage. \\
+Innerhalb eines sechsstündigen Übertragungszeitraums werden für jede Region nacheinander die Höchst- und Tiefstwerde übertragen.
+
+\noindent
+Die Wettervorhersagen decken große Regionen ab, weshalb diese etwas ungenau sind. \\
+Für Hamburg ist beispielsweise die Region Bremerhaven zugeteilt, der Bereich deckt alles vom westlichen Schleswig-Holstein bis zum Nordwesten der Niederlande ab. \\
+Um im Fall eines Lesefehlers beim Empfang der Daten trotzdem eine Vorhersage ableiten zu können, sollten Ausweichregionen definiert werden, die im Fehlerfall stattdessen angezeigt werden. \\
+Für Hamburg sind das die Regionen Rostock und Hannover. 
+
+\vspace{0.3cm}
+\noindent
+Für die Entschlüsselung der Wetterinformationen ist ein Dekodier-IC notwendig, welches vermutlich aus rückgekoppelten Schieberegistern besteht, um die Daten zu Dekodieren. \\
+Beim IC handelt es sich um das Modell HKW581 der Firma HKW, die auch Betreiber des MeteoTime Dienstes ist. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width = 0.2\textwidth]{HKW5811}
+  \caption{Dekodier-IC zum Entschlüsseln der Wettervorhersagen}
+  \label{fig:hkw581}
+\end{figure}
+
+\noindent
+Der IC verfügt über acht Pins, davon sind neben den Pins zur Spannungsversorgung und Daten Ein- und Ausgabe auch ein Clock IN und Clock OUT Pin vorhanden, damit die Bits
+taktsynchron ein- bzw. ausgelesen werden. Der Clock OUT Pin folgt dem Clock IN Pin und wird zur Indikation genutzt, ob am Datenausgang ein valider Bitwert anliegt. 
+Neben einem Resetpin gibt es außerdem einen Ready Pin, der anzeigt, dass der IC betriebsbereit ist. Anscheinend braucht der IC eine Aufwärmphase. 
+
+\vspace{0.2cm}
+\noindent
+Als Eingabedaten benötigt der IC einen 82 Bit langen Datenstream, der sich wie folgt zusammensetzt:
+\begin{itemize}
+  \item Meteopaket 1 (14 Bit)
+  \item Meteopaket 2 (14 Bit)
+  \item Meteopaket 3 (14 Bit)
+  \item Minute des ersten Pakets (aufgefüllt von 7 auf 8 Bit)
+  \item Stunde des ersten Pakets (aufgefüllt von 6 auf 8 Bit)
+  \item Kalendertag (aufgefüllt von 6 auf 8 Bit)
+  \item Monat (5 Bit)
+  \item Wochentag (3 Bit)
+  \item Jahr (8 Bit)
+\end{itemize}
+
+\noindent
+Als Ausgabe erhält man einen 22 Bit langen Datenstream mit den Wetterinformationen. Je nachdem, ob gerade ein Paket mit Höchst- oder Tiefstwerten gesendet wurde, 
+ergeben sich unterschiedliche Informationen:
+
+\vspace{0.2cm}
+\noindent
+Höchstwerte:
+\begin{itemize}
+  \item Wetter Tag (4 Bit)
+  \item Wetter Nacht (4 Bit)
+  \item Schweres Wetter (4 Bit)
+  \item Niederschlagswahrscheinlichkeit(3 Bit)
+  \item Wetteranomalie Tag (1 Bit)
+  \item Temperatur Tag (6 Bit)
+\end{itemize}
+
+\vspace{0.2cm}
+\noindent
+Tiefstwerte:
+\begin{itemize}
+  \item Wetter Tag (4 Bit)
+  \item Wetter Nacht (4 Bit)
+  \item Windrichtung (4 Bit)
+  \item Windstärke (3 Bit)
+  \item Wetteranomalie Nacht (1 Bit)
+  \item Temperatur Nacht (6 Bit)
+\end{itemize}
+
+\noindent
+Die ausgegebenen Zahlenwerte sind wiederum einer Bezeichnung zugeordnet (z.B. Wetter Tag = 3 entspricht vorwiegend bewölkt).
+
 
 \subsection{Kommunikation}
 \label{subsub:kommunikation}
