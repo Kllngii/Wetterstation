@@ -163,49 +163,49 @@ Prüfer: Prof. Dr. R. Fitz
 \section{Projektbeschreibung}
 \label{sub:projektbeschreibung}
 
-Ziel des Projekts ist die Entwicklung eines Sensorhubs, der mehrere Sensordaten erfassen kann und diese
-auf einem Display anzeigt. Der Hub verfügt über ein Display und soll als eine Art Wetterstation implementiert werden. 
+\subsection{Anforderungen}
+\label{subsub:anforderungen}
 
-\noindent
-Die Wetterstation soll über ein drahtloses Außenmodul verfügen, um eine Außentemperatur messen zu können. 
+\section{Systembeschreibung}
+\label{sub:systembeschreibung}
+
+\subsection{Systemaufbau}
+\label{subsub:systemaufbau}
+
 \subsection{Sensorik}
 \label{subsub:sensorik}
 
-Die Wetterstation teilt sich auf ein Haupt- und ein Außenmodul auf, das jeweils über eine unterschiedliche Peripherie verfügt. \\
-Das Außenmodul soll die Sensordaten über 433 MHz an das Hauptmodul übertragen. 
+\subsubsection{BME280}
+\label{subsubsub:bme280}
 
-\vspace{0.2cm} \noindent
-Hauptmodul:
-\begin{itemize}
-  \item BME280: \\
-        Erfassung von Temperatur, Luftfeuchtigkeit und Luftdruck
-  \item CO2 Sensor: \\
-        Erfassung der CO2-Konzentration im Raum
-\end{itemize}
+\subsubsection{MHZ19C}
+\label{subsubsub:mhz19c}
 
-\vspace{0.2cm} \noindent
-Außenmodul:
-\begin{itemize}
-  \item BMP280: \\
-        Erfassung von Temperatur und Luftfeuchtigkeit
-  \item DCF77: \\
-        Empfang der aktuellen Zeit und Datum sowie einer Wettervorhersage für die nächsten Tage
-\end{itemize}
+\subsubsection{DCF77}
+\label{subsubsub:dcf77}
 
-\subsection{Konnektiviät}
-\label{subsub:konnektivität}
+\subsubsubsection{MeteoTime}
+\label{subsubsubsub:meteotime}
 
-Bei den verwendeten Mikrocontrollern handelt es sich um ESP32 und Raspberry Pi Pico, die jeweils über ein WLAN-Modul verfügen.
-Damit ist es möglich, die erfassten Sensordaten über MQTT oder ein anderes Protokoll drahtlos zu übermitteln. Dies ermöglicht weitere
-Funktionen, wie die Speicherung der Daten in einer Datenbank für Langzeitstatistiken oder die Darstellung der erfassten Daten auf
-mehreren Endgeräten. Zudem wäre theoretisch auch das Abrufen von Wettervorhersagen aus dem Internet möglich, hier wird aber die MeteoTime
-vom DCF77 Signal verwendet. 
+\subsection{Kommunikation}
+\label{subsub:kommunikation}
 
-\noindent
-Der Außensensor soll die von ihm erfassten Daten in Form eines (XML-) Strings drahtlos über 433 MHz übertragen. Die im Vergleich zu
-2,4 GHz deutlich niedrigere Frequenz kann die Reichweite deutlich steigern. 433 MHz ist insbesondere bei Außensensoren von Wetterstationen standard. 
+\subsubsection{Funkstrecke}
+\label{subsubsub:funkstrecke}
 
-\subsection{Grafikoberfläche}
-\label{subsub:grafikoberfläche}
+\subsubsection{Datenpakete}
+\label{subsubsub:datenpakete}
+
+\section{Modulbeschreibung}
+\label{sub:modulbeschreibung}
+
+\subsection{Sensormodul extern}
+\label{subsub:sensorModul_ext}
+
+\subsection{Sensormodul intern}
+\label{subsub:sensorModul_int}
+
+\subsection{Grafikmodul}
+\label{subsub:grafikmodul}
 
 \end{document}
