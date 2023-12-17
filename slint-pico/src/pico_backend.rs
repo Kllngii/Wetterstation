@@ -229,7 +229,7 @@ fn get_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) -> We
         12 => WeatherType::SchneeregenSchauer,
         13 => WeatherType::Schneeschauer,
         14 => WeatherType::Schneeregen,
-        15 => WeatherType::Schneeregen,
+        15 => WeatherType::Schneefall,
         _ => WeatherType::Error,
     };
     if !anomaly {
