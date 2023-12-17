@@ -181,11 +181,50 @@ Es wurden keine verpflichtenden Anforderungen gestellt, das Projekt soll themati
   \item Der Sensorhub soll skalier- und erweiterbar sein
 \end{itemize}
 
+\noindent
+Aus diesen Anforderungen lassen sich direkt Vorgaben für das Projekt ableiten:
+\begin{itemize}
+  \item Nutzung mehrerer Mikrocontroller, die miteinander über ein Bussystem kommunizieren
+  \item Verwendung digitaler Sensoren, die Standardprotokolle wie I2C, SPI oder UART unterstützen
+  \item Entwicklung eines Außensensors, der drahtlos mit dem Sensorhub kommunizieren kann
+  \item Anbindung des Sensorhubs ans Internet oder Empfang von Wettervorhersagen via Funk (DCF77)
+  \item Nutzung ausreichend leistungsstarker Mikrocontroller, die genügend Leistungs- und Peripheriereserven haben, um weitere Geräte anzubinden
+\end{itemize}
+
 \section{Systembeschreibung}
 \label{sub:systembeschreibung}
 
 \subsection{Systemaufbau}
 \label{subsub:systemaufbau}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width = 0.8\textwidth]{Systemuebersicht}
+  \caption{Übersicht der Systemkomponenten}
+  \label{fig:systemuebersicht}
+\end{figure}
+
+Die obige Abbildung \ref{fig:systemuebersicht} zeigt abstrakt alle Komponenten des Systems. Die jeweiligen Komponenten über dem Mikrocontroller Symbol
+zeigen jeweils die angeschlossenen Sensoren bzw. Bildschirme. Ebenfalls ist grob die Kommunikation zwischen den Mikrocontrollern erkennbar. 
+
+\vspace{0.2cm}
+\noindent
+Ganz links ist der Außensensor dargestellt, an den ein Sensor zur Messung von Temperatur, Luftfeuchtigkeit und Luftdruck angeschlossen ist. 
+Außerdem verfügt dieser über eine Antenne, um das DCF77-Signal zu empfangen, welches die aktuelle Zeit und eine Wettervorhersage beinhaltet (siehe Abschnitt \ref{subsubsub:dcf77}).
+Der Sensor sendet die empfangenen Daten zyklisch per 433 MHz Sender an den Sensorhub. 
+
+\vspace{0.2cm}
+\noindent
+Der Sensorhub besteht aus zwei Mikrocontrollern, die über eine serielle Schnittstelle (UART) miteinander kommunizieren. Der in Abbildung \ref{fig:systemuebersicht} mittlere Mikrocontroller
+empfängt die Daten des Außensensors und leitet diese weiter an den verbundenen Mikrocontroller. Da die Daten zur Wettervorhersage verschlüsselt sind und der Außensensor möglichst
+wenig Energie verbrauchen soll, müssen die Daten vom Mikrocontroller entschlüsselt werden. Dazu werden die entsprechenden Datenpakete abgefangen, entschlüsselt und anschließend weitergesendet. 
+Der Mikrocontroller verfügt außerdem wie der Außensensor über einen Sensor zur Messung von Temperatur, Luftfeuchtigkeit und Luftdruck (wobei der Luftdruck im Innenraum nicht gemessen wird). 
+Zusätzlich ist ein CO2 Sensor verbaut, der die Konzentration im Raum misst. 
+
+\vspace{0.2cm}
+\noindent
+In der Übersicht ganz rechts ist der Mikrocontroller, der alle Daten empfängt und auf einem Touchdisplay darstellt. Da der Sensor über ein WLAN-Modul verfügt, wäre theoretisch
+zusätzlich die Übertragung der Daten per WLAN an einen Server o.ä. möglich, der alle Daten speichert und diese anderen Geräten zur Verfügung stellt. 
 
 \subsection{Sensorik}
 \label{subsub:sensorik}
