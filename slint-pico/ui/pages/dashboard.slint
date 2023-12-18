@@ -136,17 +136,5 @@ export component Dashboard inherits Page {
                 week-model <=> WeatherAdapter.week-model;
             }
         }
-
-        Row {
-            BarChartTile {
-                colspan: 2;
-                title: UsageAdapter.title;
-                model: UsageAdapter.model;
-                min: UsageAdapter.min;
-                max: UsageAdapter.max;
-                value-model: UsageAdapter.overview-model;
-                active: root.active;
-            }
-        }
     }
 }

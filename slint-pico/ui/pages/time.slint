@@ -1,0 +1,58 @@
+// Copyright © SixtyFPS GmbH <info@slint.dev>
+// SPDX-License-Identifier: MIT
+
+import { Page } from "page.slint";
+import { Theme } from "../theme.slint";
+import { GroupBox, Value , ValueDisplay, BarChart, Tile } from "../widgets/widgets.slint";
+
+export struct TimeModel {
+    hours: int,
+    minutes: int,
+    seconds: int,
+}
+export struct DateModel {
+    day: int,
+    month: int,
+    year: int,
+    weekday: string, //Mo = 0, Di = 1, ...
+}
+
+export global TimeAdapter {
+    in property <string> title: "Zeit";
+    in property <TimeModel> time: {
+        hours: 9,
+        minutes: 16,
+        seconds: 2,
+    };
+    in property <DateModel> date: {
+        day: 23,
+        month: 6,
+        year: 2024,
+        weekday: "So",
+    };
+}
+
+export component Time inherits Page {
+    in property <string> title <=> TimeAdapter.title;
+    in property <TimeModel> time <=> TimeAdapter.time;
+    in property <DateModel> date <=> TimeAdapter.date;
+
+    GroupBox {
+        title: root.title;
+        spacing: 1px;
+
+        Tile {
+            text: "Datum";
+            sub-text: "\{root.date.weekday}, \{root.date.day}.\{root.date.month}.\{root.date.year}";
+        }
+        Tile {
+            text: "Uhrzeit";
+            alternateBackground: true;
+            
+            sub-text: (root.time.minutes < 10) ? ((root.time.seconds < 10) ? "\{root.time.hours}:0\{root.time.minutes}:0\{root.time.seconds}":"\{root.time.hours}:0\{root.time.minutes}:\{root.time.seconds}")
+            : ((root.time.seconds < 10) ? "\{root.time.hours}:\{root.time.minutes}:0\{root.time.seconds}":"\{root.time.hours}:\{root.time.minutes}:\{root.time.seconds}");
+        }
+
+        Rectangle {}
+    }
+}
