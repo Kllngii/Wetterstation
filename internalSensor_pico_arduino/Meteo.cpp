@@ -86,7 +86,8 @@ void Meteo::decode()
     }
     Serial.print("Decoded weather: ");
     Serial.println(meteoPattern, BIN);
-
+    meteoPattern >>= 1;
+    convertedBuffer.data.meteoData = meteoPattern;
     newMeteoData = false;
     meteoDataReady = true;
 }

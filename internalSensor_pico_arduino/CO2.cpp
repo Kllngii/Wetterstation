@@ -55,26 +55,6 @@ void IRAM_ATTR pulseInInterruptHandler() {
   }
 }
 
-CO2::CO2(uint8_t rxpin, uint8_t txpin, uint8_t pwmpin, uint8_t type, MeasuringRange range) {
-  SoftwareSerial* ss = new SoftwareSerial(rxpin, txpin);
-  _pwmpin = pwmpin;
-  sPwmPin = pwmpin;
-  _type = type;
-  _range = range;
-  sRange = range;
-
-  ss->begin(9600);
-  _serial = ss;
-}
-
-CO2::CO2(uint8_t rxpin, uint8_t txpin, uint8_t type) {
-  SoftwareSerial* ss = new SoftwareSerial(rxpin, txpin);
-  _type = type;
-
-  ss->begin(9600);
-  _serial = ss;
-}
-
 CO2::CO2(uint8_t pwmpin, uint8_t type, MeasuringRange range) {
   _pwmpin = pwmpin;
   sPwmPin = pwmpin;

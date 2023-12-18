@@ -19,7 +19,7 @@
 #include "WProgram.h"
 #endif
 
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 #include <limits.h>
 
 // types of sensors.
@@ -37,9 +37,7 @@ extern const int STATUS_NOT_READY;
 class CO2 {
  public:
   enum MeasuringRange { RANGE_2K = 2000, RANGE_5K = 5000, RANGE_10K = 10000, RANGE_50K = 50000 };
-
-  CO2(uint8_t rxpin, uint8_t txpin, uint8_t pwmpin, uint8_t type, MeasuringRange range = RANGE_5K);
-  CO2(uint8_t rxpin, uint8_t txpin, uint8_t type);
+  
   CO2(uint8_t pwmpin, uint8_t type, MeasuringRange range = RANGE_5K);
   CO2(Stream *serial, uint8_t pwmpin, uint8_t type, MeasuringRange range = RANGE_5K);
   CO2(Stream *serial, uint8_t type);

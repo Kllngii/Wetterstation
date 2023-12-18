@@ -205,6 +205,7 @@ void loop()
             }
             dataTypeCounter = 0;
             Serial1.write(readVal);
+            Serial.print(readVal);
         }
     }
     if (meteo.isMeteoReady())
