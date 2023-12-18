@@ -16,16 +16,14 @@
 Adafruit_BME280 bme;
 DCF77 DCF = DCF77(DCF_DATA_PIN, DCF_INTERRUPT_PIN);
 
-timeSendBuf timeBuffer = {'T','I','M','E'};
-sensorSendBuf sensorBuffer = {'E','B','M','E'};  
-meteoSendBuf meteoBuffer = {'M','T','E','O'};
+TimeSendBuf timeBuffer = {'T','I','M','E'};
+BMESendBuf sensorBuffer = {'E','B','M','E'};  
 
 bool timeValid = false;
 unsigned long lastSensorSend = 0;
 unsigned long lastTimeSend = 0;
 
 void setup() {
-    char rxArray[9] = {0};
     pinMode(SET_PIN, INPUT);
     Serial.begin(9600);
     WiFi.mode(WIFI_OFF);
@@ -82,29 +80,29 @@ void loop() {
           lastTimeSend = millis();
         }
         timeValid = true;   // Begin transmission of time
-        timeBuffer.dcfTime.hour = hour();
-        timeBuffer.dcfTime.minute = minute();
-        timeBuffer.dcfTime.second = second();
-        timeBuffer.dcfTime.year = year();
-        timeBuffer.dcfTime.month = month();
-        timeBuffer.dcfTime.day = day();
-        Serial.write((const uint8_t*)timeBuffer.timeBuf, sizeof(timeBuffer));
+        timeBuffer.data.hour = hour();
+        timeBuffer.data.minute = minute();
+        timeBuffer.data.second = second();
+        timeBuffer.data.year = year();
+        timeBuffer.data.month = month();
+        timeBuffer.data.day = day();
+        Serial.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer));
     }
 
     if (DCF.isMeteoReady())
     {
-        meteoBuffer.data.packetData = DCF.getMeteoData();
-        Serial.write((const uint8_t*)meteoBuffer.meteoBuf, sizeof(meteoBuffer));
+        MeteoRawSendBuf sendBuffer = DCF.getMeteoBuffer();
+        Serial.write((const uint8_t*)sendBuffer.buf, sizeof(sendBuffer));
     }
     
     // Send BME Data
     if ((millis() - lastSensorSend) > SENSOR_SEND_FREQUENCY_MILLIS)
     {
         // Send sensor data
-        sensorBuffer.sensor.temp = bme.readTemperature();
-        sensorBuffer.sensor.humidity = bme.readHumidity();
-        sensorBuffer.sensor.pressure = bme.readPressure();
-        Serial.write((const uint8_t*)sensorBuffer.sensorBuf, sizeof(sensorBuffer));
+        sensorBuffer.data.temp = bme.readTemperature();
+        sensorBuffer.data.humidity = bme.readHumidity();
+        sensorBuffer.data.pressure = bme.readPressure();
+        Serial.write((const uint8_t*)sensorBuffer.buf, sizeof(sensorBuffer));
         lastSensorSend = millis();
     }
     // Send DCF Data

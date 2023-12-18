@@ -62,15 +62,15 @@ void DCF77::initialize(void)
 	flags.parityHour      = 0;
 	flags.parityMin       = 0;
 	CEST				  = 0;
-	meteoData.packet1 = 0;
-	meteoData.packet2 = 0;
-	meteoData.packet3 = 0;
-	meteoData.minute = 0;
-	meteoData.hour = 0;
-	meteoData.date = 0;
-	meteoData.month = 0;
-	meteoData.dayInWeek = 0;
-	meteoData.year = 0;
+	meteoData.data.packet1 = 0;
+	meteoData.data.packet2 = 0;
+	meteoData.data.packet3 = 0;
+	meteoData.data.minute = 0;
+	meteoData.data.hour = 0;
+	meteoData.data.date = 0;
+	meteoData.data.month = 0;
+	meteoData.data.dayInWeek = 0;
+	meteoData.data.year = 0;
 	meteoPacketNumber     = 0;
 	meteoDataReady        = false;
 }
@@ -308,21 +308,21 @@ bool DCF77::processBuffer(void) {
 			switch(time.Minute % 3)
 			{
 				case 0:
-					meteoData.packet1 = rx_buffer->meteoBits;
+					meteoData.data.packet1 = rx_buffer->meteoBits;
 					meteoPacketNumber++;
 				break;
 				case 1:
-					meteoData.packet2 = rx_buffer->meteoBits;
+					meteoData.data.packet2 = rx_buffer->meteoBits;
 					meteoPacketNumber++;
 				break;
 				case 2:
-					meteoData.packet3 = rx_buffer->meteoBits;
-					meteoData.minute = rx_buffer->Min << 1;
-					meteoData.hour = rx_buffer->Hour << 2;
-					meteoData.date = rx_buffer->Day << 2;
-					meteoData.month = rx_buffer->Month;
-					meteoData.dayInWeek = rx_buffer->Weekday;
-					meteoData.year = rx_buffer->Year;
+					meteoData.data.packet3 = rx_buffer->meteoBits;
+					meteoData.data.minute = rx_buffer->Min << 1;
+					meteoData.data.hour = rx_buffer->Hour << 2;
+					meteoData.data.date = rx_buffer->Day << 2;
+					meteoData.data.month = rx_buffer->Month;
+					meteoData.data.dayInWeek = rx_buffer->Weekday;
+					meteoData.data.year = rx_buffer->Year;
 					if (meteoPacketNumber == 2)
 					{
 						meteoDataReady = true;
@@ -360,7 +360,7 @@ bool DCF77::isMeteoReady()
 	}
 }
 
-meteoDataBuffer DCF77::getMeteoData()
+MeteoRawSendBuf DCF77::getMeteoBuffer()
 {
 	if (meteoDataReady)
 	{
@@ -369,7 +369,7 @@ meteoDataBuffer DCF77::getMeteoData()
 	}
 	else
 	{
-		meteoDataBuffer emptyBuf;
+		MeteoRawSendBuf emptyBuf;
 		return emptyBuf;
 	}
 }
@@ -429,7 +429,7 @@ unsigned long long DCF77::runningBuffer = 0;
 unsigned long long DCF77::processingBuffer = 0;
 
 // MeteoInformation
-meteoDataBuffer DCF77::meteoData;
+MeteoRawSendBuf DCF77::meteoData = {'M','T','E','O'};
 int DCF77::meteoPacketNumber = 0;
 bool DCF77::meteoDataReady = false;
 

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct _timeStruct {
+typedef struct {
     const char dataType[4];
     uint8_t hour;
     uint8_t minute;
@@ -11,33 +11,41 @@ typedef struct _timeStruct {
     uint16_t year;
     uint8_t month;
     uint8_t day;
-} timeStruct;
+} TimeStruct;
 
-typedef union _timeSendBuf {
-    char timeBuf[sizeof(timeStruct)];
-    timeStruct dcfTime;
-} timeSendBuf;
+typedef union {
+    char buf[sizeof(TimeStruct)];
+    TimeStruct data;
+} TimeSendBuf;
 
-typedef struct _meteoStruct {
-    const char dataType[4];
-    meteoDataBuffer packetData;
-} meteoStruct;
+typedef struct {
+    char dataType[4];
+    uint16_t packet1;
+    uint16_t packet2;
+    uint16_t packet3;
+    uint8_t minute;
+    uint8_t hour;
+    uint8_t date;
+    uint8_t month; // Only 5 bits used
+    uint8_t dayInWeek;  // Only 3 bits used
+    uint8_t year;
+} MeteoRawStruct;
 
-typedef union _meteoSendBuf {
-    char meteoBuf[sizeof(meteoStruct)];
-    meteoStruct data;
-} meteoSendBuf;
+typedef union {
+    char buf[sizeof(MeteoRawStruct)];
+    MeteoRawStruct data;
+} MeteoRawSendBuf;
 
-typedef struct _sensorStruct {
+typedef struct {
     const char dataType[4];
     float temp;
     float humidity;
     float pressure;
-} sensorStruct;
+} BMEStruct;
 
-typedef union _sensorSendBuf {
-    char sensorBuf[sizeof(sensorStruct)];
-    sensorStruct sensor;
-} sensorSendBuf;
+typedef union {
+    char buf[sizeof(BMEStruct)];
+    BMEStruct data;
+} BMESendBuf;
 
 #endif /* DATATYPES_H */

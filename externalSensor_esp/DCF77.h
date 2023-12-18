@@ -7,6 +7,7 @@
 #include <WProgram.h> 
 #endif
 #include <TimeLib.h>
+#include "DataTypes.h"
 
 #define MIN_TIME (unsigned long long)1334102400     // Date: 11-4-2012
 #define MAX_TIME (unsigned long long)4102444800     // Date:  1-1-2100
@@ -15,18 +16,6 @@
 #define DCFRejectPulseWidth 50  // Minimal pulse width
 #define DCFSplitTime 180        // Specifications distinguishes pulse width 100 ms and 200 ms. In practice we see 130 ms and 230
 #define DCFSyncTime 1500        // Specifications defines 2000 ms pulse for end of sequence
-
-typedef struct _meteoDataBuffer {
-    uint16_t packet1;
-    uint16_t packet2;
-    uint16_t packet3;
-    uint8_t minute;
-    uint8_t hour;
-    uint8_t date;
-    uint8_t month; // Only 5 bits used
-    uint8_t dayInWeek;  // Only 3 bits used
-    uint8_t year;
-} meteoDataBuffer;
 
 class DCF77 {
 private:
@@ -84,7 +73,7 @@ private:
 
     // Variables for meteotime
 
-    static meteoDataBuffer meteoData;
+    static MeteoRawSendBuf meteoData;
     static int meteoPacketNumber;
     static bool meteoDataReady; 
 
@@ -109,7 +98,7 @@ public:
     DCF77(int DCF77Pin, int DCFinterrupt, bool OnRisingFlank=true); 
     
     static bool isMeteoReady();
-    static meteoDataBuffer getMeteoData();
+    static MeteoRawSendBuf getMeteoBuffer();
     static time_t getTime(void);
     static time_t getUTCTime(void);
     static void Start(void);
