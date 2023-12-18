@@ -165,6 +165,16 @@ enum WeatherType {
     ExtremeNiederschläge,
     StarkeGewitter,
     StarkeNiederschläge,
+
+    //Schweres Wetter
+    Sturm(Box<WeatherType>, bool, bool), //(Grundwetter, Tag, Nacht)
+    Böen(Box<WeatherType>, bool), //(Grundwetter, Tag)
+    Eisregen(Box<WeatherType>, bool, bool), //(Grundwetter, Vormittag, Nachmittag)
+    Feinstaub(Box<WeatherType>), //(Grundwetter)
+    Ozon(Box<WeatherType>), //(Grundwetter)
+    Radiation(Box<WeatherType>), //(Grundwetter)
+    Hochwasser(Box<WeatherType>), //(Grundwetter)
+
 }
 
 impl Display for WeatherType {
@@ -193,6 +203,45 @@ impl Display for WeatherType {
             WeatherType::ExtremeNiederschläge => core::write!(f, "Extreme Niederschläge"),
             WeatherType::StarkeGewitter => core::write!(f, "Starke Gewitter"),
             WeatherType::StarkeNiederschläge => core::write!(f, "Starke Niederschläge"),
+            WeatherType::Sturm(wetter, tag, nacht) => {
+                if *tag {
+                    if *nacht {
+                        core::write!(f, "Sturm 24h + {}", wetter)
+                    } else {
+                        core::write!(f, "Sturm Tag + {}", wetter)
+                    }
+                } else {
+                    core::write!(f, "Sturm Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Böen(wetter, tag) => {
+                if *tag {
+                    core::write!(f, "Böen Tag + {}", wetter)
+                } else {
+                    core::write!(f, "Böen Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Eisregen(wetter, vormittag, nachmittag) => {
+                if *vormittag {
+                    core::write!(f, "Eisregen Vormittag + {}", wetter)
+                } else if *nachmittag {
+                    core::write!(f, "Eisregen Nachmittag + {}", wetter)
+                } else {
+                    core::write!(f, "Eisregen Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Feinstaub(wetter) => {
+                core::write!(f, "Feinstaub + {}", wetter)
+            },
+            WeatherType::Ozon(wetter) => {
+                core::write!(f, "Ozon + {}", wetter)
+            },
+            WeatherType::Radiation(wetter) => {
+                core::write!(f, "Radiation + {}", wetter)
+            },
+            WeatherType::Hochwasser(wetter) => {
+                core::write!(f, "Hochwasser + {}", wetter)
+            },
         }
     }
 }
@@ -232,17 +281,56 @@ fn get_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) -> We
         15 => WeatherType::Schneefall,
         _ => WeatherType::Error,
     };
+
+    debug!("vorläufiges Wetter: {}", Display2Format(&weather_type));
+
     if !anomaly {
         match extrema {
             0 => weather_type, //Kein Extremwetter
             1 => { //24h Extremwetter
                 get_extrem_weather_type(weather_type)
-            }
+            },
             2 => { //Nur am Tag Extremwetter
                 if is_day {get_extrem_weather_type(weather_type)} else {weather_type}
-            }
+            },
             3 => { //Nur in der Nacht Extremwetter
                 if !is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+            },
+            4  => {
+                WeatherType::Sturm(Box::from(weather_type), true, true)
+            },
+            5  => {
+                WeatherType::Sturm(Box::from(weather_type), true, false)
+            },
+            6  => {
+                WeatherType::Sturm(Box::from(weather_type), false, true)
+            },
+            7  => {
+                WeatherType::Böen(Box::from(weather_type), true)
+            },
+            8  => {
+                WeatherType::Böen(Box::from(weather_type), false)
+            },
+            9  => {
+                WeatherType::Eisregen(Box::from(weather_type), true, false)
+            },
+            10  => {
+                WeatherType::Eisregen(Box::from(weather_type), false, true)
+            },
+            11  => {
+                WeatherType::Eisregen(Box::from(weather_type), false, false)
+            },
+            12  => {
+                WeatherType::Feinstaub(Box::from(weather_type))
+            },
+            13  => {
+                WeatherType::Ozon(Box::from(weather_type))
+            },
+            14  => {
+                WeatherType::Radiation(Box::from(weather_type))
+            },
+            15  => {
+                WeatherType::Hochwasser(Box::from(weather_type))
             }
             //TODO Weitere Extremwetter hinzufügen
             _ => WeatherType::Error
@@ -602,19 +690,20 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
                 }
                 if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
-                    info!("Meteo Paket");
-                    let day_weather = data[meteo_start];
-                    let night_weather = data[meteo_start + 1];
-                    let extrema = data[meteo_start + 2];
-                    let rainfall = data[meteo_start + 3];
-                    let anomaly = !matches!(data[meteo_start + 4], 0);
-                    let temperature = -22i32 + data[meteo_start + 5] as i32;
+                    let data = data.to_u32(meteo_start);
+                    info!("Meteo Paket {:#b}", data);
+                    let day_weather: u8 = (data & 0x0f) as u8; //Bit 0-3
+                    let night_weather: u8 = ((data & 0xf0) >> 4) as u8; //Bit 4-7
+                    let extrema: u8 = ((data & 0x0f_00) >> 8) as u8; //Bit 8-11
+                    let rainfall = (data & 0x70_00) >> 12; //Bit 12-14
+                    let anomaly = !matches!(data & 0x80_00, 0); //Bit 15
+                    let temperature = -22i32 + ((data & 0x3f_00_00) >> 16) as i32; //Bit 16-21
                     //TODO weitere Inhalte des Structs auslesen
 
                     let day = get_weather_type(day_weather, extrema, true, anomaly);
                     let night = get_weather_type(night_weather, extrema, false, anomaly);
-                    info!("day: {}", defmt::Display2Format(&day));
-                    info!("night: {}", defmt::Display2Format(&night));
+                    info!("day: {} {}", defmt::Display2Format(&day), day_weather);
+                    info!("night: {} {}", defmt::Display2Format(&night), night_weather);
                 }
             }
         });
@@ -627,6 +716,7 @@ trait NumbersFromSlice<T: PartialEq + Sized = Self> {
     fn to_f32(&self, start_index: usize) -> f32;
     fn to_i16(&self, start_index: usize) -> i16;
     fn to_u16(&self, start_index: usize) -> u16;
+    fn to_u32(&self, start_index: usize) -> u32;
 }
 
 impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
@@ -643,6 +733,9 @@ impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
     }
     fn to_u16(&self, start_index: usize) -> u16 {
         u16::from_be_bytes([self[start_index + 1], self[start_index]])
+    }
+    fn to_u32(&self, start_index: usize) -> u32 {
+        u32::from_be_bytes([self[start_index + 3], self[start_index + 2], self[start_index + 1], self[start_index]])
     }
 }
 
