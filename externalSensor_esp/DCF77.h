@@ -8,8 +8,8 @@
 #endif
 #include <TimeLib.h>
 
-#define MIN_TIME 1334102400     // Date: 11-4-2012
-#define MAX_TIME 4102444800     // Date:  1-1-2100
+#define MIN_TIME (unsigned long long)1334102400     // Date: 11-4-2012
+#define MAX_TIME (unsigned long long)4102444800     // Date:  1-1-2100
 
 #define DCFRejectionTime 700    // Pulse-to-Pulse rejection time. 
 #define DCFRejectPulseWidth 50  // Minimal pulse width
@@ -119,4 +119,3 @@ public:
  };
 
 #endif
-
