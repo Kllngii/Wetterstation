@@ -67,6 +67,43 @@ citecolor = black] {hyperref}
     tabsize=2
 }
 
+\lstset{literate=
+	{°}{{\textdegree}}1 {µ}{{\textmu}}1
+	{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+	{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+	{à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+	{À}{{\`A}}1 {È}{{\`E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+	{ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+	{Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+	{â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+	{Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+	{ã}{{\~a}}1 {ẽ}{{\~e}}1 {ĩ}{{\~i}}1 {õ}{{\~o}}1 {ũ}{{\~u}}1
+	{Ã}{{\~A}}1 {Ẽ}{{\~E}}1 {Ĩ}{{\~I}}1 {Õ}{{\~O}}1 {Ũ}{{\~U}}1
+	{œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+	{ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+	{ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {Ø}{{\O}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+	{€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+	{»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1 
+}
+
+\lstdefinelanguage{slint}{
+	morekeywords={export, component, global, struct, inherits},
+	sensitive=true,
+	morecomment=[l]{//}, % line comment
+	morecomment=[s]{/*}{*/}, % start delimiter, end delimiter
+	morestring=[b]", % string quotes
+	morestring=[d]',
+}
+
+\lstdefinelanguage{rust}{
+	morekeywords={export, global, struct, loop, for, while, do, if, else, let, match, const, continue, break, None, Some, Option},
+	sensitive=false,
+	morecomment=[l]{//}, % line comment
+	morecomment=[n]{/*}{*/}, % start delimiter, end delimiter, nested
+	morestring=[b]", % string quotes
+	morestring=[d]',
+}
+
 \lstset{style=mystyle}
 
 \titleclass{\subsubsubsection}{straight}[\subsection]
@@ -486,6 +523,70 @@ Auf Kern 2 findet außerdem der Dekodierprozess der Wetterdaten statt, um den Ha
 
 \subsection{Grafikmodul}
 \label{subsub:grafikmodul}
+
+Das Grafikmodul wird beim Endprodukt zusammen mit dem \hyperref[subsub:sensorModul_int]{internen Sensormodul} als eine Baugruppe ausgeführt sein.
+Hauptziel ist die grafische Aufarbeitung der über UART vom \hyperref[subsub:sensorModul_int]{internen Sensormodul} empfangenen Daten.
+Hierfür wird ebenfalls ein Raspberry Pi Pico in der W-Variante eingesetzt.
+Diese ist zusätzlich zu den Schnittstellen des Picos W-LAN (IEEE 802.11 b/g/n) und Bluetooth (5.2 LE) fähig, somit kann das Grafikmodul zukünftig ebenfalls die Rolle eines mqtt-Brokers übernehmen und die aufbereiteten Daten online abrufbar machen.
+Für diese Aufgaben verfügt das Modul über einen externen RTC-Chip und ein 2,8 Zoll Touchdisplay.
+
+\vspace{0.3cm}
+\noindent
+Anders als bei den Sensoren wird beim Grafikmodul kein C-Code verwendet sondern ausschließlich in Rust programmiert.
+Embedded-Rust folgt dem Motto \textquoteleft safe, fast, concurrent – pick three\textquoteright.
+Rust etabliert viele Konzepte, um die typischen Probleme, die mit vergessenen Sonderfällen einhergehen (dangling pointer, use after free, dead-locks, integer-overflow, uvm.) durch ein gutes Typsystem und einen modernen Compiler bereits zur Kompilierzeit auszuschließen.
+Ein Embedded-Rust-Projekt, welches erfolgreich kompiliert, wird in der Praxis auf dem Mikrocontroller nie unerwartetes Verhalten aufweisen.
+Trotzdem wird noch eine von C-Programmen gewohnte Performance erreicht.
+
+\vspace{0.3cm}
+\noindent
+Durch die Verwendung von Rust kann ebenfalls die sehr moderne Bibliothek Slint für die graphische Darstellung verwendet werden. Diese kompiliert Slint-Strukturen zu Rust-Quelltext und stellt Schnittstellen bereit, um fertige Pixelbuffer zu erhalten.
+
+\vspace{0.3cm}
+\noindent
+Slint-Strukturen gliedern sich in components, globals und structs.
+Ein Component ist ein auf dem Display anzeigbarer Baustein.
+Globals stellen einen Adapter zum Rust-Quelltext dar, da man die Daten dieser sowohl aus dem Slint-Skript, als auch aus dem Rust-Programm verändern kann.
+Structs in Slint definieren wie Structs in C oder Rust eigene zusammengesetzte Datentypen.
+
+\lstinputlisting[language=slint, caption=Beispiel eines components globals und structs]{gui.slint}
+
+\vspace{0.3cm}
+\noindent
+Während Slint das Zeichnen der Grafikbausteine übernimmt, muss sich der selbstgeschriebene Code um folgende Funktionen kümmern:
+\begin{itemize}
+	\item Initialisierung der Peripherie und Anbindung von Slint
+	\item Ansteuerung des RTC Moduls (per I2C)
+	\item Übertragung der Pixel an das Display (per DMA SPI)
+	\item Übertragung des Touchinputs an den Pico (per DMA SPI)
+	\item Übertragung der Sensordaten (per UART)
+\end{itemize}
+
+\vspace{0.3cm}
+\noindent
+Um Rechenleistung einzusparen, ist der Großteil des Programms mithilfe der wfe und sev Anweisungen des Picos (\textbf{W}ait\textbf{F}or\textbf{E}vent und \textbf{S}et/\textbf{S}ignal\textbf{EV}ent) Event-basiert implementiert.
+Ein entsprechendes Interrupt wird ausgelöst, wenn
+\begin{enumerate}
+	\item ein UART-Package vom \hyperref[subsub:sensorModul_int]{internen Sensormodul} empfangen wurde
+	\item Bildinhalte sich verändert haben (beispielsweise die Uhrzeit jede volle Sekunde)
+	\item der Touchscreen berührt wird
+\end{enumerate}
+
+\lstinputlisting[language=rust, caption=Eventloop mit wfe]{eventloop.rs}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{Overview}
+	\caption{Übersichts-Seite des GUI}
+	\label{fig:gui-overview}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{Weather}
+	\caption{Wetter-Seite des GUI}
+	\label{fig:gui-overview}
+\end{figure}
 
 \section{Aktueller Projektstand}
 

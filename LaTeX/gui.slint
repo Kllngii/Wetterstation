@@ -1,0 +1,55 @@
+export component AppWindow inherits Window {
+    title: "Wetterstation";
+    min-width: 320px;
+    min-height: 240px;
+    background: Theme.palette.pure-black;
+
+    SmallMain {
+        preferred-width: 100%;
+        preferred-height: 100%;
+    }
+}
+
+export global WeatherAdapter {
+    in property <string> title: "Wetter";
+    in property <string> current-day: "Sonntag 23.6.";
+    in property <[BarTileModel]> week-model: [
+        {
+            title: "Mo",
+            icon: Images.cloudy,
+            max: 21,
+            min: 18,
+            absolute-max: 21,
+            absolute-min: 15,
+            unit: "°C"
+        },
+        {
+            title: "Di",
+            icon: Images.sunny,
+            max: 20,
+            min: 17,
+            absolute-max: 21,
+            absolute-min: 15,
+            unit: "°C"
+        },
+        {
+            title: "Mi",
+            icon: Images.cloudy,
+            max: 18,
+            min: 15,
+            absolute-max: 21,
+            absolute-min: 15,
+            unit: "°C"
+        }
+    ];
+}
+
+export struct BarTileModel {
+    title: string,
+    icon: image,
+    max: int,
+    min: int,
+    absolute-min: int,
+    absolute-max: int,
+    unit: string,
+}
