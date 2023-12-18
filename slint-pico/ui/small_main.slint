@@ -3,7 +3,8 @@
 
 import { Theme } from "theme.slint";
 import { Navigation, MenuButton, Menu, Value } from "widgets/widgets.slint";
-import { Balance, Overview, Usage, UsageAdapter, Weather, MenuPage, MenuOverviewAdapter, About } from "pages/pages.slint";
+import { Balance, Overview, Usage, UsageAdapter, Weather, MenuPage, MenuOverviewAdapter, About , Dashboard} from "pages/pages.slint";
+import { Time } from "pages/time.slint";
 
 export component SmallMain {
     i-navigation := Navigation {
@@ -13,38 +14,24 @@ export component SmallMain {
         }
 
         clicked => {
-            // if the navigation is clicked and the arrow displayed a open menu button should be hide.
             i-menu.hide-button();
         }
 
         current-index <=> MenuOverviewAdapter.current-page;
         page-count: MenuOverviewAdapter.count;
 
-        // check current-index to generate only displayed items
         if(i-navigation.current-index <= 1 && !i-menu.open) : Overview {
             index: 0;
             current-index: i-navigation.current-index;
         }
-        /*
-        if(i-navigation.current-index >= 0 && i-navigation.current-index <= 2 && !i-menu.open) : Usage {
-            index: 1;
-            current-index: i-navigation.current-index;
-        }
-
-        if(i-navigation.current-index >= 1 && i-navigation.current-index <= 3 && !i-menu.open) : Balance {
-            index: 2;
-            current-index: i-navigation.current-index;
-        }
-        */
         if(i-navigation.current-index >= 0 && i-navigation.current-index <= 2 && !i-menu.open) : Weather {
             index: 1;
             current-index: i-navigation.current-index;
         }
-        /*
-        if(i-navigation.current-index >= 1 && i-navigation.current-index <= 3 && !i-menu.open) : About {
+        if(i-navigation.current-index >= 1 && i-navigation.current-index <= 3 && !i-menu.open) : Time {
             index: 2;
             current-index: i-navigation.current-index;
-        }*/
+        }
     }
 
     i-menu := Menu {

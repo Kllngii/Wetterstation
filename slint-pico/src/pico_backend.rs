@@ -1,10 +1,12 @@
 extern crate alloc;
 
+use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel, WeatherAdapter, BarTileModel};
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
 use core::cell::RefCell;
 use core::convert::Infallible;
+use core::fmt::Display;
 use core::time::Duration;
 use cortex_m::interrupt::Mutex;
 use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
@@ -28,10 +30,11 @@ use rp_pico::hal::{self, pac, prelude::*, Clock, Timer};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use slint::{format, SharedString, TimerMode};
+use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
+use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
@@ -52,6 +55,8 @@ const SPI_ST7789VW_MAX_FREQ: Hertz<u32> = Hertz::<u32>::Hz(62_500_000);
 
 const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
 
+const DISPLAY_ORIENTATION: Orientation = Orientation::LandscapeSwapped;
+
 const UART_RX_QUEUE_MAX_SIZE: usize = 256;
 
 pub type TargetPixel = Rgb565Pixel;
@@ -62,12 +67,12 @@ type SpiPins = (
     gpio::Pin<gpio::bank0::Gpio10, gpio::FunctionSpi, gpio::PullDown>,
 );
 type UartPins = (
-    gpio::Pin<hal::gpio::bank0::Gpio0, hal::gpio::FunctionUart, hal::gpio::PullNone>,
-    gpio::Pin<hal::gpio::bank0::Gpio1, hal::gpio::FunctionUart, hal::gpio::PullNone>,
+    gpio::Pin<gpio::bank0::Gpio0, gpio::FunctionUart, gpio::PullNone>,
+    gpio::Pin<gpio::bank0::Gpio1, gpio::FunctionUart, gpio::PullNone>,
 );
 type I2CPins = (
-    gpio::Pin<hal::gpio::bank0::Gpio20, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
-    gpio::Pin<hal::gpio::bank0::Gpio21, hal::gpio::FunctionI2C, hal::gpio::PullUp>,
+    gpio::Pin<gpio::bank0::Gpio20, gpio::FunctionI2C, gpio::PullUp>,
+    gpio::Pin<gpio::bank0::Gpio21, gpio::FunctionI2C, gpio::PullUp>,
 );
 type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
 type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
@@ -135,6 +140,207 @@ impl UartQueueRx {
     }
 }
 
+enum WeatherType {
+    Error,
+    Sonnig,
+    Klar,
+    LeichtBewölkt,
+    VorwiegendBewölkt,
+    Bedeckt,
+    Hochnebel,
+    Nebel,
+    Regenschauer,
+    LeichterRegen,
+    StarkerRegen,
+    FrontenGewitter,
+    WärmeGewitter,
+    SchneeregenSchauer,
+    Schneeschauer,
+    Schneeregen,
+    Schneefall,
+    //Extrema
+    GroßeHitze,
+    DichterNebel,
+    KurzerStarkregen,
+    ExtremeNiederschläge,
+    StarkeGewitter,
+    StarkeNiederschläge,
+
+    //Schweres Wetter
+    Sturm(Box<WeatherType>, bool, bool), //(Grundwetter, Tag, Nacht)
+    Böen(Box<WeatherType>, bool), //(Grundwetter, Tag)
+    Eisregen(Box<WeatherType>, bool, bool), //(Grundwetter, Vormittag, Nachmittag)
+    Feinstaub(Box<WeatherType>), //(Grundwetter)
+    Ozon(Box<WeatherType>), //(Grundwetter)
+    Radiation(Box<WeatherType>), //(Grundwetter)
+    Hochwasser(Box<WeatherType>), //(Grundwetter)
+
+}
+
+impl Display for WeatherType {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            WeatherType::Error => core::write!(f, "Error"),
+            WeatherType::Sonnig => core::write!(f, "Sonnig"),
+            WeatherType::Klar => core::write!(f, "Klar"),
+            WeatherType::LeichtBewölkt => core::write!(f, "Leicht Bewölkt"),
+            WeatherType::VorwiegendBewölkt => core::write!(f, "Vorwiegend Bewölkt"),
+            WeatherType::Bedeckt => core::write!(f, "Bedeckt"),
+            WeatherType::Hochnebel => core::write!(f, "Hochnebel"),
+            WeatherType::Nebel => core::write!(f, "Nebel"),
+            WeatherType::Regenschauer => core::write!(f, "Regenschauer"),
+            WeatherType::LeichterRegen => core::write!(f, "Leichter Regen"),
+            WeatherType::StarkerRegen => core::write!(f, "Starker Regen"),
+            WeatherType::FrontenGewitter => core::write!(f, "Frontengewitter"),
+            WeatherType::WärmeGewitter => core::write!(f, "Wärmegewitter"),
+            WeatherType::SchneeregenSchauer => core::write!(f, "Schneeregenschauer"),
+            WeatherType::Schneeschauer => core::write!(f, "Schneeschauer"),
+            WeatherType::Schneeregen => core::write!(f, "Schneeregen"),
+            WeatherType::Schneefall => core::write!(f, "Schneefall"),
+            WeatherType::GroßeHitze => core::write!(f, "Große Hitze"),
+            WeatherType::DichterNebel => core::write!(f, "Dichter Nebel"),
+            WeatherType::KurzerStarkregen => core::write!(f, "Kurzer Starkregen"),
+            WeatherType::ExtremeNiederschläge => core::write!(f, "Extreme Niederschläge"),
+            WeatherType::StarkeGewitter => core::write!(f, "Starke Gewitter"),
+            WeatherType::StarkeNiederschläge => core::write!(f, "Starke Niederschläge"),
+            WeatherType::Sturm(wetter, tag, nacht) => {
+                if *tag {
+                    if *nacht {
+                        core::write!(f, "Sturm 24h + {}", wetter)
+                    } else {
+                        core::write!(f, "Sturm Tag + {}", wetter)
+                    }
+                } else {
+                    core::write!(f, "Sturm Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Böen(wetter, tag) => {
+                if *tag {
+                    core::write!(f, "Böen Tag + {}", wetter)
+                } else {
+                    core::write!(f, "Böen Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Eisregen(wetter, vormittag, nachmittag) => {
+                if *vormittag {
+                    core::write!(f, "Eisregen Vormittag + {}", wetter)
+                } else if *nachmittag {
+                    core::write!(f, "Eisregen Nachmittag + {}", wetter)
+                } else {
+                    core::write!(f, "Eisregen Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Feinstaub(wetter) => {
+                core::write!(f, "Feinstaub + {}", wetter)
+            },
+            WeatherType::Ozon(wetter) => {
+                core::write!(f, "Ozon + {}", wetter)
+            },
+            WeatherType::Radiation(wetter) => {
+                core::write!(f, "Radiation + {}", wetter)
+            },
+            WeatherType::Hochwasser(wetter) => {
+                core::write!(f, "Hochwasser + {}", wetter)
+            },
+        }
+    }
+}
+
+fn get_extrem_weather_type(weather: WeatherType) -> WeatherType {
+    match weather {
+        WeatherType::Sonnig => WeatherType::GroßeHitze,
+        WeatherType::Nebel => WeatherType::DichterNebel,
+        WeatherType::Regenschauer => WeatherType::KurzerStarkregen,
+        WeatherType::StarkerRegen => WeatherType::ExtremeNiederschläge,
+        WeatherType::FrontenGewitter => WeatherType::StarkeGewitter,
+        WeatherType::SchneeregenSchauer => WeatherType::StarkeNiederschläge,
+        WeatherType::Schneeregen => WeatherType::StarkeNiederschläge,
+        WeatherType::Schneefall => WeatherType::StarkeNiederschläge,
+        _ => weather,
+    }
+}
+fn get_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) -> WeatherType {
+    //u8 day_weather, u8 night_weather, u8 extrema, u8 rainfall, u8 anomaly, u8 temperature
+    let weather_type = match weather {
+        1 => {
+            if is_day {WeatherType::Sonnig} else {WeatherType::Klar}
+        },
+        2 => WeatherType::LeichtBewölkt,
+        3 => WeatherType::VorwiegendBewölkt,
+        4 => WeatherType::Bedeckt,
+        5 => WeatherType::Hochnebel,
+        6 => WeatherType::Nebel,
+        7 => WeatherType::Regenschauer,
+        8 => WeatherType::LeichterRegen,
+        9 => WeatherType::StarkerRegen,
+        10 => WeatherType::FrontenGewitter,
+        11 => WeatherType::WärmeGewitter,
+        12 => WeatherType::SchneeregenSchauer,
+        13 => WeatherType::Schneeschauer,
+        14 => WeatherType::Schneeregen,
+        15 => WeatherType::Schneefall,
+        _ => WeatherType::Error,
+    };
+
+    debug!("vorläufiges Wetter: {}", Display2Format(&weather_type));
+
+    if !anomaly {
+        match extrema {
+            0 => weather_type, //Kein Extremwetter
+            1 => { //24h Extremwetter
+                get_extrem_weather_type(weather_type)
+            },
+            2 => { //Nur am Tag Extremwetter
+                if is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+            },
+            3 => { //Nur in der Nacht Extremwetter
+                if !is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+            },
+            4  => {
+                WeatherType::Sturm(Box::from(weather_type), true, true)
+            },
+            5  => {
+                WeatherType::Sturm(Box::from(weather_type), true, false)
+            },
+            6  => {
+                WeatherType::Sturm(Box::from(weather_type), false, true)
+            },
+            7  => {
+                WeatherType::Böen(Box::from(weather_type), true)
+            },
+            8  => {
+                WeatherType::Böen(Box::from(weather_type), false)
+            },
+            9  => {
+                WeatherType::Eisregen(Box::from(weather_type), true, false)
+            },
+            10  => {
+                WeatherType::Eisregen(Box::from(weather_type), false, true)
+            },
+            11  => {
+                WeatherType::Eisregen(Box::from(weather_type), false, false)
+            },
+            12  => {
+                WeatherType::Feinstaub(Box::from(weather_type))
+            },
+            13  => {
+                WeatherType::Ozon(Box::from(weather_type))
+            },
+            14  => {
+                WeatherType::Radiation(Box::from(weather_type))
+            },
+            15  => {
+                WeatherType::Hochwasser(Box::from(weather_type))
+            }
+            //TODO Weitere Extremwetter hinzufügen
+            _ => WeatherType::Error
+        }
+    } else {
+        //TODO Extremwetter für anomaly = 1 hinzufügen
+        weather_type
+    }
+}
+
 pub fn init() {
     // *** Zugriff auf Systemressourcen übernehmen ***
     let mut pac = pac::Peripherals::take().unwrap();
@@ -198,9 +404,8 @@ pub fn init() {
         DISPLAY_SIZE.width as _,
         DISPLAY_SIZE.height as _,
     );
-    //TODO LandscapeSwapped wäre eigentlich besser, der Touch wird aber derzeit nicht mit invertiert
     display.init(&mut delay).unwrap();
-    display.set_orientation(st7789::Orientation::Landscape).unwrap();
+    display.set_orientation(DISPLAY_ORIENTATION).unwrap();
 
     let touch_irq = pins.gpio17.into_pull_up_input();
     touch_irq.set_interrupt_enabled(GpioInterrupt::LevelLow, true);
@@ -212,6 +417,7 @@ pub fn init() {
         &IRQ_PIN,
         pins.gpio16.into_push_pull_output(),
         SharedSpiWithFreq { mutex: spi_mutex, freq: xpt2046::SPI_FREQ },
+        DISPLAY_ORIENTATION,
     )
     .unwrap();
 
@@ -259,8 +465,8 @@ pub fn init() {
     });
 
     let uart_pins = (
-        pins.gpio0.reconfigure::<hal::gpio::FunctionUart, hal::gpio::PullNone>(),
-        pins.gpio1.reconfigure::<hal::gpio::FunctionUart, hal::gpio::PullNone>(),
+        pins.gpio0.reconfigure::<gpio::FunctionUart, gpio::PullNone>(),
+        pins.gpio1.reconfigure::<gpio::FunctionUart, gpio::PullNone>(),
     );
 
     let mut uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
@@ -284,7 +490,6 @@ pub fn init() {
         window: Default::default(),
         buffer_provider: buffer_provider.into(),
         touch: touch.into(),
-        //i2c: i2c.into(), //FIXME WIE?!
     }))
     .expect("backend already initialized");
 }
@@ -327,6 +532,10 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
     timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
         let ui = ui_handle.upgrade().unwrap();
 
+        let overview_adapter = ui.global::<OverviewAdapter>();
+        let time_adapter = ui.global::<TimeAdapter>();
+        let weather_adapter = ui.global::<WeatherAdapter>();
+
         static mut I2C: Option<EnabledI2C> = None;
         unsafe {
             if I2C.is_none() {
@@ -339,12 +548,59 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
                 //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
 
-                //TODO Für den schlechten Linter des Editors hier ein unnötiges .into() Nach nächstem Update des Linters entfernen...
-                let time_str: SharedString = slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]).into();
-                let date_str: SharedString = slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]).into();
+                //TODO ebenfalls unnötige .into() hier, nach Linter-Update entfernen
+                let weekday: SharedString = match time[3] {
+                    1 => "Mo".into(),
+                    2 => "Di".into(),
+                    3 => "Mi".into(),
+                    4 => "Do".into(),
+                    5 => "Fr".into(),
+                    6 => "Sa".into(),
+                    7 => "So".into(),
+                    _ => {
+                        warn!("Ungültiger Wochentag!");
+                        "Mo".into()
+                    }
+                };
+                //TODO Makro oder impl für diese Umwandlung?
+                let mut current_time: TimeModel = time_adapter.get_time(); //(i >> 4) * 10 + (i & 0xF)
+                current_time.hours = ((time[2] >> 4) * 10 + (time[2] & 0xF)) as i32;
+                current_time.minutes = ((time[1] >> 4) * 10 + (time[1] & 0xF)) as i32;
+                current_time.seconds = ((time[0] >> 4) * 10 + (time[0] & 0xF)) as i32;
 
-                ui.set_time(time_str);
-                ui.set_date(date_str);
+                let mut current_date: DateModel = time_adapter.get_date();
+                current_date.day = ((time[4] >> 4) * 10 + (time[4] & 0xF)) as i32;
+                current_date.month = ((time[5] >> 4) * 10 + (time[5] & 0xF)) as i32;
+                current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
+                current_date.weekday = weekday;
+
+                time_adapter.set_time(current_time);
+                time_adapter.set_date(current_date);
+
+                let weekdays = match time_adapter.get_date().weekday.as_str() {
+                    "Mo" => ("Montag", "Di", "Mi", "Do"),
+                    "Di" => ("Dienstag", "Mi", "Do", "Fr"),
+                    "Mi" => ("Mittwoch", "Do", "Fr", "Sa"),
+                    "Do" => ("Donnerstag", "Fr", "Sa", "So"),
+                    "Fr" => ("Freitag", "Sa", "So", "Mo"),
+                    "Sa" => ("Samstag", "So", "Mo", "Di"),
+                    _ => ("Sonntag", "Mo", "Di", "Mi"),
+                };
+
+                weather_adapter.set_current_day(weekdays.0.into());
+                let week = weather_adapter.get_week_model();
+                let week_model = week.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("muss gehen");
+                let mut first_day = week_model.row_data(0).unwrap();
+                let mut second_day = week_model.row_data(1).unwrap();
+                let mut third_day = week_model.row_data(2).unwrap();
+
+                first_day.title = weekdays.1.into();
+                second_day.title = weekdays.2.into();
+                third_day.title = weekdays.3.into();
+
+                week_model.set_row_data(0, first_day);
+                week_model.set_row_data(1, second_day);
+                week_model.set_row_data(2, third_day);
             } else {
                 warn!("I2C nicht initialisiert!");
             }
@@ -367,37 +623,61 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
             }
             if count > 0 {
-                /*
-                let str = String::from_utf8(data.to_vec());
-                match str {
-                    Ok(s) => info!("{}", s.as_str()),
-                    Err(e) => error!("Fehler"),
-                } */
-                info!("count: {}", count);
+                info!("");
+                let temperature_modelrc: ModelRc<Value> = overview_adapter.get_temperature_model();
+                let humidity_modelrc: ModelRc<Value> = overview_adapter.get_humidity_model();
+                let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
+
+                let temp_mod = temperature_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                let humi_mod = humidity_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                let pres_mod = pressure_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+
+                //info!("count: {}", count);
+
                 if let Some(ibme_start) = find_identifier::<u8>(&data, &id_ibme) {
+                    info!("Internes Paket");
                     let temperature: f32 = data.to_f32(ibme_start);
                     let humidity: f32 = data.to_f32(ibme_start + 4);
                     let pressure: f32 = data.to_f32(ibme_start + 8);
 
-                    //TODO auch hier wieder unnötige .into(), dem Linter des RR sei Dank!
-                    ui.set_temperature(format!("{:.1}", temperature).into());
-                    ui.set_humidity(format!("{:.1}", humidity).into());
-                    ui.set_pressure(format!("{:.1}", pressure).into());
+                    let mut temp_data = temp_mod.row_data(0).unwrap();
+                    let mut humi_data = humi_mod.row_data(0).unwrap();
+                    let mut pres_data = pres_mod.row_data(0).unwrap();
+
+                    temp_data.value = temperature;
+                    humi_data.value = humidity;
+                    pres_data.value = pressure;
+
+                    temp_mod.set_row_data(0, temp_data);
+                    humi_mod.set_row_data(0, humi_data);
+                    pres_mod.set_row_data(0, pres_data);
                 }
                 if let Some(co2_start) = find_identifier::<u8>(&data, &id_co2) {
                     let co2: i16 = data.to_i16(co2_start);
-                    info!("co2: {}ppm", co2);
-                    ui.set_co2(format!("{:.1}", co2).into());
+                    match co2 {
+                        -1 => warn!("Ungültiger CO2 Wert"),
+                        co2 => {
+                            info!("co2: {}ppm", co2);
+                            //TODO neue GUI anbinden
+                        }
+                    };
+
+
                 }
                 if let Some(ebme_start) = find_identifier::<u8>(&data, &id_ebme) {
+                    info!("Externes Paket");
                     let temperature: f32 = data.to_f32(ebme_start);
                     let humidity: f32 = data.to_f32(ebme_start + 4);
-                    let pressure: f32 = data.to_f32(ebme_start + 8);
+                    //let _pressure: f32 = data.to_f32(ebme_start + 8);
 
-                    //TODO auch hier wieder unnötige .into(), dem Linter des RR sei Dank!
-                    info!("ext. Temperatur: {}", temperature);
-                    info!("ext. Luftfeuchtigkeit: {}", humidity);
-                    info!("ext. Luftdruck: {}", pressure);
+                    let mut temp_data = temp_mod.row_data(1).unwrap();
+                    let mut humi_data = humi_mod.row_data(1).unwrap();
+
+                    temp_data.value = temperature;
+                    humi_data.value = humidity;
+
+                    temp_mod.set_row_data(1, temp_data);
+                    humi_mod.set_row_data(1, humi_data);
                 }
                 if let Some(time_start) = find_identifier::<u8>(&data, &id_time) {
                     let hour: u8 = data[time_start];
@@ -408,7 +688,22 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     let day: u8 = data[time_start + 6];
 
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
+                }
+                if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
+                    let data = data.to_u32(meteo_start);
+                    info!("Meteo Paket {:#b}", data);
+                    let day_weather: u8 = (data & 0x0f) as u8; //Bit 0-3
+                    let night_weather: u8 = ((data & 0xf0) >> 4) as u8; //Bit 4-7
+                    let extrema: u8 = ((data & 0x0f_00) >> 8) as u8; //Bit 8-11
+                    let rainfall = (data & 0x70_00) >> 12; //Bit 12-14
+                    let anomaly = !matches!(data & 0x80_00, 0); //Bit 15
+                    let temperature = -22i32 + ((data & 0x3f_00_00) >> 16) as i32; //Bit 16-21
+                    //TODO weitere Inhalte des Structs auslesen
 
+                    let day = get_weather_type(day_weather, extrema, true, anomaly);
+                    let night = get_weather_type(night_weather, extrema, false, anomaly);
+                    info!("day: {} {}", defmt::Display2Format(&day), day_weather);
+                    info!("night: {} {}", defmt::Display2Format(&night), night_weather);
                 }
             }
         });
@@ -421,6 +716,7 @@ trait NumbersFromSlice<T: PartialEq + Sized = Self> {
     fn to_f32(&self, start_index: usize) -> f32;
     fn to_i16(&self, start_index: usize) -> i16;
     fn to_u16(&self, start_index: usize) -> u16;
+    fn to_u32(&self, start_index: usize) -> u32;
 }
 
 impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
@@ -437,6 +733,9 @@ impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
     }
     fn to_u16(&self, start_index: usize) -> u16 {
         u16::from_be_bytes([self[start_index + 1], self[start_index]])
+    }
+    fn to_u32(&self, start_index: usize) -> u32 {
+        u32::from_be_bytes([self[start_index + 3], self[start_index + 2], self[start_index + 1], self[start_index]])
     }
 }
 
@@ -554,7 +853,7 @@ impl<
                 }
             };
 
-            //Gute Nacht 😴
+            //Gute Nacht 😴💤
             cortex_m::interrupt::free(|cs| {
                 if let Some(duration) = sleep_duration {
                     ALARM0.borrow(cs).borrow_mut().as_mut().unwrap().schedule(duration).unwrap();
@@ -579,7 +878,7 @@ impl<
     }
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
-        use alloc::string::ToString;
+        use alloc::string::ToString; //TODO vom Linter fälschlicherweise als "unused" markiert
         debug!("{=str}", arguments.to_string());
     }
 }
@@ -683,6 +982,7 @@ unsafe impl embedded_dma::ReadBuffer for PartialReadBuffer {
 
     unsafe fn read_buffer(&self) -> (*const <Self as embedded_dma::ReadBuffer>::Word, usize) {
         let act_slice = &self.0[self.1.clone()];
+        //TODO laut Linter kann das optimiert werden zu core::mem::size_of_val(act_slice)
         (act_slice.as_ptr() as *const u8, act_slice.len() * core::mem::size_of::<Rgb565Pixel>())
     }
 }

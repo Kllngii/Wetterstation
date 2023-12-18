@@ -8,13 +8,13 @@ import { Images } from "images.slint";
 import { Theme } from "theme.slint";
 import { HeaderAdapter } from "blocks/blocks.slint";
 import { Navigation, MenuButton, Menu, Value } from "widgets/widgets.slint";
-import { BalanceAdapter, OverviewAdapter, UsageAdapter, WeatherAdapter, MenuPageAdapter, MenuOverviewAdapter, SettingsAdapter } from "pages/pages.slint";
+import { BalanceAdapter, OverviewAdapter, UsageAdapter, WeatherAdapter, MenuPageAdapter, MenuOverviewAdapter, SettingsAdapter, TimeAdapter } from "pages/pages.slint";
 
-export { OverviewAdapter, UsageAdapter, Value, WeatherAdapter, MenuPageAdapter, MenuOverviewAdapter, SettingsAdapter,
+export { TimeAdapter, OverviewAdapter, UsageAdapter, Value, WeatherAdapter, MenuPageAdapter, MenuOverviewAdapter, SettingsAdapter,
     BarTileModel, Images, HeaderAdapter }
 
-export component MainWindow inherits Window {
-    title: "EnergyMNG Demo";
+export component AppWindow inherits Window {
+    title: "Wetterstation";
     min-width: 320px;
     min-height: 240px;
     background: Theme.palette.pure-black;
