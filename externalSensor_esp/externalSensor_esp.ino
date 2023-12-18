@@ -42,58 +42,22 @@ void setup() {
     // Set Baudrate to 9600
     delay(100);
     Serial.print("AT+B9600");
-    while(Serial.available() < 8);
-    for(int i = 0; i < 8; i++)
-    {
-        rxArray[i] = Serial.read();
-    }
-    rxArray[8] = '\0';
-    Serial.println(rxArray);
 
     // Set Channel to 1
     delay(100);
     Serial.print("AT+C001");
-    while(Serial.available() < 8);
-    for(int i = 0; i < 8; i++)
-    {
-        rxArray[i] = Serial.read();
-    }
-    rxArray[8] = '\0';
-    Serial.println(rxArray);
-
 
     // Set transmission mode to 3
     delay(100);
     Serial.print("AT+FU3");
-    while(Serial.available() < 5);
-    for(int i = 0; i < 5; i++)
-    {
-        rxArray[i] = Serial.read();
-    }
-    rxArray[5] = '\0';
-    Serial.println(rxArray);
 
     // Set Power to 8dBm
     delay(100);
     Serial.print("AT+P6");
-    while(Serial.available() < 5);
-    for(int i = 0; i < 5; i++)
-    {
-        rxArray[i] = Serial.read();
-    }
-    rxArray[5] = '\0';
-    Serial.println(rxArray);
     delay(100);
 
     // Set data transmission to 8 bits + odd parity + 1 stop bit
     Serial.print("AT+U8N1");
-    while(Serial.available() < 7);
-    for(int i = 0; i < 7; i++)
-    {
-        rxArray[i] = Serial.read();
-    }
-    rxArray[7] = '\0';
-    Serial.println(rxArray);
 
     // Disable Setting Mode in HC-12
     pinMode(SET_PIN, INPUT);
@@ -101,7 +65,7 @@ void setup() {
     // Reset timestamps for timer
     lastSensorSend = millis();
     lastTimeSend = millis();
-    Serial.println("Ping");
+    Serial.println("Initialization finished.");
     DCF.Start();
 }
 
