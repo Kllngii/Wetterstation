@@ -8,6 +8,7 @@
 extern crate defmt_rtt;
 #[cfg(feature = "panic-probe")]
 extern crate panic_probe;
+extern crate alloc;
 
 #[cfg(feature = "simulator")]
 mod simulator_support;
@@ -16,12 +17,12 @@ mod simulator_support;
 mod xpt2046;
 #[cfg(not(feature = "simulator"))]
 mod pico_backend;
-//mod uc_support;
+
+#[cfg(not(feature = "simulator"))]
+mod meteotime;
 
 #[cfg(not(feature = "simulator"))]
 mod display_interface_spi;
-
-extern crate alloc;
 
 slint::include_modules!();
 
