@@ -164,7 +164,7 @@ fn decode_wind_direction(data: u8) -> Option<WindDirection> {
         13 => Some(WindDirection::Tramontana),
         _ => None,
     }
-}.._.
+}
 fn decode_wind(data: u8) -> Option<Wind> {
     match data {
         0..=15 => Some(Wind { force: 0, direction: None}),

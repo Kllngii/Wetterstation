@@ -456,7 +456,12 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     match co2 {
                         -1 => warn!("Ungültiger CO2 Wert"),
                         co2 => {
+                            let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
+                            let pres_mod = pressure_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                            let mut co2_data = pres_mod.row_data(1).unwrap();
                             info!("co2: {}ppm", co2);
+                            co2_data.value = co2 as f32;
+                            pres_mod.set_row_data(1, co2_data);
                             //TODO neue GUI anbinden
                         }
                     };
