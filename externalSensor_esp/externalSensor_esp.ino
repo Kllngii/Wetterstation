@@ -9,9 +9,9 @@
 
 #define DCF_DATA_PIN 14      // D5
 #define DCF_INTERRUPT_PIN 14 // D5
-#define SET_PIN 12           // D6
-#define HC_RX 13             // D7
-#define HC_TX 15             // D8
+#define SET_PIN 16           // D0
+#define HC_RX 12             // D6
+#define HC_TX 13             // D7
 
 #define SENSOR_SEND_FREQUENCY_MILLIS 60000
 #define TIME_SEND_FREQUENCY_MILLIS 120000
@@ -24,6 +24,8 @@ SoftwareSerial HC12(HC_RX, HC_TX);
 
 TimeSendBuf timeBuffer = {'T', 'I', 'M', 'E'};
 BMESendBuf sensorBuffer = {'E', 'B', 'M', 'E'};
+
+bool bmeAvailable = false;
 
 bool timeValid = false;
 unsigned long lastSensorSend = 0;
@@ -38,9 +40,15 @@ void setup()
     WiFi.mode(WIFI_OFF);
 
     // Start i2c communication
+    bmeAvailable = true;
     if (!bme.begin(0x76))
     {
+        bmeAvailable = false;
         Serial.println("No sensor found");
+    }
+    else
+    {
+        Serial.println("Found BME280");
     }
 
     // Enable Setting Mode in HC-12
@@ -180,13 +188,21 @@ void loop()
     // Send BME Data
     if ((millis() - lastSensorSend) > SENSOR_SEND_FREQUENCY_MILLIS)
     {
-        // Send sensor data
-        sensorBuffer.data.temp = bme.readTemperature();
-        sensorBuffer.data.humidity = bme.readHumidity();
-        sensorBuffer.data.pressure = bme.readPressure();
-        HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
+        if (bmeAvailable)
+        {
+            // Send sensor data
+            sensorBuffer.data.temp = bme.readTemperature();
+            sensorBuffer.data.humidity = bme.readHumidity();
+            sensorBuffer.data.pressure = bme.readPressure();
+            HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
+            Serial.println("Sent BME Data");
+        }
+        else
+        {
+            HC12.print("EBMEERROR");
+            Serial.println("Sent BME Error message");
+        }
         lastSensorSend = millis();
-        Serial.println("Sent BME Data");
     }
     // Send DCF Data
     /*
