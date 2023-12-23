@@ -4,6 +4,8 @@
 #include <Adafruit_BME280.h>
 #include <SoftwareSerial.h>
 #include <ESP8266WiFi.h>
+#include <CRC.h>
+#include <CRC8.h>
 #include "DCF77.h"
 #include "DataTypes.h"
 
@@ -30,6 +32,8 @@ bool bmeAvailable = false;
 bool timeValid = false;
 unsigned long lastSensorSend = 0;
 unsigned long lastTimeSend = 0;
+
+CRC8 crc;
 
 void setup()
 {
@@ -174,6 +178,10 @@ void loop()
         timeBuffer.data.year = year();
         timeBuffer.data.month = month();
         timeBuffer.data.day = day();
+
+        crc.restart();
+        crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
+        timeBuffer.data.checksum = crc.calc();
         HC12.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
         Serial.println("Sent DCF Time");
     }
@@ -181,6 +189,9 @@ void loop()
     if (DCF.isMeteoReady())
     {
         MeteoRawSendBuf sendBuffer = DCF.getMeteoBuffer();
+        crc.restart();
+        crc.add((const uint8_t*)sendBuffer.buf, sizeof(sendBuffer) - 1);
+        sendBuffer.data.checksum = crc.calc();
         HC12.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
         Serial.println("Sent Meteodata");
     }
@@ -194,6 +205,9 @@ void loop()
             sensorBuffer.data.temp = bme.readTemperature();
             sensorBuffer.data.humidity = bme.readHumidity();
             sensorBuffer.data.pressure = bme.readPressure();
+            crc.restart();
+            crc.add((const uint8_t*)sensorBuffer.buf, sizeof(sensorBuffer) - 1);
+            sensorBuffer.data.checksum = crc.calc();
             HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
             Serial.println("Sent BME Data");
         }

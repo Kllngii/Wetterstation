@@ -11,6 +11,7 @@ typedef struct {
     uint16_t year;
     uint8_t month;
     uint8_t day;
+    uint8_t checksum;
 } TimeStruct;
 
 typedef union {
@@ -29,6 +30,7 @@ typedef struct {
     uint8_t month; // Only 5 bits used
     uint8_t dayInWeek;  // Only 3 bits used
     uint8_t year;
+    uint8_t checksum;
 } MeteoRawStruct;
 
 typedef union {
@@ -41,6 +43,7 @@ typedef struct {
     float temp;
     float humidity;
     float pressure;
+    uint8_t checksum;
 } BMEStruct;
 
 typedef union {
