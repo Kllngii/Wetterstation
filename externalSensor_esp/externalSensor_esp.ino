@@ -211,11 +211,6 @@ void loop()
             HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
             Serial.println("Sent BME Data");
         }
-        else
-        {
-            HC12.print("EBMEERROR");
-            Serial.println("Sent BME Error message");
-        }
         lastSensorSend = millis();
     }
     // Send DCF Data
