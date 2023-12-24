@@ -15,10 +15,12 @@
 #define HC_RX 12             // D6
 #define HC_TX 13             // D7
 
-#define SENSOR_SEND_FREQUENCY_MILLIS 60000
-#define TIME_SEND_FREQUENCY_MILLIS 120000
+#define SENSOR_SEND_FREQUENCY_MILLIS 53000
 
 #define HC12_INIT_DELAY 2000
+
+#define NUMBER_OF_RETRANSMISSIONS   5
+#define PACKET_RETRANSMISSION_TIME  3000
 
 Adafruit_BME280 bme;
 DCF77 DCF = DCF77(DCF_DATA_PIN, DCF_INTERRUPT_PIN);
@@ -27,11 +29,29 @@ SoftwareSerial HC12(HC_RX, HC_TX);
 TimeSendBuf timeBuffer = {'T', 'I', 'M', 'E'};
 BMESendBuf sensorBuffer = {'E', 'B', 'M', 'E'};
 
+MeteoRawSendBuf sendBuffer;
+
 bool bmeAvailable = false;
 
 bool timeValid = false;
 unsigned long lastSensorSend = 0;
 unsigned long lastTimeSend = 0;
+
+bool timePacketValid = false;
+bool meteoPacketValid = false;
+bool bmePacketValid = false;
+
+bool timePacketPending = false;
+bool meteoPacketPending = false;
+bool bmePacketPending = false;
+
+int timeResendCounter = 0;
+int meteoResendCounter = 0;
+int bmeResendCounter = 0;
+
+int timeRetransTime = 0;
+int meteoRetransTime = 0;
+int bmeRetransTime = 0;
 
 CRC8 crc;
 
@@ -160,6 +180,7 @@ void setup()
 
 void loop()
 {
+
     time_t DCFtime = DCF.getTime();
     if (DCFtime != 0)
     {
@@ -184,16 +205,38 @@ void loop()
         timeBuffer.data.checksum = crc.calc();
         HC12.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
         Serial.println("Sent DCF Time");
+        timePacketPending = true;
+        timePacketValid = true;
+        timeRetransTime = millis();
+    }
+    if (!timePacketValid)
+    {
+        HC12.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
+        Serial.println("Resent DCF Time");
+        timePacketPending = true;
+        timePacketValid = true;
+        timeResendCounter++;
     }
 
     if (DCF.isMeteoReady())
     {
-        MeteoRawSendBuf sendBuffer = DCF.getMeteoBuffer();
+        sendBuffer = DCF.getMeteoBuffer();
         crc.restart();
         crc.add((const uint8_t*)sendBuffer.buf, sizeof(sendBuffer) - 1);
         sendBuffer.data.checksum = crc.calc();
         HC12.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
         Serial.println("Sent Meteodata");
+        meteoPacketPending = true;
+        meteoPacketValid = true;
+        meteoRetransTime = millis();
+    }
+    if (!meteoPacketValid)
+    {
+        HC12.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
+        Serial.println("Resent Meteodata");
+        meteoPacketPending = true;
+        meteoPacketValid = true;
+        meteoResendCounter++;
     }
 
     // Send BME Data
@@ -210,22 +253,66 @@ void loop()
             sensorBuffer.data.checksum = crc.calc();
             HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
             Serial.println("Sent BME Data");
+            bmePacketPending = true;
+            bmePacketValid = true;
+            bmeRetransTime = millis();
         }
         lastSensorSend = millis();
     }
-    // Send DCF Data
-    /*
-    if (((millis() - lastTimeSend) > TIME_SEND_FREQUENCY_MILLIS) && timeValid)
+    if (!bmePacketValid)
     {
-        Serial.println("Send time");
-        timeBuffer.dcfTime.hour = hour();
-        timeBuffer.dcfTime.minute = minute();
-        timeBuffer.dcfTime.second = second();
-        timeBuffer.dcfTime.year = year();
-        timeBuffer.dcfTime.month = month();
-        timeBuffer.dcfTime.day = day();
-        Serial.write((const uint8_t*)timeBuffer.timeBuf, sizeof(timeBuffer));
-        lastTimeSend = millis();
+        HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
+        Serial.println("Resent BME Data");
+        bmePacketPending = true;
+        bmePacketValid = true;
+        bmeResendCounter++;
     }
-    */
+
+    if (bmePacketPending)
+    {
+        if ((millis() - bmeRetransTime) > PACKET_RETRANSMISSION_TIME)
+        {
+            bmePacketPending = false;
+            bmePacketValid = true;
+        }
+    }
+    if (timePacketPending)
+    {
+        if ((millis() - timeRetransTime) > PACKET_RETRANSMISSION_TIME)
+        {
+            timePacketPending = false;
+            timePacketValid = true;
+        }
+    }
+    if (meteoPacketPending)
+    {
+        if ((millis() - meteoRetransTime) > PACKET_RETRANSMISSION_TIME)
+        {
+            meteoPacketPending = false;
+            meteoPacketValid = true;
+        }
+    }
+
+    if (HC12.available() > 5)
+    {
+        while(HC12.available())
+        {
+            Serial.print((char)HC12.read());
+        }
+        if (bmePacketPending && (bmeResendCounter < NUMBER_OF_RETRANSMISSIONS))
+        {
+            bmePacketValid = false;
+            bmeRetransTime = millis();
+        }
+        else if (timePacketPending && (timeResendCounter < NUMBER_OF_RETRANSMISSIONS))
+        {
+            timePacketValid = false;
+            timeRetransTime = millis();
+        }
+        else if (meteoPacketPending && (meteoResendCounter < NUMBER_OF_RETRANSMISSIONS))
+        {
+            meteoPacketValid = false;
+            meteoRetransTime = millis();
+        }
+    }
 }
