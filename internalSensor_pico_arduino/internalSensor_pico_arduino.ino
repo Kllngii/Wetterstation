@@ -1,7 +1,10 @@
 #include <stdio.h>
+#include <cstring>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include <CRC.h>
+#include <CRC8.h>
 #include "CO2.h"
 #include "Meteo.h"
 #include "DataTypes.h"
@@ -19,11 +22,17 @@
 #define BME_SEND_FREQUENCY_MILLIS   30000
 #define CO2_SEND_FREQUENCY_MILLIS   15000
 
+#define READ_TIMEOUT    500
+
 Adafruit_BME280 bme;    // BME280, read by core0
 CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
 Meteo meteo;
 CO2SendBuf co2Buffer = {'C','O','2','.'};
 BMESendBuf iBmeBuffer = {'I','B','M','E'};
+
+BMESendBuf eBmeBuffer;
+MeteoRawReceiveBuf meteoReceiveBuffer;
+TimeSendBuf timeBuffer;
 
 volatile bool co2Ready = false;
 volatile int co2Concentration = 0;
@@ -31,10 +40,17 @@ volatile int co2Concentration = 0;
 unsigned long lastBmeSend = 0;
 unsigned long lastCo2Send = 0;
 
+char receiveBuffer[100] = {0};
+int readTime = 0;
+int readIndex = 0;
+
+bool packetValid = true;
+
+CRC8 crc;
+
 void setup()
 {
     char hcAnswerArray[9] = {0};
-    pinMode(HC12_SET_PIN, INPUT);
     // Start usb debug output
     Serial.begin(115200);
     // Start COM with other pico
@@ -125,8 +141,6 @@ void setup1()
 
 void loop()
 {
-    static char readVal = 0;
-    static int dataTypeCounter = 0;
 
     if (Serial.available() == 4)
     {
@@ -158,56 +172,84 @@ void loop()
             Serial.println("Meteo packet not accepted");
         }
     }
-    
-    while(Serial2.available())
+
+    if (Serial2.available())
     {
-        readVal = Serial2.read();
-        if (readVal == 'M' && dataTypeCounter == 0)
+        packetValid = true;
+        char header[5] = {'\0'};
+        readIndex = 0;
+        while ((millis() - readTime) < READ_TIMEOUT)
         {
-            dataTypeCounter++;
-        }
-        else if (readVal == 'T' && dataTypeCounter == 1)
-        {
-            dataTypeCounter++;
-        }
-        else if (readVal == 'E' && dataTypeCounter == 2)
-        {
-            dataTypeCounter++;
-        }
-        else if (readVal == 'O' && dataTypeCounter == 3)
-        {
-            MeteoRawSendBuf buffer;
-            for(int i = 0; i < sizeof(buffer); i++)
+            if (Serial2.available())
             {
-                buffer.buf[i] = Serial2.read();
+                readTime = millis();
+                receiveBuffer[readIndex++] = (char)Serial2.read();
             }
-            meteo.getNewData(buffer);
-            Serial.println("Got new Meteo Data");
-            
-            dataTypeCounter = 0;
+        }
+        for(int i = 0; i < 4; i++)
+        {
+            header[i] = receiveBuffer[i];
+        }
+        String headerString(header);
+        crc.restart();
+
+        if (headerString.equals("EBME"))
+        {
+            memcpy(eBmeBuffer.buf, receiveBuffer, sizeof(eBmeBuffer));
+            crc.add((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer) - 1);
+            if (crc.calc() != eBmeBuffer.data.checksum)
+            {
+                Serial.println("Checksum invalid on EBME Packet. Initiate retransmission");
+                packetValid = false;
+            }
+            else
+            {
+                Serial.println("Received valid EBME Packet.");
+                Serial1.write((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer) - 1);
+            }
+        }
+        else if (headerString.equals("TIME"))
+        {
+            memcpy(timeBuffer.buf, receiveBuffer, sizeof(timeBuffer));
+            crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
+            if (crc.calc() != timeBuffer.data.checksum)
+            {
+                Serial.println("Checksum invalid on Time Packet. Initiate retransmission");
+                packetValid = false;
+            }
+            else
+            {
+                Serial.println("Received valid Time packet.");
+                Serial.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
+            }
+        }
+        else if (headerString.equals("MTEO"))
+        {
+            memcpy(meteoReceiveBuffer.buf, receiveBuffer, sizeof(meteoReceiveBuffer));
+            crc.add((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer) - 1);
+            if (crc.calc() != meteoReceiveBuffer.data.data.checksum)
+            {
+                Serial.println("Checksum invalud on Meteopacket. Initiate retransmission");
+                packetValid = false;
+            }
+            else
+            {
+                MeteoRawSendBuf rawBuffer;
+                memcpy(rawBuffer.buf, meteoReceiveBuffer.buf + 4, sizeof(rawBuffer));
+                meteo.getNewData(rawBuffer);
+            }
         }
         else
         {
-            if (dataTypeCounter == 1)
-            {
-                Serial1.write("M");
-                Serial.println("Wrote back M");
-            }
-            else if (dataTypeCounter == 2)
-            {
-                Serial1.write("MT");
-                Serial.println("Wrote back MT");
-            }
-            else if (dataTypeCounter == 3)
-            {
-                Serial1.write("MTE");
-                Serial.println("Wrote back MTE");
-            }
-            dataTypeCounter = 0;
-            Serial1.write(readVal);
-            Serial.print(readVal);
+            packetValid = false;
+        }
+
+        if (!packetValid)
+        {
+            Serial2.print("ERRORERRORERROR");
         }
     }
+
     if (meteo.isMeteoReady())
     {
         MeteoDecodedSendBuf convertedBuffer = meteo.getConvertedBuffer();

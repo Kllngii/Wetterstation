@@ -27,12 +27,23 @@ typedef struct {
     uint8_t month; // Only 5 bits used
     uint8_t dayInWeek;  // Only 3 bits used
     uint8_t year;
+    uint8_t checksum;
 } MeteoRawStruct;
 
 typedef union {
     char buf[sizeof(MeteoRawStruct)];
     MeteoRawStruct data;
 } MeteoRawSendBuf;
+
+typedef struct {
+    char dataType[4];
+    MeteoRawStruct data;
+} MeteoRawReceiveStruct;
+
+typedef union {
+    char buf[sizeof(MeteoRawReceiveStruct)];
+    MeteoRawReceiveStruct data;
+} MeteoRawReceiveBuf;
 
 typedef struct {
     const char dataType[4];

@@ -58,7 +58,6 @@ CRC8 crc;
 void setup()
 {
     int hcInitTime;
-    pinMode(SET_PIN, INPUT);
     Serial.begin(115200);
     HC12.begin(9600);
     WiFi.mode(WIFI_OFF);
