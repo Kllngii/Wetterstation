@@ -213,7 +213,7 @@ void loop()
             // Send sensor data
             sensorBuffer.data.temp = bme.readTemperature();
             sensorBuffer.data.humidity = bme.readHumidity();
-            sensorBuffer.data.pressure = bme.readPressure();
+            sensorBuffer.data.pressure = bme.readPressure() / 100.0;
             crc.restart();
             crc.add((const uint8_t*)sensorBuffer.buf, sizeof(sensorBuffer) - 1);
             sensorBuffer.data.checksum = crc.calc();
