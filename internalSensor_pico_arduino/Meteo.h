@@ -17,7 +17,7 @@
 #define METEO_CLK_OUT   19
 #define METEO_RDY       20
 
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     uint16_t packet1;
     uint16_t packet2;
     uint16_t packet3;
@@ -35,7 +35,7 @@ typedef union {
     MeteoRawStruct data;
 } MeteoRawSendBuf;
 
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     char dataType[4];
     MeteoRawStruct data;
 } MeteoRawReceiveStruct;
@@ -45,8 +45,8 @@ typedef union {
     MeteoRawReceiveStruct data;
 } MeteoRawReceiveBuf;
 
-typedef struct {
-    const char dataType[4];
+typedef struct __attribute__ ((__packed__)){
+    char dataType[4];
     uint32_t meteoData;
 } MeteoDecodedStruct;
 
@@ -67,7 +67,7 @@ class Meteo {
 
     private:
         MeteoRawSendBuf rawBuffer;
-        MeteoDecodedSendBuf convertedBuffer = {'M','T','E','O'};
+        MeteoDecodedSendBuf convertedBuffer;
         volatile bool newMeteoData;
         volatile bool meteoDataReady;
 

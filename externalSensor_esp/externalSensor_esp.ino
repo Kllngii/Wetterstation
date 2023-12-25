@@ -37,9 +37,9 @@ bool timeValid = false;
 unsigned long lastSensorSend = 0;
 unsigned long lastTimeSend = 0;
 
-bool timePacketValid = false;
-bool meteoPacketValid = false;
-bool bmePacketValid = false;
+bool timePacketValid = true;
+bool meteoPacketValid = true;
+bool bmePacketValid = true;
 
 bool timePacketPending = false;
 bool meteoPacketPending = false;
@@ -57,10 +57,11 @@ CRC8 crc;
 
 void setup()
 {
-    int hcInitTime;
     Serial.begin(115200);
     HC12.begin(9600);
     WiFi.mode(WIFI_OFF);
+
+    Serial.println("");
 
     // Start i2c communication
     bmeAvailable = true;
@@ -80,54 +81,33 @@ void setup()
     // Set Baudrate to 9600
     delay(100);
     HC12.print("AT+B9600");
-    hcInitTime = millis();
-    while (HC12.available() < 8)
-    {
-        delay(1); // To reset watchdog
-        if ((millis() - hcInitTime) > HC12_INIT_DELAY)
-        {
-            ESP.restart();
-        }
-    }
-    for (int i = 0; i < 8; i++)
+    delay(100);
+    while(HC12.available())
     {
         Serial.print((char)HC12.read());
+        delay(10);
     }
     Serial.println("");
 
     // Set Channel to 1
     delay(100);
     HC12.print("AT+C001");
-    hcInitTime = millis();
-    while (HC12.available() < 7)
-    {
-        delay(1);
-        if ((millis() - hcInitTime) > HC12_INIT_DELAY)
-        {
-            ESP.restart();
-        }
-    }
-    for (int i = 0; i < 7; i++)
+    delay(100);
+    while(HC12.available())
     {
         Serial.print((char)HC12.read());
+        delay(10);
     }
     Serial.println("");
 
     // Set transmission mode to 3
     delay(100);
     HC12.print("AT+FU3");
-    hcInitTime = millis();
-    while (HC12.available() < 6)
-    {
-        delay(1);
-        if ((millis() - hcInitTime) > HC12_INIT_DELAY)
-        {
-            ESP.restart();
-        }
-    }
-    for (int i = 0; i < 6; i++)
+    delay(100);
+    while(HC12.available())
     {
         Serial.print((char)HC12.read());
+        delay(10);
     }
     Serial.println("");
 
@@ -135,35 +115,20 @@ void setup()
     delay(100);
     HC12.print("AT+P4");
     delay(100);
-    hcInitTime = millis();
-    while (HC12.available() < 5)
-    {
-        delay(1);
-        if ((millis() - hcInitTime) > HC12_INIT_DELAY)
-        {
-            ESP.restart();
-        }
-    }
-    for (int i = 0; i < 5; i++)
+    while(HC12.available())
     {
         Serial.print((char)HC12.read());
+        delay(10);
     }
     Serial.println("");
 
     // Set data transmission to 8 bits + odd parity + 1 stop bit
-    Serial.print("AT+U8N1");
-    hcInitTime = millis();
-    while (HC12.available() < 7)
-    {
-        delay(1);
-        if ((millis() - hcInitTime) > HC12_INIT_DELAY)
-        {
-            ESP.restart();
-        }
-    }
-    for (int i = 0; i < 7; i++)
+    HC12.print("AT+U8N1");
+    delay(100);
+    while(HC12.available())
     {
         Serial.print((char)HC12.read());
+        delay(10);
     }
     Serial.println("");
 
@@ -204,6 +169,7 @@ void loop()
         timeBuffer.data.checksum = crc.calc();
         HC12.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
         Serial.println("Sent DCF Time");
+        timeResendCounter = 0;
         timePacketPending = true;
         timePacketValid = true;
         timeRetransTime = millis();
@@ -225,6 +191,7 @@ void loop()
         sendBuffer.data.checksum = crc.calc();
         HC12.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
         Serial.println("Sent Meteodata");
+        meteoResendCounter = 0;
         meteoPacketPending = true;
         meteoPacketValid = true;
         meteoRetransTime = millis();
@@ -252,6 +219,7 @@ void loop()
             sensorBuffer.data.checksum = crc.calc();
             HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
             Serial.println("Sent BME Data");
+            bmeResendCounter = 0;
             bmePacketPending = true;
             bmePacketValid = true;
             bmeRetransTime = millis();
@@ -297,6 +265,7 @@ void loop()
         while(HC12.available())
         {
             Serial.print((char)HC12.read());
+            delay(20);
         }
         if (bmePacketPending && (bmeResendCounter < NUMBER_OF_RETRANSMISSIONS))
         {

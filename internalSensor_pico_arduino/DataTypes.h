@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "Meteo.h"
 
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     char dataType[4];
     uint8_t hour;
     uint8_t minute;
@@ -20,7 +20,7 @@ typedef union {
     TimeStruct data;
 } TimeSendBuf;
 
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     char dataType[4];
     float temp;
     float humidity;
@@ -33,7 +33,7 @@ typedef union {
     BMEStruct data;
 } BMESendBuf;
 
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     const char dataType[4];
     int concentration;
 } CO2Struct;

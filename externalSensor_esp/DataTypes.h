@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#pragma pack(push,1)
 typedef struct {
     const char dataType[4];
     uint8_t hour;
@@ -13,12 +14,14 @@ typedef struct {
     uint8_t day;
     uint8_t checksum;
 } TimeStruct;
+#pragma pack(pop)
 
 typedef union {
     char buf[sizeof(TimeStruct)];
     TimeStruct data;
 } TimeSendBuf;
 
+#pragma pack(push,1)
 typedef struct {
     char dataType[4];
     uint16_t packet1;
@@ -32,19 +35,22 @@ typedef struct {
     uint8_t year;
     uint8_t checksum;
 } MeteoRawStruct;
+#pragma pack(pop)
 
 typedef union {
     char buf[sizeof(MeteoRawStruct)];
     MeteoRawStruct data;
 } MeteoRawSendBuf;
 
+#pragma pack(push,1)
 typedef struct {
-    const char dataType[4];
+    char dataType[4];
     float temp;
     float humidity;
     float pressure;
     uint8_t checksum;
 } BMEStruct;
+#pragma pack(pop)
 
 typedef union {
     char buf[sizeof(BMEStruct)];

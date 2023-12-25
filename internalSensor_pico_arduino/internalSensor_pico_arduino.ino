@@ -178,6 +178,7 @@ void loop()
         packetValid = true;
         char header[5] = {'\0'};
         readIndex = 0;
+        readTime = millis();
         while ((millis() - readTime) < READ_TIMEOUT)
         {
             if (Serial2.available())
@@ -195,9 +196,9 @@ void loop()
 
         if (headerString.equals("EBME"))
         {
-            memcpy(eBmeBuffer.buf, receiveBuffer, sizeof(eBmeBuffer));
+            memcpy(eBmeBuffer.buf, receiveBuffer, sizeof(eBmeBuffer));           
             crc.add((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer) - 1);
-            if (crc.calc() != eBmeBuffer.data.checksum)
+            if (crc.calc() != (uint8_t)eBmeBuffer.data.checksum)
             {
                 Serial.println("Checksum invalid on EBME Packet. Initiate retransmission");
                 packetValid = false;
@@ -205,6 +206,12 @@ void loop()
             else
             {
                 Serial.println("Received valid EBME Packet.");
+                Serial.print("Temperature: ");
+                Serial.println(eBmeBuffer.data.temp);
+                Serial.print("Humidity: ");
+                Serial.println(eBmeBuffer.data.humidity);
+                Serial.print("Pressure: ");
+                Serial.println(eBmeBuffer.data.pressure);
                 Serial1.write((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer) - 1);
             }
         }
@@ -220,6 +227,18 @@ void loop()
             else
             {
                 Serial.println("Received valid Time packet.");
+                Serial.print("Hour: ");
+                Serial.println(timeBuffer.data.hour);
+                Serial.print("Minute: ");
+                Serial.println(timeBuffer.data.minute);
+                Serial.print("Second: ");
+                Serial.println(timeBuffer.data.second);
+                Serial.print("Year: ");
+                Serial.println(timeBuffer.data.year);
+                Serial.print("Month: ");
+                Serial.println(timeBuffer.data.month);
+                Serial.print("Day: ");
+                Serial.println(timeBuffer.data.day);
                 Serial.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
             }
         }
@@ -283,12 +302,13 @@ void loop1()
     if (!co2Ready)
     {
         co2Ready = co2.isReady();
+        Serial.println("CO2 is ready!");
     }
     else
     {
         co2Concentration = co2.readCO2PWM();
-        Serial.print("Got new CO2 value: ");
-        Serial.println(co2Concentration);
+        //Serial.print("Got new CO2 value: ");
+        //Serial.println(co2Concentration);
     }
 
     if (meteo.isNewMeteo())

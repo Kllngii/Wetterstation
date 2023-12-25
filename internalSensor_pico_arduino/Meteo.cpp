@@ -5,6 +5,10 @@ Meteo::Meteo()
 {
     newMeteoData = false;
     meteoDataReady = false;
+    convertedBuffer.buf[0] = 'M';
+    convertedBuffer.buf[1] = 'T';
+    convertedBuffer.buf[2] = 'E';
+    convertedBuffer.buf[3] = 'O';
 }
 
 Meteo::~Meteo()
