@@ -302,7 +302,10 @@ void loop1()
     if (!co2Ready)
     {
         co2Ready = co2.isReady();
-        Serial.println("CO2 is ready!");
+        if (co2Ready)
+        {
+            Serial.println("CO2 is ready!");
+        }
     }
     else
     {
