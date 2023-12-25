@@ -279,7 +279,7 @@ void loop()
                 Serial.println(timeBuffer.data.month);
                 Serial.print("Day: ");
                 Serial.println(timeBuffer.data.day);
-                Serial.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
+                Serial1.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
             }
         }
         else if (headerString.equals("MTEO"))
