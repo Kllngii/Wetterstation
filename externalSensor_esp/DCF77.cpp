@@ -205,6 +205,7 @@ bool DCF77::receivedTimeUpdate(void) {
 	// If received time is close to internal clock (2 min) we are satisfied
 	time_t difference = abs(processedTime - now());
 	if(difference < 2*SECS_PER_MIN) {
+		timeUseable = true;
 		LogLn("close to internal clock");
 		storePreviousTime();
 		return true;
@@ -217,10 +218,14 @@ bool DCF77::receivedTimeUpdate(void) {
 	time_t shiftDifference = abs(shiftCurrent-shiftPrevious);
 	storePreviousTime();
 	if(shiftDifference < 2*SECS_PER_MIN) {
+		timeUseable = true;
 		LogLn("time lag consistent");		
 		return true;
 	} else {
+		// Although there is a time lag, I will still use the time. 
+		timeUseable = true;
 		LogLn("time lag inconsistent");
+		return true;
 	}
 	
 	// If lag is inconsistent, this may be because of no previous stored date 
@@ -266,6 +271,8 @@ void DCF77::calculateBufferParities(void) {
  */
 bool DCF77::processBuffer(void) {	
 	
+	bool returnValue = false;
+	int minuteSwitcher = 0;
 	/////  Start interaction with interrupt driven loop  /////
 	
 	// Copy filled buffer and timestamp from interrupt driven loop
@@ -301,63 +308,70 @@ bool DCF77::processBuffer(void) {
       time.Year   = 2000 + rx_buffer->Year-((rx_buffer->Year/16)*6) -1970;
 	  latestupdatedTime = makeTime(time);	 
 	  CEST = rx_buffer->CEST;
-
-		//Merge MeteoTime Data
-		if (!meteoDataReady)
-		{
-			switch(time.Minute % 3)
-			{
-				case 0:
-					meteoData.data.packet1 = rx_buffer->meteoBits;
-					meteoPacketNumber++;
-				break;
-				case 1:
-					meteoData.data.packet2 = rx_buffer->meteoBits;
-					meteoPacketNumber++;
-				break;
-				case 2:
-					meteoData.data.packet3 = rx_buffer->meteoBits;
-					meteoData.data.minute = rx_buffer->Min << 1;
-					meteoData.data.hour = rx_buffer->Hour << 2;
-					meteoData.data.date = rx_buffer->Day << 2;
-					meteoData.data.month = rx_buffer->Month;
-					meteoData.data.dayInWeek = rx_buffer->Weekday;
-					meteoData.data.year = rx_buffer->Year;
-					if (meteoPacketNumber == 2)
-					{
-						meteoDataReady = true;
-					}
-					else
-					{
-						meteoDataReady = false;
-					}
-					meteoPacketNumber = 0;
-				break;
-				default:
-					LogLn("Invalid meteo packet number.");
-					// This stays unhandled. 
-			}
-		} 
-
-
 	  //Parity correct
-	  return true;
+	  returnValue = true;
 	} else {
 	  //Parity incorrect
-	  return false;
+	  returnValue =  false;
 	}
+
+	if (returnValue == true)
+	{
+		minuteSwitcher = time.Minute % 3;
+	} else if (timeUseable)
+	{
+		minuteSwitcher = minute() % 3;
+	} else
+	{
+		minuteSwitcher = 0;
+	}
+
+	Serial.print("MinuteSwitcher value: ");
+	Serial.println(minuteSwitcher);
+	Serial.print("Meteopacketnumber: ");
+	Serial.println(meteoPacketNumber);
+	
+
+	//Merge MeteoTime Data
+	switch(minuteSwitcher)
+	{
+		case 0:
+			meteoData.data.packet1 = rx_buffer->meteoBits;
+			meteoPacketNumber++;
+		break;
+		case 1:
+			meteoData.data.packet2 = rx_buffer->meteoBits;
+			meteoPacketNumber++;
+		break;
+		case 2:
+			meteoData.data.packet3 = rx_buffer->meteoBits;
+			meteoData.data.minute = rx_buffer->Min << 1;
+			meteoData.data.hour = rx_buffer->Hour << 2;
+			meteoData.data.date = rx_buffer->Day << 2;
+			meteoData.data.month = rx_buffer->Month;
+			meteoData.data.dayInWeek = rx_buffer->Weekday;
+			meteoData.data.year = rx_buffer->Year;
+			if (meteoPacketNumber == 2)
+			{
+				meteoDataReady = true;
+			}
+			else
+			{
+				meteoDataReady = false;
+			}
+			meteoPacketNumber = 0;
+		break;
+		default:
+			LogLn("Invalid meteo packet number.");
+			// This stays unhandled. 
+	}
+
+	return returnValue;
 }
 
 bool DCF77::isMeteoReady()
 {
-	if (meteoDataReady)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return meteoDataReady;
 }
 
 MeteoRawSendBuf DCF77::getMeteoBuffer()
@@ -432,6 +446,7 @@ unsigned long long DCF77::processingBuffer = 0;
 MeteoRawSendBuf DCF77::meteoData = {'M','T','E','O'};
 int DCF77::meteoPacketNumber = 0;
 bool DCF77::meteoDataReady = false;
+bool DCF77::timeUseable = false;
 
 // Pulse flanks
 int DCF77::leadingEdge=0;

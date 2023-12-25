@@ -76,6 +76,7 @@ private:
     static MeteoRawSendBuf meteoData;
     static int meteoPacketNumber;
     static bool meteoDataReady; 
+    static bool timeUseable;
 
     // Pulse flanks
     static   int  leadingEdge;

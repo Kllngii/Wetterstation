@@ -22,7 +22,7 @@
 #define BME_SEND_FREQUENCY_MILLIS   30000
 #define CO2_SEND_FREQUENCY_MILLIS   15000
 
-#define READ_TIMEOUT    500
+#define READ_TIMEOUT    100
 
 Adafruit_BME280 bme;    // BME280, read by core0
 CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
@@ -39,12 +39,6 @@ volatile int co2Concentration = 0;
 
 unsigned long lastBmeSend = 0;
 unsigned long lastCo2Send = 0;
-
-char receiveBuffer[100] = {0};
-int readTime = 0;
-int readIndex = 0;
-
-bool packetValid = true;
 
 CRC8 crc;
 
@@ -175,23 +169,69 @@ void loop()
 
     if (Serial2.available())
     {
-        packetValid = true;
+        bool packetValid = true;
+        char receiveBuffer[100] = {'\0'};
         char header[5] = {'\0'};
-        readIndex = 0;
-        readTime = millis();
-        while ((millis() - readTime) < READ_TIMEOUT)
+        int readIndex = 0;
+        int readingSize;
+
+        for(int i = 0; i < 4; i++)
+        {
+            receiveBuffer[readIndex++] = (char)Serial2.read();
+            header[i] = receiveBuffer[readIndex - 1];
+            delay(5);
+        }
+        String headerString(header);
+
+        if (headerString.equals("EBME"))
+        {
+            readingSize = sizeof(eBmeBuffer) - 4;
+        }
+        else if (headerString.equals("TIME"))
+        {
+            readingSize = sizeof(timeBuffer) - 4;
+        }
+        else if (headerString.equals("MTEO"))
+        {
+            readingSize = sizeof(meteoReceiveBuffer) - 4;
+        }
+        else
+        {
+            Serial.println("Received invalid message");
+            do
+            {
+                Serial.print((char)Serial2.read());
+                delay(1);
+            } while (Serial2.available());
+        }
+
+        bool readTimeout = false;
+        for(int i = 0; i < readingSize; i++)
         {
             if (Serial2.available())
             {
-                readTime = millis();
                 receiveBuffer[readIndex++] = (char)Serial2.read();
+                delay(2);
+            }
+            else
+            {
+                int readTime = millis();
+                while(!Serial2.available())
+                {
+                    if ((millis() - readTime) > READ_TIMEOUT)
+                    {
+                        readTimeout = true;
+                        break;
+                    }
+                    delay(10);
+                }
+            }
+
+            if (readTimeout)
+            {
+                break;
             }
         }
-        for(int i = 0; i < 4; i++)
-        {
-            header[i] = receiveBuffer[i];
-        }
-        String headerString(header);
         crc.restart();
 
         if (headerString.equals("EBME"))
