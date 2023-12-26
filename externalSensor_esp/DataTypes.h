@@ -1,3 +1,13 @@
+/*
+ *  Created by: faschmali
+ *
+ *  Here are all relevant definitions of structs used for communication
+ *  between the microcontrollers. The structs are used as part of a union
+ *  to be able to send all elements bytewise. The pragma is needed to avoid
+ *  padding bytes that increase the size of the structs and make a checksum
+ *  calculation more complicated. 
+ */
+
 #ifndef DATATYPES_H_
 #define DATATYPES_H_
 

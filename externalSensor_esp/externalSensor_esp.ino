@@ -15,11 +15,11 @@
 #define HC_RX 12             // D6
 #define HC_TX 13             // D7
 
+// Send bme data every 53 seconds to reduce collision probability with time or meteo packets
 #define SENSOR_SEND_FREQUENCY_MILLIS 53000
 
-#define HC12_INIT_DELAY 2000
-
-#define NUMBER_OF_RETRANSMISSIONS   5
+#define NUMBER_OF_RETRANSMISSIONS   5       // Resend a packet max. 5 times
+// A retransmission command has to be sent max. 3 seconds after a packet has been sent. 
 #define PACKET_RETRANSMISSION_TIME  3000
 
 Adafruit_BME280 bme;
@@ -63,7 +63,7 @@ void setup()
 
     Serial.println("");
 
-    // Start i2c communication
+    // Start I2C communication
     bmeAvailable = true;
     if (!bme.begin(0x76))
     {
@@ -111,7 +111,7 @@ void setup()
     }
     Serial.println("");
 
-    // Set Power to 8dBm
+    // Set Power to 14dBm
     delay(100);
     HC12.print("AT+P6");
     delay(100);
@@ -122,7 +122,7 @@ void setup()
     }
     Serial.println("");
 
-    // Set data transmission to 8 bits + odd parity + 1 stop bit
+    // Set data transmission to 8 bits + no parity + 1 stop bit
     HC12.print("AT+U8N1");
     delay(100);
     while(HC12.available())
@@ -139,12 +139,13 @@ void setup()
     lastSensorSend = millis();
     lastTimeSend = millis();
     Serial.println("Initialization finished.");
+    // Start DCF Time detection
     DCF.Start();
 }
 
 void loop()
 {
-
+    // Try to get updated DCF time
     time_t DCFtime = DCF.getTime();
     if (DCFtime != 0)
     {
@@ -152,7 +153,7 @@ void loop()
         setTime(DCFtime);
         if (!timeValid)
         {
-            // Reset timestamps because time changed
+            // Reset timestamps because millis probably changed after first time update
             lastSensorSend = millis();
             lastTimeSend = millis();
         }
@@ -164,9 +165,11 @@ void loop()
         timeBuffer.data.month = month();
         timeBuffer.data.day = day();
 
+        // Calculate Checksum and store it in the sending struct
         crc.restart();
         crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
         timeBuffer.data.checksum = crc.calc();
+        // Send data
         HC12.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
         Serial.println("Sent DCF Time");
         timeResendCounter = 0;
@@ -174,6 +177,7 @@ void loop()
         timePacketValid = true;
         timeRetransTime = millis();
     }
+    // Resend time data if packet has been sent and an error message was received
     if (!timePacketValid)
     {
         HC12.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
@@ -183,6 +187,7 @@ void loop()
         timeResendCounter++;
     }
 
+    // Send meteodata if available
     if (DCF.isMeteoReady())
     {
         sendBuffer = DCF.getMeteoBuffer();
@@ -196,6 +201,7 @@ void loop()
         meteoPacketValid = true;
         meteoRetransTime = millis();
     }
+    // Resend meteopacket if checksum was incorrect at receiver
     if (!meteoPacketValid)
     {
         HC12.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
@@ -205,27 +211,25 @@ void loop()
         meteoResendCounter++;
     }
 
-    // Send BME Data
-    if ((millis() - lastSensorSend) > SENSOR_SEND_FREQUENCY_MILLIS)
+    // Send BME Data if sensor is available
+    if (((millis() - lastSensorSend) > SENSOR_SEND_FREQUENCY_MILLIS) && bmeAvailable)
     {
-        if (bmeAvailable)
-        {
-            // Send sensor data
-            sensorBuffer.data.temp = bme.readTemperature();
-            sensorBuffer.data.humidity = bme.readHumidity();
-            sensorBuffer.data.pressure = bme.readPressure() / 100.0;
-            crc.restart();
-            crc.add((const uint8_t*)sensorBuffer.buf, sizeof(sensorBuffer) - 1);
-            sensorBuffer.data.checksum = crc.calc();
-            HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
-            Serial.println("Sent BME Data");
-            bmeResendCounter = 0;
-            bmePacketPending = true;
-            bmePacketValid = true;
-            bmeRetransTime = millis();
-        }
+        // Send sensor data
+        sensorBuffer.data.temp = bme.readTemperature();
+        sensorBuffer.data.humidity = bme.readHumidity();
+        sensorBuffer.data.pressure = bme.readPressure() / 100.0;
+        crc.restart();
+        crc.add((const uint8_t*)sensorBuffer.buf, sizeof(sensorBuffer) - 1);
+        sensorBuffer.data.checksum = crc.calc();
+        HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
+        Serial.println("Sent BME Data");
+        bmeResendCounter = 0;
+        bmePacketPending = true;
+        bmePacketValid = true;
+        bmeRetransTime = millis();
         lastSensorSend = millis();
     }
+    // Resend bme data if they were invalid
     if (!bmePacketValid)
     {
         HC12.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
@@ -235,6 +239,7 @@ void loop()
         bmeResendCounter++;
     }
 
+    // Declare sent packet as received valid after no retransmission command has been received
     if (bmePacketPending)
     {
         if ((millis() - bmeRetransTime) > PACKET_RETRANSMISSION_TIME)
@@ -260,13 +265,17 @@ void loop()
         }
     }
 
+    // Internal sensor sends 15 bytes, make sure external sensor didn't just receive
+    // random data
     if (HC12.available() > 5)
     {
+        // Clear buffer
         while(HC12.available())
         {
             Serial.print((char)HC12.read());
             delay(20);
         }
+        // Resend a packet max. 5 times
         if (bmePacketPending && (bmeResendCounter < NUMBER_OF_RETRANSMISSIONS))
         {
             bmePacketValid = false;

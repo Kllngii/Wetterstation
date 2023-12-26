@@ -1,3 +1,14 @@
+/*
+ *  Created by: faschmali
+ *
+ *  Here are all relevant definitions of structs used for communication
+ *  between the microcontrollers. The structs are used as part of a union
+ *  to be able to send all elements bytewise. The additional attribute is needed 
+ *  to avoid padding bytes that increase the size of the structs and make a checksum
+ *  calculation more complicated. I was not able to use a simple #pragma as in the
+ *  external Sensor program because the Raspi Pico was crashing...
+ */
+
 #ifndef DATATYPES_H_
 #define DATATYPES_H_
 
