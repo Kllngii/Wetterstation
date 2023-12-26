@@ -1,3 +1,5 @@
 /wetterstation-ui/target/*
 /wetterstation-rpico-ui/target/*
 /slint-pico/target/*
+**.vscode
+/externalSensor_msp/Debug/*
