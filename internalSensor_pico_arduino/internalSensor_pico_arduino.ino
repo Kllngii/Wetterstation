@@ -250,8 +250,8 @@ void loop()
             // Copy data
             memcpy(eBmeBuffer.buf, receiveBuffer, sizeof(eBmeBuffer));  
             // Check if checksums match        
-            crc.add((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer) - 1);
-            if (crc.calc() != (uint8_t)eBmeBuffer.data.checksum)
+            crc.add((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer));
+            if (crc.calc() != 0x00)
             {
                 Serial.println("Checksum invalid on EBME Packet. Initiate retransmission");
                 packetValid = false;
@@ -273,8 +273,8 @@ void loop()
             // Copy data
             memcpy(timeBuffer.buf, receiveBuffer, sizeof(timeBuffer));
             // Check if checksums match
-            crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
-            if (crc.calc() != timeBuffer.data.checksum)
+            crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer));
+            if (crc.calc() != 0x00)
             {
                 Serial.println("Checksum invalid on Time Packet. Initiate retransmission");
                 packetValid = false;
@@ -302,8 +302,8 @@ void loop()
             // Copy data
             memcpy(meteoReceiveBuffer.buf, receiveBuffer, sizeof(meteoReceiveBuffer));
             // Check if checksums match
-            crc.add((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer) - 1);
-            if (crc.calc() != meteoReceiveBuffer.data.data.checksum)
+            crc.add((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer));
+            if (crc.calc() != 0x00)
             {
                 Serial.println("Checksum invalud on Meteopacket. Initiate retransmission");
                 packetValid = false;
