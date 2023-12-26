@@ -1,83 +1,105 @@
 extern crate alloc;
 
+use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel, WeatherAdapter, BarTileModel};
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
 use core::cell::RefCell;
 use core::convert::Infallible;
+use core::fmt::Display;
+use core::time::Duration;
 use cortex_m::interrupt::Mutex;
+use cortex_m::prelude::_embedded_hal_blocking_i2c_WriteRead;
+use cortex_m::prelude::_embedded_hal_serial_Read;
 use cortex_m::singleton;
-//pub use cortex_m_rt::entry;
 use embedded_alloc::Heap;
 use embedded_hal::blocking::spi::Transfer;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
 use embedded_hal::spi::FullDuplex;
 use fugit::{Hertz, RateExtU32};
 use hal::dma::{DMAExt, SingleChannel, WriteTarget};
+use hal::uart::DataBits;
+use hal::uart::StopBits;
+use heapless::spsc::Queue;
 use renderer::Rgb565Pixel;
-use rp_pico::hal::gpio::{self, Interrupt as GpioInterrupt, Pin};
+use rp_pico::hal::gpio::{self, Interrupt as GpioInterrupt};
 use rp_pico::hal::pac::interrupt;
 use rp_pico::hal::timer::{Alarm, Alarm0};
-use rp_pico::hal::{self, Clock, pac, prelude::*, Sio, Timer};
-use rp_pico::hal::gpio::DynFunction::I2c;
+use rp_pico::hal::I2C;
+use rp_pico::hal::{self, pac, prelude::*, Clock, Timer};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use rp_pico::hal::I2C;
-use rp_pico::hal::uart::Pins;
-use rp_pico::pac::{I2C0, Peripherals};
-use core::time::Duration;
-use slint::{format, SharedString, TimerMode};
-
-use crate::{AppWindow, display_interface_spi, xpt2046};
-use crate::xpt2046::XPT2046;
+use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
 
 #[cfg(feature = "panic-probe")]
-extern crate defmt;
+use defmt::*;
+use st7789::Orientation;
+
+use crate::xpt2046::XPT2046;
+use crate::{display_interface_spi, xpt2046, AppWindow};
+
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
 #[cfg(feature = "panic-probe")]
 extern crate panic_probe;
 
+// *** Allocator ***
 const HEAP_SIZE: usize = 200 * 1024;
 static mut HEAP: [u8; HEAP_SIZE] = [0; HEAP_SIZE];
-
 #[global_allocator]
 static ALLOCATOR: Heap = Heap::empty();
 
-type IrqPin = gpio::Pin<gpio::bank0::Gpio17, gpio::FunctionSio<gpio::SioInput>, gpio::PullUp>;
-static IRQ_PIN: Mutex<RefCell<Option<IrqPin>>> = Mutex::new(RefCell::new(None));
-
-static ALARM0: Mutex<RefCell<Option<Alarm0>>> = Mutex::new(RefCell::new(None));
-static TIMER: Mutex<RefCell<Option<Timer>>> = Mutex::new(RefCell::new(None));
-
-// 16ns for serial clock cycle (write), page 43 of https://www.waveshare.com/w/upload/a/ae/ST7789_Datasheet.pdf
+// berechnet nach der minimalen Zeit eines Schreibzyklus (siehe S.43) https://www.waveshare.com/w/upload/a/ae/ST7789_Datasheet.pdf
 const SPI_ST7789VW_MAX_FREQ: Hertz<u32> = Hertz::<u32>::Hz(62_500_000);
 
 const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
 
-/// The Pixel type of the backing store
-pub type TargetPixel = Rgb565Pixel;
+const DISPLAY_ORIENTATION: Orientation = Orientation::LandscapeSwapped;
 
+const UART_RX_QUEUE_MAX_SIZE: usize = 256;
+
+pub type TargetPixel = Rgb565Pixel;
+type IrqPin = gpio::Pin<gpio::bank0::Gpio17, gpio::FunctionSio<gpio::SioInput>, gpio::PullUp>;
 type SpiPins = (
     gpio::Pin<gpio::bank0::Gpio11, gpio::FunctionSpi, gpio::PullDown>,
     gpio::Pin<gpio::bank0::Gpio12, gpio::FunctionSpi, gpio::PullDown>,
     gpio::Pin<gpio::bank0::Gpio10, gpio::FunctionSpi, gpio::PullDown>,
 );
-
+type UartPins = (
+    gpio::Pin<gpio::bank0::Gpio0, gpio::FunctionUart, gpio::PullNone>,
+    gpio::Pin<gpio::bank0::Gpio1, gpio::FunctionUart, gpio::PullNone>,
+);
+type I2CPins = (
+    gpio::Pin<gpio::bank0::Gpio20, gpio::FunctionI2C, gpio::PullUp>,
+    gpio::Pin<gpio::bank0::Gpio21, gpio::FunctionI2C, gpio::PullUp>,
+);
 type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
+type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
+type EnabledI2C = I2C<pac::I2C0, I2CPins>;
+
+static ALARM0: Mutex<RefCell<Option<Alarm0>>> = Mutex::new(RefCell::new(None));
+static TIMER: Mutex<RefCell<Option<Timer>>> = Mutex::new(RefCell::new(None));
+static IRQ_PIN: Mutex<RefCell<Option<IrqPin>>> = Mutex::new(RefCell::new(None));
+static GLOBAL_UART: Mutex<RefCell<Option<EnabledUart>>> = Mutex::new(RefCell::new(None));
+static GLOBAL_I2C: Mutex<RefCell<Option<EnabledI2C>>> = Mutex::new(RefCell::new(None));
+static UART_RX_QUEUE: UartQueueRx =
+    UartQueueRx { mutex_cell_rx: Mutex::new(RefCell::new(Queue::new())) };
 
 #[derive(Clone)]
 struct SharedSpiWithFreq {
     mutex: &'static shared_bus::NullMutex<(EnabledSpi, Hertz<u32>)>,
     freq: Hertz<u32>,
 }
+struct UartQueueRx {
+    mutex_cell_rx: Mutex<RefCell<Queue<u8, UART_RX_QUEUE_MAX_SIZE>>>,
+}
 
 impl SharedSpiWithFreq {
     fn lock<R, F: FnOnce(&mut EnabledSpi) -> R>(&self, f: F) -> R {
         self.mutex.lock(|(spi, old_freq)| {
             if *old_freq != self.freq {
-                // the touchscreen and the LCD have different frequencies
+                //Touch und Display-Ansteuerung brauchen verschiedene Baudraten...
                 spi.set_baudrate(125_000_000u32.Hz(), self.freq);
                 *old_freq = self.freq;
             }
@@ -85,7 +107,6 @@ impl SharedSpiWithFreq {
         })
     }
 }
-
 impl Transfer<u8> for SharedSpiWithFreq {
     type Error = <EnabledSpi as Transfer<u8>>::Error;
 
@@ -94,7 +115,234 @@ impl Transfer<u8> for SharedSpiWithFreq {
     }
 }
 
+//TODO Wird diese impl noch benötigt? Eventuell entfernen?
+impl UartQueueRx {
+    fn read_byte(&self) -> Option<u8> {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let mut queue = cell_queue.borrow_mut();
+            queue.dequeue()
+        })
+    }
+    fn peek_byte(&self) -> Option<u8> {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let queue = cell_queue.borrow_mut();
+            queue.peek().cloned()
+        })
+    }
+    fn len(&self) -> usize {
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = self.mutex_cell_rx.borrow(cs);
+            let queue = cell_queue.borrow_mut();
+            queue.len()
+        })
+    }
+}
+
+enum WeatherType {
+    Error,
+    Sonnig,
+    Klar,
+    LeichtBewölkt,
+    VorwiegendBewölkt,
+    Bedeckt,
+    Hochnebel,
+    Nebel,
+    Regenschauer,
+    LeichterRegen,
+    StarkerRegen,
+    FrontenGewitter,
+    WärmeGewitter,
+    SchneeregenSchauer,
+    Schneeschauer,
+    Schneeregen,
+    Schneefall,
+    //Extrema
+    GroßeHitze,
+    DichterNebel,
+    KurzerStarkregen,
+    ExtremeNiederschläge,
+    StarkeGewitter,
+    StarkeNiederschläge,
+
+    //Schweres Wetter
+    Sturm(Box<WeatherType>, bool, bool), //(Grundwetter, Tag, Nacht)
+    Böen(Box<WeatherType>, bool), //(Grundwetter, Tag)
+    Eisregen(Box<WeatherType>, bool, bool), //(Grundwetter, Vormittag, Nachmittag)
+    Feinstaub(Box<WeatherType>), //(Grundwetter)
+    Ozon(Box<WeatherType>), //(Grundwetter)
+    Radiation(Box<WeatherType>), //(Grundwetter)
+    Hochwasser(Box<WeatherType>), //(Grundwetter)
+
+}
+
+impl Display for WeatherType {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            WeatherType::Error => core::write!(f, "Error"),
+            WeatherType::Sonnig => core::write!(f, "Sonnig"),
+            WeatherType::Klar => core::write!(f, "Klar"),
+            WeatherType::LeichtBewölkt => core::write!(f, "Leicht Bewölkt"),
+            WeatherType::VorwiegendBewölkt => core::write!(f, "Vorwiegend Bewölkt"),
+            WeatherType::Bedeckt => core::write!(f, "Bedeckt"),
+            WeatherType::Hochnebel => core::write!(f, "Hochnebel"),
+            WeatherType::Nebel => core::write!(f, "Nebel"),
+            WeatherType::Regenschauer => core::write!(f, "Regenschauer"),
+            WeatherType::LeichterRegen => core::write!(f, "Leichter Regen"),
+            WeatherType::StarkerRegen => core::write!(f, "Starker Regen"),
+            WeatherType::FrontenGewitter => core::write!(f, "Frontengewitter"),
+            WeatherType::WärmeGewitter => core::write!(f, "Wärmegewitter"),
+            WeatherType::SchneeregenSchauer => core::write!(f, "Schneeregenschauer"),
+            WeatherType::Schneeschauer => core::write!(f, "Schneeschauer"),
+            WeatherType::Schneeregen => core::write!(f, "Schneeregen"),
+            WeatherType::Schneefall => core::write!(f, "Schneefall"),
+            WeatherType::GroßeHitze => core::write!(f, "Große Hitze"),
+            WeatherType::DichterNebel => core::write!(f, "Dichter Nebel"),
+            WeatherType::KurzerStarkregen => core::write!(f, "Kurzer Starkregen"),
+            WeatherType::ExtremeNiederschläge => core::write!(f, "Extreme Niederschläge"),
+            WeatherType::StarkeGewitter => core::write!(f, "Starke Gewitter"),
+            WeatherType::StarkeNiederschläge => core::write!(f, "Starke Niederschläge"),
+            WeatherType::Sturm(wetter, tag, nacht) => {
+                if *tag {
+                    if *nacht {
+                        core::write!(f, "Sturm 24h + {}", wetter)
+                    } else {
+                        core::write!(f, "Sturm Tag + {}", wetter)
+                    }
+                } else {
+                    core::write!(f, "Sturm Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Böen(wetter, tag) => {
+                if *tag {
+                    core::write!(f, "Böen Tag + {}", wetter)
+                } else {
+                    core::write!(f, "Böen Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Eisregen(wetter, vormittag, nachmittag) => {
+                if *vormittag {
+                    core::write!(f, "Eisregen Vormittag + {}", wetter)
+                } else if *nachmittag {
+                    core::write!(f, "Eisregen Nachmittag + {}", wetter)
+                } else {
+                    core::write!(f, "Eisregen Nacht + {}", wetter)
+                }
+            },
+            WeatherType::Feinstaub(wetter) => {
+                core::write!(f, "Feinstaub + {}", wetter)
+            },
+            WeatherType::Ozon(wetter) => {
+                core::write!(f, "Ozon + {}", wetter)
+            },
+            WeatherType::Radiation(wetter) => {
+                core::write!(f, "Radiation + {}", wetter)
+            },
+            WeatherType::Hochwasser(wetter) => {
+                core::write!(f, "Hochwasser + {}", wetter)
+            },
+        }
+    }
+}
+
+fn get_extrem_weather_type(weather: WeatherType) -> WeatherType {
+    match weather {
+        WeatherType::Sonnig => WeatherType::GroßeHitze,
+        WeatherType::Nebel => WeatherType::DichterNebel,
+        WeatherType::Regenschauer => WeatherType::KurzerStarkregen,
+        WeatherType::StarkerRegen => WeatherType::ExtremeNiederschläge,
+        WeatherType::FrontenGewitter => WeatherType::StarkeGewitter,
+        WeatherType::SchneeregenSchauer => WeatherType::StarkeNiederschläge,
+        WeatherType::Schneeregen => WeatherType::StarkeNiederschläge,
+        WeatherType::Schneefall => WeatherType::StarkeNiederschläge,
+        _ => weather,
+    }
+}
+fn get_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) -> WeatherType {
+    //u8 day_weather, u8 night_weather, u8 extrema, u8 rainfall, u8 anomaly, u8 temperature
+    let weather_type = match weather {
+        1 => {
+            if is_day {WeatherType::Sonnig} else {WeatherType::Klar}
+        },
+        2 => WeatherType::LeichtBewölkt,
+        3 => WeatherType::VorwiegendBewölkt,
+        4 => WeatherType::Bedeckt,
+        5 => WeatherType::Hochnebel,
+        6 => WeatherType::Nebel,
+        7 => WeatherType::Regenschauer,
+        8 => WeatherType::LeichterRegen,
+        9 => WeatherType::StarkerRegen,
+        10 => WeatherType::FrontenGewitter,
+        11 => WeatherType::WärmeGewitter,
+        12 => WeatherType::SchneeregenSchauer,
+        13 => WeatherType::Schneeschauer,
+        14 => WeatherType::Schneeregen,
+        15 => WeatherType::Schneefall,
+        _ => WeatherType::Error,
+    };
+
+    debug!("vorläufiges Wetter: {}", Display2Format(&weather_type));
+
+    if !anomaly {
+        match extrema {
+            0 => weather_type, //Kein Extremwetter
+            1 => { //24h Extremwetter
+                get_extrem_weather_type(weather_type)
+            },
+            2 => { //Nur am Tag Extremwetter
+                if is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+            },
+            3 => { //Nur in der Nacht Extremwetter
+                if !is_day {get_extrem_weather_type(weather_type)} else {weather_type}
+            },
+            4  => {
+                WeatherType::Sturm(Box::from(weather_type), true, true)
+            },
+            5  => {
+                WeatherType::Sturm(Box::from(weather_type), true, false)
+            },
+            6  => {
+                WeatherType::Sturm(Box::from(weather_type), false, true)
+            },
+            7  => {
+                WeatherType::Böen(Box::from(weather_type), true)
+            },
+            8  => {
+                WeatherType::Böen(Box::from(weather_type), false)
+            },
+            9  => {
+                WeatherType::Eisregen(Box::from(weather_type), true, false)
+            },
+            10  => {
+                WeatherType::Eisregen(Box::from(weather_type), false, true)
+            },
+            11  => {
+                WeatherType::Eisregen(Box::from(weather_type), false, false)
+            },
+            12  => {
+                WeatherType::Feinstaub(Box::from(weather_type))
+            },
+            13  => {
+                WeatherType::Ozon(Box::from(weather_type))
+            },
+            14  => {
+                WeatherType::Radiation(Box::from(weather_type))
+            },
+            15  => {
+                WeatherType::Hochwasser(Box::from(weather_type))
+            }
+            //TODO Weitere Extremwetter hinzufügen
+            _ => WeatherType::Error
+        }
+    } else {
+        //TODO Extremwetter für anomaly = 1 hinzufügen
+        weather_type
+    }
+}
+
 pub fn init() {
+    // *** Zugriff auf Systemressourcen übernehmen ***
     let mut pac = pac::Peripherals::take().unwrap();
     let core = pac::CorePeripherals::take().unwrap();
 
@@ -108,8 +356,8 @@ pub fn init() {
         &mut pac.RESETS,
         &mut watchdog,
     )
-        .ok()
-        .unwrap();
+    .ok()
+    .unwrap();
 
     unsafe { ALLOCATOR.init(&mut HEAP as *const u8 as usize, core::mem::size_of_val(&HEAP)) }
 
@@ -118,11 +366,13 @@ pub fn init() {
     let sio = hal::sio::Sio::new(pac.SIO);
     let pins = rp_pico::Pins::new(pac.IO_BANK0, pac.PADS_BANK0, sio.gpio_bank0, &mut pac.RESETS);
 
-    let rst = pins.gpio15.into_push_pull_output();
-    let bl = pins.gpio13.into_push_pull_output();
+    // *** Pins und benötigte Schnittstellen konfigurieren ***
 
-    let dc = pins.gpio8.into_push_pull_output();
-    let cs = pins.gpio9.into_push_pull_output();
+    let rst = pins.gpio15.into_push_pull_output(); //Reset
+    let bl = pins.gpio13.into_push_pull_output(); //Backlight
+
+    let dc = pins.gpio8.into_push_pull_output(); //Data/Command
+    let cs = pins.gpio9.into_push_pull_output(); //Display-Chipselect
 
     let spi_sclk = pins.gpio10.into_function::<gpio::FunctionSpi>();
     let spi_mosi = pins.gpio11.into_function::<gpio::FunctionSpi>();
@@ -133,10 +383,9 @@ pub fn init() {
         &mut pac.RESETS,
         clocks.peripheral_clock.freq(),
         SPI_ST7789VW_MAX_FREQ,
-        &embedded_hal::spi::MODE_3,
+        embedded_hal::spi::MODE_3,
     );
 
-    // SAFETY: This is not safe :-(  But we need to access the SPI and its control pins for the PIO
     let (dc_copy, cs_copy) =
         unsafe { (core::ptr::read(&dc as *const _), core::ptr::read(&cs as *const _)) };
     let stolen_spi = unsafe { core::ptr::read(&spi as *const _) };
@@ -156,7 +405,7 @@ pub fn init() {
         DISPLAY_SIZE.height as _,
     );
     display.init(&mut delay).unwrap();
-    display.set_orientation(st7789::Orientation::LandscapeSwapped).unwrap();
+    display.set_orientation(DISPLAY_ORIENTATION).unwrap();
 
     let touch_irq = pins.gpio17.into_pull_up_input();
     touch_irq.set_interrupt_enabled(GpioInterrupt::LevelLow, true);
@@ -168,8 +417,9 @@ pub fn init() {
         &IRQ_PIN,
         pins.gpio16.into_push_pull_output(),
         SharedSpiWithFreq { mutex: spi_mutex, freq: xpt2046::SPI_FREQ },
+        DISPLAY_ORIENTATION,
     )
-        .unwrap();
+    .unwrap();
 
     let mut timer = Timer::new(pac.TIMER, &mut pac.RESETS, &clocks);
     let mut alarm0 = timer.alarm_0().unwrap();
@@ -198,56 +448,305 @@ pub fn init() {
         stolen_pin: (dc_copy, cs_copy),
     };
 
+    let _i2c_sda: gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio20.reconfigure();
+    let _i2c_scl: gpio::Pin<_, gpio::FunctionI2C, gpio::PullUp> = pins.gpio21.reconfigure();
+
+    let i2c = I2C::new_controller(
+        pac.I2C0,
+        _i2c_sda,
+        _i2c_scl,
+        100.kHz(),
+        &mut pac.RESETS,
+        clocks.system_clock.freq(),
+    );
+
+    cortex_m::interrupt::free(|cs| {
+        GLOBAL_I2C.borrow(cs).replace(Some(i2c));
+    });
+
+    let uart_pins = (
+        pins.gpio0.reconfigure::<gpio::FunctionUart, gpio::PullNone>(),
+        pins.gpio1.reconfigure::<gpio::FunctionUart, gpio::PullNone>(),
+    );
+
+    let mut uart = hal::uart::UartPeripheral::new(pac.UART0, uart_pins, &mut pac.RESETS)
+        .enable(
+            hal::uart::UartConfig::new(115200.Hz(), DataBits::Eight, None, StopBits::One),
+            clocks.peripheral_clock.freq(),
+        )
+        .unwrap();
+
+    unsafe {
+        //UART Interrupt aktivieren
+        pac::NVIC::unmask(pac::Interrupt::UART0_IRQ);
+    }
+
+    uart.enable_rx_interrupt(); //IRQ wenn Platz im TX Buffer
+    cortex_m::interrupt::free(|cs| {
+        GLOBAL_UART.borrow(cs).replace(Some(uart)); //Ab jetzt kein Zugriff mehr aus Main...
+    });
+
     slint::platform::set_platform(Box::new(PicoBackend {
         window: Default::default(),
         buffer_provider: buffer_provider.into(),
         touch: touch.into(),
-    })).expect("backend already initialized");
-
+    }))
+    .expect("backend already initialized");
 }
 
-pub unsafe fn init_timers(ui_handle: slint::Weak<AppWindow>) {
-
-    let mut pac = pac::Peripherals::steal();
-
-    let mut watchdog = hal::Watchdog::new(pac.WATCHDOG);
-    let clocks = hal::clocks::init_clocks_and_plls(
-        rp_pico::XOSC_CRYSTAL_FREQ,
-        pac.XOSC,
-        pac.CLOCKS,
-        pac.PLL_SYS,
-        pac.PLL_USB,
-        &mut pac.RESETS,
-        &mut watchdog,
-    ).ok().unwrap();
-
-    //let sio = hal::sio::Sio::new(pac.SIO);
-    //let pins = rp_pico::Pins::new(pac.IO_BANK0, pac.PADS_BANK0, sio.gpio_bank0, &mut pac.RESETS);
-
-
-    /*
-
-    let timer = slint::Timer::default();
+pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
+    let timer: slint::Timer = slint::Timer::default();
     let mut time: [u8; 7] = [0u8; 7];
-    //let mut control: [u8; 2] = [0u8; 2];
-    timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
-        //i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
-        //i2c.write_read(0x68, &[0x0eu8], &mut control).expect("I2C Fehler");
-        /*
-            info!(
-                "{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}",
-                time[2], time[1], time[0], time[4], time[5], time[6]
-            );
 
-         */
-        let ui = ui_handle.unwrap();
-        let time_str: SharedString = SharedString::from(slint::format!("{:02x}:{:02x}:{:02x}", time[2], time[1], time[0]));
-        let date_str: SharedString = SharedString::from(slint::format!("{:02x}.{:02x}.20{:02x}", time[4], time[5], time[6]));
-        ui.set_time(time_str);
-        ui.set_date(date_str);
+    let id_ibme = [
+        u8::try_from('I').unwrap(),
+        u8::try_from('B').unwrap(),
+        u8::try_from('M').unwrap(),
+        u8::try_from('E').unwrap(),
+    ];
+    let id_ebme = [
+        u8::try_from('E').unwrap(),
+        u8::try_from('B').unwrap(),
+        u8::try_from('M').unwrap(),
+        u8::try_from('E').unwrap(),
+    ];
+    let id_co2 = [
+        u8::try_from('C').unwrap(),
+        u8::try_from('O').unwrap(),
+        u8::try_from('2').unwrap(),
+        u8::try_from('.').unwrap(),
+    ];
+    let id_time = [
+        u8::try_from('T').unwrap(),
+        u8::try_from('I').unwrap(),
+        u8::try_from('M').unwrap(),
+        u8::try_from('E').unwrap(),
+    ];
+    let id_meteo = [
+        u8::try_from('M').unwrap(),
+        u8::try_from('T').unwrap(),
+        u8::try_from('E').unwrap(),
+        u8::try_from('O').unwrap(),
+    ];
+
+    timer.start(TimerMode::Repeated, Duration::from_millis(1000), move || {
+        let ui = ui_handle.upgrade().unwrap();
+
+        let overview_adapter = ui.global::<OverviewAdapter>();
+        let time_adapter = ui.global::<TimeAdapter>();
+        let weather_adapter = ui.global::<WeatherAdapter>();
+
+        static mut I2C: Option<EnabledI2C> = None;
+        unsafe {
+            if I2C.is_none() {
+                cortex_m::interrupt::free(|cs| {
+                    I2C = GLOBAL_I2C.borrow(cs).take();
+                });
+            }
+            if let Some(i2c) = &mut I2C {
+
+                i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
+                //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
+
+                //TODO ebenfalls unnötige .into() hier, nach Linter-Update entfernen
+                let weekday: SharedString = match time[3] {
+                    1 => "Mo".into(),
+                    2 => "Di".into(),
+                    3 => "Mi".into(),
+                    4 => "Do".into(),
+                    5 => "Fr".into(),
+                    6 => "Sa".into(),
+                    7 => "So".into(),
+                    _ => {
+                        warn!("Ungültiger Wochentag!");
+                        "Mo".into()
+                    }
+                };
+                //TODO Makro oder impl für diese Umwandlung?
+                let mut current_time: TimeModel = time_adapter.get_time(); //(i >> 4) * 10 + (i & 0xF)
+                current_time.hours = ((time[2] >> 4) * 10 + (time[2] & 0xF)) as i32;
+                current_time.minutes = ((time[1] >> 4) * 10 + (time[1] & 0xF)) as i32;
+                current_time.seconds = ((time[0] >> 4) * 10 + (time[0] & 0xF)) as i32;
+
+                let mut current_date: DateModel = time_adapter.get_date();
+                current_date.day = ((time[4] >> 4) * 10 + (time[4] & 0xF)) as i32;
+                current_date.month = ((time[5] >> 4) * 10 + (time[5] & 0xF)) as i32;
+                current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
+                current_date.weekday = weekday;
+
+                time_adapter.set_time(current_time);
+                time_adapter.set_date(current_date);
+
+                let weekdays = match time_adapter.get_date().weekday.as_str() {
+                    "Mo" => ("Montag", "Di", "Mi", "Do"),
+                    "Di" => ("Dienstag", "Mi", "Do", "Fr"),
+                    "Mi" => ("Mittwoch", "Do", "Fr", "Sa"),
+                    "Do" => ("Donnerstag", "Fr", "Sa", "So"),
+                    "Fr" => ("Freitag", "Sa", "So", "Mo"),
+                    "Sa" => ("Samstag", "So", "Mo", "Di"),
+                    _ => ("Sonntag", "Mo", "Di", "Mi"),
+                };
+
+                weather_adapter.set_current_day(weekdays.0.into());
+                let week = weather_adapter.get_week_model();
+                let week_model = week.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("muss gehen");
+                let mut first_day = week_model.row_data(0).unwrap();
+                let mut second_day = week_model.row_data(1).unwrap();
+                let mut third_day = week_model.row_data(2).unwrap();
+
+                first_day.title = weekdays.1.into();
+                second_day.title = weekdays.2.into();
+                third_day.title = weekdays.3.into();
+
+                week_model.set_row_data(0, first_day);
+                week_model.set_row_data(1, second_day);
+                week_model.set_row_data(2, third_day);
+            } else {
+                warn!("I2C nicht initialisiert!");
+            }
+        }
+
+        cortex_m::interrupt::free(|cs| {
+            let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
+            let mut queue = cell_queue.borrow_mut();
+
+            let mut count = 0;
+            let mut data: [u8; UART_RX_QUEUE_MAX_SIZE] = [0u8; UART_RX_QUEUE_MAX_SIZE];
+            while let Some(byte) = queue.dequeue() {
+                //info!("Byte empfangen: {}", byte);
+                if count >= data.len() {
+                    //Bei einem Overflow Fehlermeldung ausgeben
+                    warn!("Maximale Länge eines UART-Telegramms überschritten! count = {}; max_len = {}", count, data.len());
+                } else {
+                    data[count] = byte;
+                    count += 1;
+                }
+            }
+            if count > 0 {
+                info!("");
+                let temperature_modelrc: ModelRc<Value> = overview_adapter.get_temperature_model();
+                let humidity_modelrc: ModelRc<Value> = overview_adapter.get_humidity_model();
+                let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
+
+                let temp_mod = temperature_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                let humi_mod = humidity_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                let pres_mod = pressure_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+
+                //info!("count: {}", count);
+
+                if let Some(ibme_start) = find_identifier::<u8>(&data, &id_ibme) {
+                    info!("Internes Paket");
+                    let temperature: f32 = data.to_f32(ibme_start);
+                    let humidity: f32 = data.to_f32(ibme_start + 4);
+                    let pressure: f32 = data.to_f32(ibme_start + 8);
+
+                    let mut temp_data = temp_mod.row_data(0).unwrap();
+                    let mut humi_data = humi_mod.row_data(0).unwrap();
+                    let mut pres_data = pres_mod.row_data(0).unwrap();
+
+                    temp_data.value = temperature;
+                    humi_data.value = humidity;
+                    pres_data.value = pressure;
+
+                    temp_mod.set_row_data(0, temp_data);
+                    humi_mod.set_row_data(0, humi_data);
+                    pres_mod.set_row_data(0, pres_data);
+                }
+                if let Some(co2_start) = find_identifier::<u8>(&data, &id_co2) {
+                    let co2: i16 = data.to_i16(co2_start);
+                    match co2 {
+                        -1 => warn!("Ungültiger CO2 Wert"),
+                        co2 => {
+                            info!("co2: {}ppm", co2);
+                            //TODO neue GUI anbinden
+                        }
+                    };
+
+
+                }
+                if let Some(ebme_start) = find_identifier::<u8>(&data, &id_ebme) {
+                    info!("Externes Paket");
+                    let temperature: f32 = data.to_f32(ebme_start);
+                    let humidity: f32 = data.to_f32(ebme_start + 4);
+                    //let _pressure: f32 = data.to_f32(ebme_start + 8);
+
+                    let mut temp_data = temp_mod.row_data(1).unwrap();
+                    let mut humi_data = humi_mod.row_data(1).unwrap();
+
+                    temp_data.value = temperature;
+                    humi_data.value = humidity;
+
+                    temp_mod.set_row_data(1, temp_data);
+                    humi_mod.set_row_data(1, humi_data);
+                }
+                if let Some(time_start) = find_identifier::<u8>(&data, &id_time) {
+                    let hour: u8 = data[time_start];
+                    let minute: u8 = data[time_start + 1];
+                    let second: u8 = data[time_start + 2];
+                    let year: i16 = data.to_i16(time_start + 3);
+                    let month: u8 = data[time_start + 5];
+                    let day: u8 = data[time_start + 6];
+
+                    info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
+                }
+                if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
+                    let data = data.to_u32(meteo_start);
+                    info!("Meteo Paket {:#b}", data);
+                    let day_weather: u8 = (data & 0x0f) as u8; //Bit 0-3
+                    let night_weather: u8 = ((data & 0xf0) >> 4) as u8; //Bit 4-7
+                    let extrema: u8 = ((data & 0x0f_00) >> 8) as u8; //Bit 8-11
+                    let rainfall = (data & 0x70_00) >> 12; //Bit 12-14
+                    let anomaly = !matches!(data & 0x80_00, 0); //Bit 15
+                    let temperature = -22i32 + ((data & 0x3f_00_00) >> 16) as i32; //Bit 16-21
+                    //TODO weitere Inhalte des Structs auslesen
+
+                    let day = get_weather_type(day_weather, extrema, true, anomaly);
+                    let night = get_weather_type(night_weather, extrema, false, anomaly);
+                    info!("day: {} {}", defmt::Display2Format(&day), day_weather);
+                    info!("night: {} {}", defmt::Display2Format(&night), night_weather);
+                }
+            }
+        });
     });
 
-     */
+    timer
+}
+
+trait NumbersFromSlice<T: PartialEq + Sized = Self> {
+    fn to_f32(&self, start_index: usize) -> f32;
+    fn to_i16(&self, start_index: usize) -> i16;
+    fn to_u16(&self, start_index: usize) -> u16;
+    fn to_u32(&self, start_index: usize) -> u32;
+}
+
+impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
+    fn to_f32(&self, start_index: usize) -> f32 {
+        f32::from_be_bytes([
+            self[start_index + 3],
+            self[start_index + 2],
+            self[start_index + 1],
+            self[start_index],
+        ])
+    }
+    fn to_i16(&self, start_index: usize) -> i16 {
+        i16::from_be_bytes([self[start_index + 1], self[start_index]])
+    }
+    fn to_u16(&self, start_index: usize) -> u16 {
+        u16::from_be_bytes([self[start_index + 1], self[start_index]])
+    }
+    fn to_u32(&self, start_index: usize) -> u32 {
+        u32::from_be_bytes([self[start_index + 3], self[start_index + 2], self[start_index + 1], self[start_index]])
+    }
+}
+
+fn find_identifier<T>(haystack: &[T], needle: &[T]) -> Option<usize>
+where
+    for<'a> &'a [T]: PartialEq,
+{
+    haystack
+        .windows(needle.len())
+        .position(|window| window == needle)
+        .map(|index| index + needle.len())
 }
 
 struct PicoBackend<DrawBuffer, Touch> {
@@ -255,23 +754,22 @@ struct PicoBackend<DrawBuffer, Touch> {
     buffer_provider: RefCell<DrawBuffer>,
     touch: RefCell<Touch>,
 }
-
 impl<
-    DI: display_interface::WriteOnlyDataCommand,
-    RST: OutputPin<Error = Infallible>,
-    BL: OutputPin<Error = Infallible>,
-    TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
-    CH: SingleChannel,
-    DC_: OutputPin<Error = Infallible>,
-    CS_: OutputPin<Error = Infallible>,
-    IRQ: InputPin<Error = Infallible>,
-    CS: OutputPin<Error = Infallible>,
-    SPI: Transfer<u8>,
-> slint::platform::Platform
-for PicoBackend<
-    DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>,
-    xpt2046::XPT2046<IRQ, CS, SPI>,
->
+        DI: display_interface::WriteOnlyDataCommand,
+        RST: OutputPin<Error = Infallible>,
+        BL: OutputPin<Error = Infallible>,
+        TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
+        CH: SingleChannel,
+        DC_: OutputPin<Error = Infallible>,
+        CS_: OutputPin<Error = Infallible>,
+        IRQ: InputPin<Error = Infallible>,
+        CS: OutputPin<Error = Infallible>,
+        SPI: Transfer<u8>,
+    > slint::platform::Platform
+    for PicoBackend<
+        DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>,
+        XPT2046<IRQ, CS, SPI>,
+    >
 {
     fn create_window_adapter(
         &self,
@@ -310,7 +808,7 @@ for PicoBackend<
                             (point.x * DISPLAY_SIZE.width as f32) as _,
                             (point.y * DISPLAY_SIZE.height as f32) as _,
                         )
-                            .to_logical(window.scale_factor());
+                        .to_logical(window.scale_factor());
                         match last_touch.replace(position) {
                             Some(_) => WindowEvent::PointerMoved { position },
                             None => WindowEvent::PointerPressed { position, button },
@@ -327,25 +825,27 @@ for PicoBackend<
 
                     window.dispatch_event(event);
 
-                    // removes hover state on widgets
+                    //Eventuellen Hover-State über Widgets zurücknehmen
                     if is_pointer_release_event {
                         window.dispatch_event(WindowEvent::PointerExited);
                     }
-                    // Don't go to sleep after a touch event that forces a redraw
+                    //Nach Touch-Input keinen Sleep auslösen
                     continue;
                 }
 
                 if window.has_active_animations() {
+                    //Bei laufenden Animationen keinen Sleep auslösen
                     continue;
                 }
             }
 
+            //voraussichtliche wfe-Zeit berechnen 💤
             let sleep_duration = match slint::platform::duration_until_next_timer_update() {
                 None => None,
                 Some(d) => {
                     let micros = d.as_micros() as u32;
                     if micros < 10 {
-                        // Cannot wait for less than 10µs, or `schedule()` panics
+                        //Wenn man weniger als 10µs schlafen will, merk es dir mit einem REIM, NEIN!
                         continue;
                     } else {
                         Some(fugit::MicrosDurationU32::micros(micros))
@@ -353,6 +853,7 @@ for PicoBackend<
                 }
             };
 
+            //Gute Nacht 😴💤
             cortex_m::interrupt::free(|cs| {
                 if let Some(duration) = sleep_duration {
                     ALARM0.borrow(cs).borrow_mut().as_mut().unwrap().schedule(duration).unwrap();
@@ -369,16 +870,16 @@ for PicoBackend<
         }
     }
 
-    fn duration_since_start(&self) -> core::time::Duration {
+    fn duration_since_start(&self) -> Duration {
         let counter = cortex_m::interrupt::free(|cs| {
             TIMER.borrow(cs).borrow().as_ref().map(|t| t.get_counter().ticks()).unwrap_or_default()
         });
-        core::time::Duration::from_micros(counter)
+        Duration::from_micros(counter)
     }
 
     fn debug_log(&self, arguments: core::fmt::Arguments) {
-        use alloc::string::ToString;
-        defmt::println!("{=str}", arguments.to_string());
+        use alloc::string::ToString; //TODO vom Linter fälschlicherweise als "unused" markiert
+        debug!("{=str}", arguments.to_string());
     }
 }
 
@@ -388,16 +889,15 @@ enum PioTransfer<TO: WriteTarget, CH: SingleChannel> {
 }
 
 impl<TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>, CH: SingleChannel>
-PioTransfer<TO, CH>
+    PioTransfer<TO, CH>
 {
     fn wait(self) -> (CH, &'static mut [TargetPixel], TO) {
         match self {
             PioTransfer::Idle(a, b, c) => (a, b, c),
             PioTransfer::Running(dma) => {
                 let (a, b, mut to) = dma.wait();
-                // After the DMA operated, we need to empty the receive FIFO, otherwise the touch screen
-                // driver will pick wrong values. Continue to read as long as we don't get a Err(WouldBlock)
-                while !to.read().is_err() {}
+                // Nach DMA Operation FIFO leeren bis zum Err(WouldBlock). Sonst macht der Touchcontroller Schwachsinn
+                while to.read().is_ok() {}
                 (a, b.0, to)
             }
         }
@@ -412,15 +912,15 @@ struct DrawBuffer<Display, PioTransfer, Stolen> {
 }
 
 impl<
-    DI: display_interface::WriteOnlyDataCommand,
-    RST: OutputPin<Error = Infallible>,
-    BL: OutputPin<Error = Infallible>,
-    TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
-    CH: SingleChannel,
-    DC_: OutputPin<Error = Infallible>,
-    CS_: OutputPin<Error = Infallible>,
-> renderer::LineBufferProvider
-for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
+        DI: display_interface::WriteOnlyDataCommand,
+        RST: OutputPin<Error = Infallible>,
+        BL: OutputPin<Error = Infallible>,
+        TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
+        CH: SingleChannel,
+        DC_: OutputPin<Error = Infallible>,
+        CS_: OutputPin<Error = Infallible>,
+    > renderer::LineBufferProvider
+    for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
 {
     type TargetPixel = TargetPixel;
 
@@ -432,7 +932,7 @@ for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)
     ) {
         render_fn(&mut self.buffer[range.clone()]);
 
-        // convert from little to big indian before sending to the DMA channel
+        // Little zu Big-Endian für DMA
         for x in &mut self.buffer[range.clone()] {
             *x = Rgb565Pixel(x.0.to_be())
         }
@@ -441,7 +941,6 @@ for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)
 
         core::mem::swap(&mut self.buffer, &mut b);
 
-        // We send empty data just to get the device in the right window
         self.display
             .set_pixels(
                 range.start as u16,
@@ -457,20 +956,18 @@ for &mut DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)
         let mut dma = hal::dma::single_buffer::Config::new(ch, PartialReadBuffer(b, range), spi);
         dma.pace(hal::dma::Pace::PreferSink);
         self.pio = Some(PioTransfer::Running(dma.start()));
-        /*let (a, b, c) = dma.start().wait();
-        self.pio = Some(PioTransfer::Idle(a, b.0, c));*/
     }
 }
 
 impl<
-    DI: display_interface::WriteOnlyDataCommand,
-    RST: OutputPin<Error = Infallible>,
-    BL: OutputPin<Error = Infallible>,
-    TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
-    CH: SingleChannel,
-    DC_: OutputPin<Error = Infallible>,
-    CS_: OutputPin<Error = Infallible>,
-> DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
+        DI: display_interface::WriteOnlyDataCommand,
+        RST: OutputPin<Error = Infallible>,
+        BL: OutputPin<Error = Infallible>,
+        TO: WriteTarget<TransmittedWord = u8> + FullDuplex<u8>,
+        CH: SingleChannel,
+        DC_: OutputPin<Error = Infallible>,
+        CS_: OutputPin<Error = Infallible>,
+    > DrawBuffer<st7789::ST7789<DI, RST, BL>, PioTransfer<TO, CH>, (DC_, CS_)>
 {
     fn flush_frame(&mut self) {
         let (ch, b, spi) = self.pio.take().unwrap().wait();
@@ -485,6 +982,7 @@ unsafe impl embedded_dma::ReadBuffer for PartialReadBuffer {
 
     unsafe fn read_buffer(&self) -> (*const <Self as embedded_dma::ReadBuffer>::Word, usize) {
         let act_slice = &self.0[self.1.clone()];
+        //TODO laut Linter kann das optimiert werden zu core::mem::size_of_val(act_slice)
         (act_slice.as_ptr() as *const u8, act_slice.len() * core::mem::size_of::<Rgb565Pixel>())
     }
 }
@@ -506,111 +1004,32 @@ fn TIMER_IRQ_0() {
     });
 }
 
-#[cfg(not(feature = "panic-probe"))]
-#[inline(never)]
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    // Safety: it's ok to steal here since we are in the panic handler, and the rest of the code will not be run anymore
-    let (mut pac, core) = unsafe { (pac::Peripherals::steal(), pac::CorePeripherals::steal()) };
+#[interrupt]
+fn UART0_IRQ() {
+    /* Dank `#[interrupt]` Makro ist ein Aufruf ohne `unsafe` möglich. Diese Funktion ist nicht eintritt-invariant / reentrant,
+     * durch die Funktionsweise des NVIC kann dieser Problemfall aber auch nie auftreten.
+     */
+    static mut UART: Option<EnabledUart> = None;
 
-    let sio = hal::sio::Sio::new(pac.SIO);
-    let pins = rp_pico::Pins::new(pac.IO_BANK0, pac.PADS_BANK0, sio.gpio_bank0, &mut pac.RESETS);
-    let mut led = pins.led.into_push_pull_output();
-    led.set_high().unwrap();
-
-    // Re-init the display
-    let mut watchdog = hal::watchdog::Watchdog::new(pac.WATCHDOG);
-    let clocks = hal::clocks::init_clocks_and_plls(
-        rp_pico::XOSC_CRYSTAL_FREQ,
-        pac.XOSC,
-        pac.CLOCKS,
-        pac.PLL_SYS,
-        pac.PLL_USB,
-        &mut pac.RESETS,
-        &mut watchdog,
-    )
-        .ok()
-        .unwrap();
-
-    let spi_sclk = pins.gpio10.into_function::<gpio::FunctionSpi>();
-    let spi_mosi = pins.gpio11.into_function::<gpio::FunctionSpi>();
-    let spi_miso = pins.gpio12.into_function::<gpio::FunctionSpi>();
-
-    let spi = hal::Spi::<_, _, _, 8>::new(pac.SPI1, (spi_mosi, spi_miso, spi_sclk));
-    let spi = spi.init(
-        &mut pac.RESETS,
-        clocks.peripheral_clock.freq(),
-        4_000_000u32.Hz(),
-        &embedded_hal::spi::MODE_3,
-    );
-
-    let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().raw());
-
-    let rst = pins.gpio15.into_push_pull_output();
-    let bl = pins.gpio13.into_push_pull_output();
-    let dc = pins.gpio8.into_push_pull_output();
-    let cs = pins.gpio9.into_push_pull_output();
-    let di = display_interface_spi::SPIInterface::new(spi, dc, cs);
-    let mut display = st7789::ST7789::new(di, Some(rst), Some(bl), 320, 240);
-
-    use core::fmt::Write;
-    use embedded_graphics::{
-        mono_font::{ascii::FONT_6X10, MonoTextStyle},
-        pixelcolor::Rgb565,
-        prelude::*,
-        text::Text,
-    };
-
-    display.init(&mut delay).unwrap();
-    display.set_orientation(st7789::Orientation::LandscapeSwapped).unwrap();
-    display.fill_solid(&display.bounding_box(), Rgb565::new(0x00, 0x25, 0xff)).unwrap();
-
-    struct WriteToScreen<'a, D> {
-        x: i32,
-        y: i32,
-        width: i32,
-        style: MonoTextStyle<'a, Rgb565>,
-        display: &'a mut D,
+    if UART.is_none() {
+        cortex_m::interrupt::free(|cs| {
+            *UART = GLOBAL_UART.borrow(cs).take();
+        });
     }
-    let mut writer = WriteToScreen {
-        x: 0,
-        y: 1,
-        width: display.bounding_box().size.width as i32 / 6 - 1,
-        style: MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE),
-        display: &mut display,
-    };
-    impl<'a, D: DrawTarget<Color = Rgb565>> Write for WriteToScreen<'a, D> {
-        fn write_str(&mut self, mut s: &str) -> Result<(), core::fmt::Error> {
-            while !s.is_empty() {
-                let (x, y) = (self.x, self.y);
-                let end_of_line = s
-                    .find(|c| {
-                        if c == '\n' || self.x > self.width {
-                            self.x = 0;
-                            self.y += 1;
-                            true
-                        } else {
-                            self.x += 1;
-                            false
-                        }
-                    })
-                    .unwrap_or(s.len());
-                let (line, rest) = s.split_at(end_of_line);
-                let sz = self.style.font.character_size;
-                Text::new(line, Point::new(x * sz.width as i32, y * sz.height as i32), self.style)
-                    .draw(self.display)
-                    .map_err(|_| core::fmt::Error)?;
-                s = rest.strip_prefix('\n').unwrap_or(rest);
-            }
-            Ok(())
+
+    if let Some(uart) = UART {
+        while let Ok(byte) = uart.read() {
+            cortex_m::interrupt::free(|cs| {
+                let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
+                let mut queue = cell_queue.borrow_mut();
+                if queue.enqueue(byte).is_err() {
+                    warn!("Fehler beim Beschreiben der RX Queue!");
+                }
+            });
         }
+    } else {
+        warn!("Uart nicht initialisiert!");
     }
-    write!(writer, "{}", info).unwrap();
-
-    loop {
-        delay.delay_ms(100);
-        led.set_low().unwrap();
-        delay.delay_ms(100);
-        led.set_high().unwrap();
-    }
+    //Durch das Event sollte der Main-Thread immer wieder aufwachen...
+    cortex_m::asm::sev();
 }

@@ -19,6 +19,8 @@
 \usepackage{listings}   % Code darstellen
 \usepackage{xcolor}     % Code farbig machen
 \usepackage{longtable}  % Tabellen mit Seitenumbruch
+\usepackage{textcomp}
+\usepackage{url}
 \usepackage[font=footnotesize, labelfont=bf]{caption}
 \usetikzlibrary{shapes,arrows}
 \pgfplotsset{compat = newest}
@@ -63,6 +65,43 @@ citecolor = black] {hyperref}
     showstringspaces=false,
     showtabs=false,                  
     tabsize=2
+}
+
+\lstset{literate=
+	{°}{{\textdegree}}1 {µ}{{\textmu}}1
+	{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+	{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+	{à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+	{À}{{\`A}}1 {È}{{\`E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+	{ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+	{Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+	{â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+	{Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+	{ã}{{\~a}}1 {ẽ}{{\~e}}1 {ĩ}{{\~i}}1 {õ}{{\~o}}1 {ũ}{{\~u}}1
+	{Ã}{{\~A}}1 {Ẽ}{{\~E}}1 {Ĩ}{{\~I}}1 {Õ}{{\~O}}1 {Ũ}{{\~U}}1
+	{œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+	{ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+	{ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {Ø}{{\O}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+	{€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+	{»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1 
+}
+
+\lstdefinelanguage{slint}{
+	morekeywords={export, component, global, struct, inherits},
+	sensitive=true,
+	morecomment=[l]{//}, % line comment
+	morecomment=[s]{/*}{*/}, % start delimiter, end delimiter
+	morestring=[b]", % string quotes
+	morestring=[d]',
+}
+
+\lstdefinelanguage{rust}{
+	morekeywords={export, global, struct, loop, for, while, do, if, else, let, match, const, continue, break, None, Some, Option},
+	sensitive=false,
+	morecomment=[l]{//}, % line comment
+	morecomment=[n]{/*}{*/}, % start delimiter, end delimiter, nested
+	morestring=[b]", % string quotes
+	morestring=[d]',
 }
 
 \lstset{style=mystyle}
@@ -117,36 +156,36 @@ citecolor = black] {hyperref}
 %Titelseite
 \begin{titlepage}
 
-\begin{figure}
- \centering
- \includegraphics[height=2.5cm]{HAWLogo}
-\end{figure}
+  \begin{figure}
+    \centering
+    \includegraphics[height=2.5cm]{HAWLogo}
+  \end{figure}
 
-\vspace*{2cm}
-\centering
-{\scshape\Large Bussysteme und Sensorik \par}
-\vspace{1cm}
-{\scshape\LARGE Entwicklung eines Hubs zur Erfassung und graphischen Darstellung von Sensordaten \par}
-\vspace{0.5cm}
-{\scshape\large Wintersemester 2023/2024 \par}
-\vspace{5cm}
+  \vspace*{2cm}
+  \centering
+  {\scshape\Large Bussysteme und Sensorik \par}
+  \vspace{1cm}
+  {\scshape\LARGE Entwicklung eines Hubs zur Erfassung und graphischen Darstellung von Sensordaten \par}
+  \vspace{0.5cm}
+  {\scshape\large Wintersemester 2023/2024 \par}
+  \vspace{5cm}
 
-\raggedright
-Ausarbeitung von:
+  \raggedright
+  Ausarbeitung von:
 
-\vspace{0.5cm}
-Lasse Kelling \\
-123456 % matnr
+  \vspace{0.5cm}
+  Lasse Kelling \\
+  2590639
 
-\vspace{0.2cm}
-Fabian Schmalenbach \\
-2514071
+  \vspace{0.2cm}
+  Fabian Schmalenbach \\
+  2514071
 
-\vspace{0.5cm}
-Abgabedatum: 24.06.2023
+  \vspace{0.5cm}
+  Abgabedatum: 24.01.2024
 
-\vspace{0.5cm}
-Prüfer: Prof. Dr. R. Fitz
+  \vspace{0.5cm}
+  Prüfer: Prof. Dr. R. Fitz
 
 
 
@@ -163,49 +202,402 @@ Prüfer: Prof. Dr. R. Fitz
 \section{Projektbeschreibung}
 \label{sub:projektbeschreibung}
 
-Ziel des Projekts ist die Entwicklung eines Sensorhubs, der mehrere Sensordaten erfassen kann und diese
-auf einem Display anzeigt. Der Hub verfügt über ein Display und soll als eine Art Wetterstation implementiert werden. 
+Ziel des Projekts ist die Entwicklung eines Sensorhubs, der Sensordaten erfasst und auf einem Display darstellt.
+Bei den Sensoren handelt es sich in erster Linie um Umweltdaten, die aktuelle Parameter der Umgebung erfassen.
+Das Projekt kann daher grob mit einer Wetterstation verglichen werden.
+
+\subsection{Anforderungen}
+\label{subsub:anforderungen}
+
+Es wurden keine verpflichtenden Anforderungen gestellt, das Projekt soll thematisch aber zum Modul
+"Bussysteme und Sensorik" passen. Daraus lassen sich für das spezifische Projekt Anforderungen stellen bzw. ableiten:
+
+\begin{itemize}
+  \item Verwendung eines oder mehrerer Bussysteme zur Kommunikation zwischen Mikrocontrollern
+  \item Nutzung diverser Sensoren mit unterschiedlichen Anbindungen für Vielfältigkeit
+  \item Analog zu herkömmlichen Wetterstationen, soll diese ebenfalls über einen Außensensor verfügen
+  \item Die Wetterstation soll über eine Wettervorhersage verfügen
+  \item Der Sensorhub soll skalier- und erweiterbar sein
+\end{itemize}
 
 \noindent
-Die Wetterstation soll über ein drahtloses Außenmodul verfügen, um eine Außentemperatur messen zu können. 
+Aus diesen Anforderungen lassen sich direkt Vorgaben für das Projekt ableiten:
+\begin{itemize}
+  \item Nutzung mehrerer Mikrocontroller, die miteinander über ein Bussystem kommunizieren
+  \item Verwendung digitaler Sensoren, die Standardprotokolle wie I2C, SPI oder UART unterstützen
+  \item Entwicklung eines Außensensors, der drahtlos mit dem Sensorhub kommunizieren kann
+  \item Anbindung des Sensorhubs ans Internet oder Empfang von Wettervorhersagen via Funk (DCF77)
+  \item Nutzung ausreichend leistungsstarker Mikrocontroller, die genügend Leistungs- und Peripheriereserven haben, um weitere Geräte anzubinden
+\end{itemize}
+
+\section{Systembeschreibung}
+\label{sub:systembeschreibung}
+
+\subsection{Systemaufbau}
+\label{subsub:systemaufbau}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width = 0.8\textwidth]{Systemuebersicht}
+  \caption{Übersicht der Systemkomponenten}
+  \label{fig:systemuebersicht}
+\end{figure}
+
+Die obige Abbildung \ref{fig:systemuebersicht} zeigt abstrakt alle Komponenten des Systems. Die jeweiligen Komponenten über dem Mikrocontroller Symbol
+zeigen jeweils die angeschlossenen Sensoren bzw. Bildschirme. Ebenfalls ist grob die Kommunikation zwischen den Mikrocontrollern erkennbar. 
+
+\vspace{0.2cm}
+\noindent
+Ganz links ist der Außensensor dargestellt, an den ein Sensor zur Messung von Temperatur, Luftfeuchtigkeit und Luftdruck angeschlossen ist. 
+Außerdem verfügt dieser über eine Antenne, um das DCF77-Signal zu empfangen, welches die aktuelle Zeit und eine Wettervorhersage beinhaltet (siehe Abschnitt \ref{subsubsub:dcf77}).
+Der Sensor sendet die empfangenen Daten zyklisch per 433 MHz Sender an den Sensorhub. 
+
+\vspace{0.2cm}
+\noindent
+Der Sensorhub besteht aus zwei Mikrocontrollern, die über eine serielle Schnittstelle (UART) miteinander kommunizieren. Der in Abbildung \ref{fig:systemuebersicht} mittlere Mikrocontroller
+empfängt die Daten des Außensensors und leitet diese weiter an den verbundenen Mikrocontroller. Da die Daten zur Wettervorhersage verschlüsselt sind und der Außensensor möglichst
+wenig Energie verbrauchen soll, müssen die Daten vom Mikrocontroller entschlüsselt werden. Dazu werden die entsprechenden Datenpakete abgefangen, entschlüsselt und anschließend weitergesendet. 
+Der Mikrocontroller verfügt außerdem wie der Außensensor über einen Sensor zur Messung von Temperatur, Luftfeuchtigkeit und Luftdruck (wobei der Luftdruck im Innenraum nicht gemessen wird). 
+Zusätzlich ist ein CO2 Sensor verbaut, der die Konzentration im Raum misst. 
+
+\vspace{0.2cm}
+\noindent
+In der Übersicht ganz rechts ist der Mikrocontroller, der alle Daten empfängt und auf einem Touchdisplay darstellt. Da der Sensor über ein WLAN-Modul verfügt, wäre theoretisch
+zusätzlich die Übertragung der Daten per WLAN an einen Server o.ä. möglich, der alle Daten speichert und diese anderen Geräten zur Verfügung stellt. 
+
 \subsection{Sensorik}
 \label{subsub:sensorik}
 
-Die Wetterstation teilt sich auf ein Haupt- und ein Außenmodul auf, das jeweils über eine unterschiedliche Peripherie verfügt. \\
-Das Außenmodul soll die Sensordaten über 433 MHz an das Hauptmodul übertragen. 
+Zur Erfassung der Umweltparameter werden aktuell zwei verschiedene Sensoren eingesetzt. Der BME280 erfasst Lufttemperatur, Luftfeuchtigkeit und Luftdruck. 
+Der MHZ19C wird zur Erfassung der CO2 Konzentration im Raum eingesetzt. In den folgenden beiden Abschnitten werden die Sensoren beschrieben. 
 
-\vspace{0.2cm} \noindent
-Hauptmodul:
+\vspace{0.2cm}
+\noindent
+Das Außenmodul verfügt außerdem über eine 77,5 kHz Empfangsantenne, um das Zeitzeichensignal DCF77 zu empfangen. Daraus lässt sich die aktuelle Zeit ablesen,
+außerdem wird eine Wettervorhersage mit übertragen, die ausgewertet wird. 
+
+\subsubsection{BME280}
+\label{subsubsub:bme280}
+
+Beim BME280 handelt es sich um einen effizienten Sensor von Bosch, der zur Erfassung von Temperatur, Luftfeuchtigkeit und Luftdruck eingesetzt wird. 
+Der Sensor verfügt über ein I2C und SPI Interface.
+Beim zyklischen Auslesen aller Sensordaten mit 1 Hz liegt die Stromaufnahme laut Datenblatt bei 3,6 $\mu$A, weshalb sich der Sensor ideal für die Anwendung in Sensormodulen mit Batteriebetrieb eignet. 
+
+Der Sensor verfügt über die folgenden Messbereiche:
 \begin{itemize}
-  \item BME280: \\
-        Erfassung von Temperatur, Luftfeuchtigkeit und Luftdruck
-  \item CO2 Sensor: \\
-        Erfassung der CO2-Konzentration im Raum
+  \item Temperatur: -40°C - +85°C ($\pm$ 0,5°C)
+  \item Luftfeuchtigkeit: 0 - 100\% rel. Feuchtigkeit ($\pm$ 3\%)
+  \item Druck: 250 - 1250 hPa ($\pm$ 1 hPa)
 \end{itemize}
-
-\vspace{0.2cm} \noindent
-Außenmodul:
-\begin{itemize}
-  \item BMP280: \\
-        Erfassung von Temperatur und Luftfeuchtigkeit
-  \item DCF77: \\
-        Empfang der aktuellen Zeit und Datum sowie einer Wettervorhersage für die nächsten Tage
-\end{itemize}
-
-\subsection{Konnektiviät}
-\label{subsub:konnektivität}
-
-Bei den verwendeten Mikrocontrollern handelt es sich um ESP32 und Raspberry Pi Pico, die jeweils über ein WLAN-Modul verfügen.
-Damit ist es möglich, die erfassten Sensordaten über MQTT oder ein anderes Protokoll drahtlos zu übermitteln. Dies ermöglicht weitere
-Funktionen, wie die Speicherung der Daten in einer Datenbank für Langzeitstatistiken oder die Darstellung der erfassten Daten auf
-mehreren Endgeräten. Zudem wäre theoretisch auch das Abrufen von Wettervorhersagen aus dem Internet möglich, hier wird aber die MeteoTime
-vom DCF77 Signal verwendet. 
 
 \noindent
-Der Außensensor soll die von ihm erfassten Daten in Form eines (XML-) Strings drahtlos über 433 MHz übertragen. Die im Vergleich zu
-2,4 GHz deutlich niedrigere Frequenz kann die Reichweite deutlich steigern. 433 MHz ist insbesondere bei Außensensoren von Wetterstationen standard. 
+Mit diesen Spezifikationen eigent sich der Sensor für die Anwendung im Innen- und Außenbereich. 
 
-\subsection{Grafikoberfläche}
-\label{subsub:grafikoberfläche}
+\noindent
+Für das Projekt wird ein Sensorshield verwendet, welches nur den I2C Bus herausführt. Die Ansteuerung des Sensors erfolgt daher über I2C. 
+
+\subsubsection{MHZ19C}
+\label{subsubsub:mhz19c}
+
+Der MHZ-19C ist ein Infrarot CO2-Sensor, der die CO2 Konzentration mittels nicht-dispersiver Infrarot-Spektroskopie misst. Dabei wird zyklisch mit einer Infrarotlampe
+und einem Photosensor die CO2-Konzentration anhand der Reflexion des Lichts durch CO2 Partikel gemessen. 
+Der Sensor verfügt über einen Messbereich von 400-5000 ppm, wobei die Genauigkeit $\pm$ 40ppm + 5\% des Messwerts beträgt. 
+Da NDIR Sensoren zum Messwertdrift neigen, verfügt der Sensor über eine automatische Kalibrierung, die alle 24 Stunden erfolgt. Der Sensor ist daher für den Dauerbetrieb ausgelegt
+und sollte dauerhaft aktiv sein. 
+Die Aufheizzeit des Sensors beträgt eine Minute. 
+
+\noindent
+Der Sensor ist über eine UART-Schnittstelle konfigurier- und auslesbar, außerdem verfügt er über einen PWM Ausgang. 
+
+\subsubsection{DCF77}
+\label{subsubsub:dcf77}
+
+Bei DCF77 handelt es sich um einen Zeitzeichensender in der Nähe von Frankfurt am Main, welcher mit einer Trägerfrequenz von 77,5 kHz ein Zeitsignal überträgt. 
+Das Signal ist europaweit empfangbar und wird von den meisten Funkuhren als Referenzsignal verwendet.  
+
+\noindent
+Die Datenübertragung erfolgt durch einfache Amplitudenmodulation, indem die Amplitude für eine Dauer von 100 ms (Bit 0) oder 200 ms (Bit 1) auf 25\% der Ausgangsamplitude abgesenkt wird. 
+Damit wird eine Bitrate von 1 Bit pro Sekunde erreicht. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{dcf77Code}
+  \caption{Kodierungsschema der DCF77 Zeitinformationen \\
+           \url{https://www.ptb.de/cms/ptb/fachabteilungen/abt4/fb-44/ag-442/verbreitung-der-gesetzlichen-zeit/dcf77/zeitcode.html}}
+  \label{fig:dcf77Schema}
+\end{figure}
+
+\noindent
+Abbildung \ref{fig:dcf77Schema} zeigt die Kodierung aller Datenbits innerhalb einer Minute. Daraus ist erkennbar, dass ein Datenpaket 59 Bits lang ist und
+die Übertragung eine Minute dauert. Ein Paket beginnt zu jeder neuen Minute. In der letzten Sekunde einer Minute erfolgt keine Absenkung des Trägers, sodass anhanddessen
+das Ende eines Pakets abgeleitet werden kann. 
+
+\vspace{0.2cm}
+\noindent
+Die neue Minute beginnt mit dem nullten Bit, das immer den Wert null hat. Darauf folgen 14 Bits mit verschlüsselten Wetterinformationen der Firma MeteoTime.
+Diese werden im nächsten Abschnitt weiter beschrieben. \\
+Bit 15 (R) ist ein Rufbit, dass zur Alarmierung der PTB Mitarbeiter dient, wenn Unregelmäßigkeiten vorliegen. \\
+Bit 16 (A1) zeigt an, dass am Ende der Stunde ein Wechsel von Sommer- zu Winterzeit stattfindet. \\
+Bit 17 (Z1) ist eine Flag für die Sommerzeit. \\
+Bit 18 (Z2) ist eine Flag für die Winterzeit. \\
+Bit 19 (A2) zeigt an, dass am Ende der Stunde eine Schaltsekunde eingefügt wird. \\
+Bit 20 (S) markiert den Beginn der Zeitinformationen und hat den Wert eins. 
+
+\vspace{0.2cm}
+\noindent
+Wie schon aus der Abbildung hervorgeht, werden in den restlichen Sekunden Informationen zu Zeit und Datum übertragen, Minute, Stunde und Datum haben jeweils ein
+Paritätsbit eingefügt, um Fehler erkennen zu können. Eine Fehlerkorrektur ist damit allerdings nicht möglich. 
+
+\subsubsubsection{MeteoTime}
+\label{subsubsubsub:meteotime}
+
+MeteoTime versendet versendet pro Minute 14 Bits mit Wetterinformationen, die von lizensierten Geräten entschlüsselt- und verwendet werden können. 
+Ein Informationspaket besteht aus 42 Bits und benötigt für die Übertragung somit drei Minuten. Ein Tag ist in fünf Abschnitte unterteilt, in denen
+unterschiedliche Informationen übertragen werden. Da die Wettervorhersage 90 Regionen abdeckt, wird jede Vorhersage nur täglich einmal übertragen. \\
+Es gilt folgende Aufteilung: \\
+22:00 Uhr - 03:59 Uhr: Aktueller Tag \\
+04:00 Uhr - 09:59 Uhr: Folgender Tag \\
+10:00 Uhr - 15:59 Uhr: Darauffolgender Tag \\
+16:00 Uhr - 18:59 Uhr: Darauffolgender Tag \\
+19:00 Uhr - 21:59 Uhr: Zusatzregionen mit 2-Tages Prognose. 
+
+\vspace{0.2cm}
+\noindent
+Von den 90 Regionen erhalten 60 die viertägige Vorhersage, die restlichen 30 Regionen erhalten nur eine 2-Tages Vorhersage. \\
+Innerhalb eines sechsstündigen Übertragungszeitraums werden für jede Region nacheinander die Höchst- und Tiefstwerde übertragen.
+
+\noindent
+Die Wettervorhersagen decken große Regionen ab, weshalb diese etwas ungenau sind. \\
+Für Hamburg ist beispielsweise die Region Bremerhaven zugeteilt, der Bereich deckt alles vom westlichen Schleswig-Holstein bis zum Nordwesten der Niederlande ab. \\
+Um im Fall eines Lesefehlers beim Empfang der Daten trotzdem eine Vorhersage ableiten zu können, sollten Ausweichregionen definiert werden, die im Fehlerfall stattdessen angezeigt werden. \\
+Für Hamburg sind das die Regionen Rostock und Hannover. 
+
+\vspace{0.3cm}
+\noindent
+Für die Entschlüsselung der Wetterinformationen ist ein Dekodier-IC notwendig, welches vermutlich aus rückgekoppelten Schieberegistern besteht, um die Daten zu Dekodieren. \\
+Beim IC handelt es sich um das Modell HKW581 der Firma HKW, die auch Betreiber des MeteoTime Dienstes ist. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width = 0.2\textwidth]{HKW5811}
+  \caption{Dekodier-IC zum Entschlüsseln der Wettervorhersagen}
+  \label{fig:hkw581}
+\end{figure}
+
+\noindent
+Der IC verfügt über acht Pins, davon sind neben den Pins zur Spannungsversorgung und Daten Ein- und Ausgabe auch ein Clock IN und Clock OUT Pin vorhanden, damit die Bits
+taktsynchron ein- bzw. ausgelesen werden. Der Clock OUT Pin folgt dem Clock IN Pin und wird zur Indikation genutzt, ob am Datenausgang ein valider Bitwert anliegt. 
+Neben einem Resetpin gibt es außerdem einen Ready Pin, der anzeigt, dass der IC betriebsbereit ist. Anscheinend braucht der IC eine Aufwärmphase. 
+
+\vspace{0.2cm}
+\noindent
+Als Eingabedaten benötigt der IC einen 82 Bit langen Datenstream, der sich wie folgt zusammensetzt:
+\begin{itemize}
+  \item Meteopaket 1 (14 Bit)
+  \item Meteopaket 2 (14 Bit)
+  \item Meteopaket 3 (14 Bit)
+  \item Minute des ersten Pakets (aufgefüllt von 7 auf 8 Bit)
+  \item Stunde des ersten Pakets (aufgefüllt von 6 auf 8 Bit)
+  \item Kalendertag (aufgefüllt von 6 auf 8 Bit)
+  \item Monat (5 Bit)
+  \item Wochentag (3 Bit)
+  \item Jahr (8 Bit)
+\end{itemize}
+
+\noindent
+Als Ausgabe erhält man einen 22 Bit langen Datenstream mit den Wetterinformationen. Je nachdem, ob gerade ein Paket mit Höchst- oder Tiefstwerten gesendet wurde, 
+ergeben sich unterschiedliche Informationen:
+
+\vspace{0.2cm}
+\noindent
+Höchstwerte:
+\begin{itemize}
+  \item Wetter Tag (4 Bit)
+  \item Wetter Nacht (4 Bit)
+  \item Schweres Wetter (4 Bit)
+  \item Niederschlagswahrscheinlichkeit(3 Bit)
+  \item Wetteranomalie Tag (1 Bit)
+  \item Temperatur Tag (6 Bit)
+\end{itemize}
+
+\vspace{0.2cm}
+\noindent
+Tiefstwerte:
+\begin{itemize}
+  \item Wetter Tag (4 Bit)
+  \item Wetter Nacht (4 Bit)
+  \item Windrichtung (4 Bit)
+  \item Windstärke (3 Bit)
+  \item Wetteranomalie Nacht (1 Bit)
+  \item Temperatur Nacht (6 Bit)
+\end{itemize}
+
+\noindent
+Die ausgegebenen Zahlenwerte sind wiederum einer Bezeichnung zugeordnet (z.B. Wetter Tag = 3 entspricht vorwiegend bewölkt).
+
+\subsection{Kommunikation}
+\label{subsub:kommunikation}
+
+Die Kommunikation zwischen den Mikrocontrollern erfolgt sowohl kabelgebunden, als auch drahtlos. Für die kabelgebundene Kommunikation wird UART mit einer Baudrate
+von 115200 bd genutzt. Die Drahtloskommunikation erfolt über einen 433 MHz Transmitter und Receiver, die jeweils über UART beschrieben und gelesen werden können. 
+
+\subsubsection{Funkstrecke}
+\label{subsubsub:funkstrecke}
+
+Bei den Funkmodulen handelt es sich um "HC-12 Wireless RF communicatio module V2.4" Module. Diese versprechen eine Übertragungsdistanz von bis zu 1800 m
+und eine einfache Ansteuerung über UART. \\
+Die Module haben eine Sendeleistung von bis zu 100 mW und können auf 100 verschiedenen, einstellbaren Kanälen funken (433,4 MHz bis 473 MHz). Die Baudrate ist einstellbar
+zwischen 1200 bps und 115200 bd.
+
+\vspace{0.2cm}
+\noindent
+Aktuell wird eine Baudrate von 9600 bd verwendet, um ein gutes Mittel zwischen Distanz und Geschwindigkeit zu erzielen. 
+
+\vspace{0.5cm}
+\noindent
+Aufgrund der geltenden Bestimmungen in Deutschland darf nur mit maximal 10 mW gesendet werden, auch ist der wählbare Frequenzbereich teilweise nicht legal.
+Es können nur die Kanäle 1 bis 4 genutzt werden. 
+
+\subsubsection{Datenpakete}
+\label{subsubsub:datenpakete}
+
+Je nach übertragener Information werden unterschiedliche Datenpakete verwendet, die zur Identifikation jeweils mit einem 4-Byte langen Identifier ausgestattet sind. \\
+Aktuell gibt es fünf verschiedene Identifier:
+\begin{itemize}
+  \item 'IBME' Internal BME
+  \item 'EBME' External BME
+  \item 'CO2.' Co2 Konzentration
+  \item 'TIME' Aktuelle Zeit
+  \item 'MTEO' Wettervorhersage
+\end{itemize}
+
+\noindent
+Die Datenpakete haben unterschiedliche Längen und sind in Form von Structs in C definiert. Zum Senden der Date werden diese dann in char arrays umgewandelt. \\
+Alle Datenpakete sind im folgenden dargestellt:
+
+\lstinputlisting[language=C, caption=Datenpakete]{dataTypes.h}
+
+
+\section{Modulbeschreibung}
+\label{sub:modulbeschreibung}
+
+\subsection{Sensormodul extern}
+\label{subsub:sensorModul_ext}
+
+Das externe Sensormodul soll für den Außenbereich konzipiert werden und möglichst effizient und langfristig mit Batterien betrieben werden können. \\
+Wie schon aus den vorherigen Abschnitten hervorgeht, verfügt das Modul über einen BME280 und eine Antenne zum Empfang von DCF77 Signalen. 
+Die empfangenen Daten werden dann zyklisch via 433 MHz an den Sensorhub gesendet.
+
+\vspace{0.2cm}
+\noindent
+Für den DCF77 Empfang wird ein Shield verwendet, das eine auf 77,5 kHz abgestimmte Antenne hat und das Signal filtert und in saubere TTL Pegel umwandelt.
+Im Mikrocontroller wird eine Bibliothek verwendet, die mit Interrupts auf steigende- und fallende Taktflanke arbeitet und jeweils die Zeiten der Absenkung misst. 
+Da in der letzten Sekunde einer Minute keine Absenkung stattfindet, kann anhanddessen das Ende eines Datenpakets ermittelt werden. Die empfangenen Daten werden anschließend
+in einem Datenpaket gespeichert und versendet. Wird eine Pegeländerung außerhalb des gültigen Bereichs erkannt, wird aktuell das ganze Minutenpaket als ungültig deklariert
+und ignoriert. Alle drei Minuten ist außerdem ein MeteoTime Paket Sendebereit, dieses wird anhand der aktuellen Zeit auf Relevanz geprüft und verworfen, wenn die Region irrelevant ist. 
+Die BME280 Daten werden zyklisch alle 30 Sekunden gelesen und dann gesendet. 
+
+\vspace{0.2cm}
+\noindent
+Als Mikrocontroller wird aktuell ein ESP8266 verwendet, der mit einer Stromaufnahme von ca. 20 mA relativ viel Strom benötigt. Wegen des Zeitsignals kommen Schlafmodi nicht infrage. 
+Damit wäre der Batteriebetrieb mit langen Laufzeiten nur schwer realisierbar. Als Alternative wurde daher ein MSP430G2553 ausgewählt, der über einen I2C und einen 
+UART Bus verfügt und bei 1 MHz Takt einen Stromverbrauch von nur 230 $\mu$A hat. Damit wäre ein langfristiger Betrieb mit Batterie möglich. 
+Das HC-12 Modul hat im Sendebetrieb allerdings eine Stromaufnahme von bis zu 100 mA, die sich bei häufiger Sendefrequenz sehr negativ auswirken würde. 
+Die Sendefrequenz muss daher so niedrig wie nötig gewählt werden. 
+
+\subsection{Sensormodul intern}
+\label{subsub:sensorModul_int}
+
+Das interne Sensormodul darf im Gegensatz zum externen Modul mehr Energie verbrauchen, da es mehr Daten verarbeiten muss und über einen Netzanschluss verfügt. 
+Das Modul empfängt die über 433 MHz gesendeten Daten und liest zusätzlich zyklisch den BME280 und CO2 Sensor aus. Wird ein kodiertes Paket mit Wetterdaten empfangen, 
+wird dieses außerdem entschlüsselt und dann an das Grafikmodul weitergegeben. 
+
+\vspace{0.3cm}
+\noindent
+Als Mikrocontroller dient hier ein Raspberry Pi Pico, der mit zwei Kernen Multiprocessing erlaubt und damit die Reaktionszeiten beschleunigt. Der Mikrocontroller
+verfügt über zwei UART Busse und zwei I2C Busse, die beiden UART Busse werden zum einen für die Kommunikation mit dem anderen Mikrocontroller, zum anderen zur Datenübertragung
+vom 433 MHz Empfänger verwendet. Der CO2 Sensor hat zwar auch eine UART Schnittstelle, da UART Emulatoren aber regelmäßig falsche Daten geliefert haben, werden die Daten stattdessen
+via PWM ausgelesen. Eine Bibliothek für den Sensor liest den Duty-Cycle aus und ermittelt daraus die CO2 Konzentration. Da das Auslesen des PWM Signals insbesondere bei hohen
+Konzentrationen recht lang dauern kann, erfolgt dies ausschließlich über den zweiten Kern, der neue Werte global zur Verfügung stellt und dies über eine Flag signalisiert. 
+Auf Kern 2 findet außerdem der Dekodierprozess der Wetterdaten statt, um den Hauptprozess nicht zu verlangsamen. Auch hier werden fertige Pakete über eine Flag signalisiert. 
+
+\subsection{Grafikmodul}
+\label{subsub:grafikmodul}
+
+Das Grafikmodul wird beim Endprodukt zusammen mit dem \hyperref[subsub:sensorModul_int]{internen Sensormodul} als eine Baugruppe ausgeführt sein.
+Hauptziel ist die grafische Aufarbeitung der über UART vom \hyperref[subsub:sensorModul_int]{internen Sensormodul} empfangenen Daten.
+Hierfür wird ebenfalls ein Raspberry Pi Pico in der W-Variante eingesetzt.
+Diese ist zusätzlich zu den Schnittstellen des Picos W-LAN (IEEE 802.11 b/g/n) und Bluetooth (5.2 LE) fähig, somit kann das Grafikmodul zukünftig ebenfalls die Rolle eines mqtt-Brokers übernehmen und die aufbereiteten Daten online abrufbar machen.
+Für diese Aufgaben verfügt das Modul über einen externen RTC-Chip und ein 2,8 Zoll Touchdisplay.
+
+\vspace{0.3cm}
+\noindent
+Anders als bei den Sensoren wird beim Grafikmodul kein C-Code verwendet sondern ausschließlich in Rust programmiert.
+Embedded-Rust folgt dem Motto \textquoteleft safe, fast, concurrent – pick three\textquoteright.
+Rust etabliert viele Konzepte, um die typischen Probleme, die mit vergessenen Sonderfällen einhergehen (dangling pointer, use after free, dead-locks, integer-overflow, uvm.) durch ein gutes Typsystem und einen modernen Compiler bereits zur Kompilierzeit auszuschließen.
+Ein Embedded-Rust-Projekt, welches erfolgreich kompiliert, wird in der Praxis auf dem Mikrocontroller nie unerwartetes Verhalten aufweisen.
+Trotzdem wird noch eine von C-Programmen gewohnte Performance erreicht.
+
+\vspace{0.3cm}
+\noindent
+Durch die Verwendung von Rust kann ebenfalls die sehr moderne Bibliothek Slint für die graphische Darstellung verwendet werden. Diese kompiliert Slint-Strukturen zu Rust-Quelltext und stellt Schnittstellen bereit, um fertige Pixelbuffer zu erhalten.
+
+\vspace{0.3cm}
+\noindent
+Slint-Strukturen gliedern sich in components, globals und structs.
+Ein Component ist ein auf dem Display anzeigbarer Baustein.
+Globals stellen einen Adapter zum Rust-Quelltext dar, da man die Daten dieser sowohl aus dem Slint-Skript, als auch aus dem Rust-Programm verändern kann.
+Structs in Slint definieren wie Structs in C oder Rust eigene zusammengesetzte Datentypen.
+
+\lstinputlisting[language=slint, caption=Beispiel eines components globals und structs]{gui.slint}
+
+\vspace{0.3cm}
+\noindent
+Während Slint das Zeichnen der Grafikbausteine übernimmt, muss sich der selbstgeschriebene Code um folgende Funktionen kümmern:
+\begin{itemize}
+	\item Initialisierung der Peripherie und Anbindung von Slint
+	\item Ansteuerung des RTC Moduls (per I2C)
+	\item Übertragung der Pixel an das Display (per DMA SPI)
+	\item Übertragung des Touchinputs an den Pico (per DMA SPI)
+	\item Übertragung der Sensordaten (per UART)
+\end{itemize}
+
+\vspace{0.3cm}
+\noindent
+Um Rechenleistung einzusparen, ist der Großteil des Programms mithilfe der wfe und sev Anweisungen des Picos (\textbf{W}ait\textbf{F}or\textbf{E}vent und \textbf{S}et/\textbf{S}ignal\textbf{EV}ent) Event-basiert implementiert.
+Ein entsprechendes Interrupt wird ausgelöst, wenn
+\begin{enumerate}
+	\item ein UART-Package vom \hyperref[subsub:sensorModul_int]{internen Sensormodul} empfangen wurde
+	\item Bildinhalte sich verändert haben (beispielsweise die Uhrzeit jede volle Sekunde)
+	\item der Touchscreen berührt wird
+\end{enumerate}
+
+\lstinputlisting[language=rust, caption=Eventloop mit wfe]{eventloop.rs}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{Overview}
+	\caption{Übersichts-Seite des GUI}
+	\label{fig:gui-overview}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{Weather}
+	\caption{Wetter-Seite des GUI}
+	\label{fig:gui-overview}
+\end{figure}
+
+\section{Aktueller Projektstand}
+
+Der Entwicklungsprozess der Software ist bereits weit fortgeschritten, eine funktionierende Grafikoberfläche ist bereits vorhanden und auch die Kommunikation
+zwischen den Sensoren konnte schon erfolgreich getestet werden. Vor kurzem musste der Mikrocontroller des Innenmoduls aus Mangel an GPIO Pins gewechselt werden,
+die Migration der Software war nicht ohne weiteres möglich. Außerdem ist aktuell der Wechsel vom ESP8266 zum MSP430 geplant, durch die stark limitierten Ressourcen
+beim MSP430 und der Wechsel der Programmiersprache von C++ zu C machen den Wechsel aber sehr aufwendig und fehlerbehaftet. Eventuell wird der MSP430 aufgrund des hohen
+Aufwands wieder aus dem Projekt gestrichen, sodass der Testaufbau mit dem (wenig effizienten) ESP8266 stattfinden muss. 
+
+\vspace{0.2cm}
+\noindent
+Auf die fertige Software folgt die Entwicklung und Bestellung von Leiterplatten für die Module, um einen sauberen Aufbau ohne unnötige Kabel möglich zu machen. 
 
 \end{document}

@@ -126,7 +126,7 @@ component Temperatur inherits BoxedWidget {
     value: (root.temperature < 0 ? "-" : "") + root.temperature + "°C";
     gradient-primary: @linear-gradient(180deg, #ff7d34, #ff3122);
     clicked() => {//TODO
-        debug("clicked");
+        debug("Temperatur");
     }
 }
 
@@ -137,7 +137,7 @@ component Luftfeuchtigkeit inherits BoxedWidget {
     value: root.humidity + "%";
     gradient-primary: @linear-gradient(180deg, #6776FF, #6100FF);
     clicked() => {//TODO
-        debug("clicked");
+        debug("Luftfeuchtigkeit");
     }
 }
 
@@ -148,7 +148,7 @@ component Luftdruck inherits BoxedWidget {
     value: root.pressure + "hPa";
     gradient-primary: @linear-gradient(180deg, #FFCE50, #f99055);
     clicked() => {//TODO
-        debug("clicked");
+        debug("Luftdruck");
     }
 }
 

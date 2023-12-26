@@ -7,21 +7,25 @@ Geplant ist die Verwendung eines ESP-32, um bei Bedarf zusätzliche Daten drahtl
 Die erfassten Daten werden auf einem lokalen (Touch)-Display ausgegeben, durch die WLAN-Fähigkeit könnten die Daten zukünftig auch an eine lokale Datenbank übertragen werden (MySQL/Docker, graphische Aufbereitung mit Grafana o.ä.)
 
 # Sensoren
-Geplant ist derzeit die Erfassung folgender Messdaten:
+Geplant ist derzeit die Erfassung in folgenden Messgruppen:
+## Interne Messgruppe
+- BME280 (Temperatur, Luftfeuchtigkeit, Luftdruck)
+- MH-Z19(b/c) (CO2)
+## Externe Messgruppe
+- BME/BMP280 (Temperatur, Luftfeuchtigkeit, (Luftdruck wenn BME))
+- DCF77-Empfänger und Meteotime-Decoder (Uhrzeit und Wettervorhersage)
+## Eventuelle Erweiterungen
 - DHT22 (Temperatur, Luftfeuchtigkeit)
-- BME/BMP280 (Temperatur, Luftfeuchtigkeit, Luftdruck)
-- Evtl. externer Messfühler 
-    - kabelgebunden als PT100/PT1000 [Zwei- oder Vierleitermessung, dazu Konstantstromquelle + rel. hochauflösender ADC (min. 16 bit)]
-    - Zugekauftes RF-Modul mit Batteriebetrieb
+- PT100/PT1000 (Zwei- oder Vierleitermessung, dazu Konstantstromquelle + rel. hochauflösender ADC (min. 16 bit))
 - CCS811 (CO2 und flüchtige organische Verbindungen (TVOC))
-- Empfang von Wetterdaten/Prognosen und Zeitsynchronisation über DCF77
-- Evtl. Niederschlagsmessung als drahtlos angebundenes Zusatzmodul
+- Niederschlagsmessung
+- Windgeschwindigkeit und Windrichtung
 
 # Struktur des Repos
 - **LaTeX** [Dokumentation des Projekts](#dokumentation)
 - **wetterstation-arduinosensor** [Arduino als Sensormodul](#arduino-als-sensormodul)
 - **wetterstation-ui/** [Desktop App](#desktop-app)
-- **wetterstation-rpico-ui/** [Raspberry Pico mit Touchscreen als Interface](#raspberry-pico-mit-touchscreen-als-interface)
+- **slint-pico/** [Raspberry Pico mit Touchscreen als Interface](#raspberry-pico-mit-touchscreen-als-interface)
 
 # Desktop App
 ![Platform Darwin](https://img.shields.io/badge/platform-macOS-orange.svg)
