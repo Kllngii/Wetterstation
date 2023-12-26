@@ -99,7 +99,7 @@ void setup()
 
     // Set Power to 8dBm
     delay(100);
-    Serial2.print("AT+P4");
+    Serial2.print("AT+P6");
     if (Serial2.available())
     {
         Serial2.readBytes(hcAnswerArray, 8);

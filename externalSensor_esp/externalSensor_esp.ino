@@ -113,7 +113,7 @@ void setup()
 
     // Set Power to 8dBm
     delay(100);
-    HC12.print("AT+P4");
+    HC12.print("AT+P6");
     delay(100);
     while(HC12.available())
     {
