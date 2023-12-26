@@ -2,18 +2,20 @@
 
 Mit einem WiFi-fähigen Mikrocontroller sollen verschiedene Sensordaten erfasst- und aufbereitet werden. 
 
-Geplant ist die Verwendung eines ESP-32, um bei Bedarf zusätzliche Daten drahtlos senden und empfangen zu können.
+Für die WiFi-Anbindung wird ein Raspberry Pi Pico W verwendet, der mit zwei Kernen und einem WLAN/Bluetooth Modul genug Leistung
+zur Verfügung stellen kann. 
 
 Die erfassten Daten werden auf einem lokalen (Touch)-Display ausgegeben, durch die WLAN-Fähigkeit könnten die Daten zukünftig auch an eine lokale Datenbank übertragen werden (MySQL/Docker, graphische Aufbereitung mit Grafana o.ä.)
 
 # Sensoren
-Geplant ist derzeit die Erfassung in folgenden Messgruppen:
+Folgende Sensoren werden verwendet (das Projekt ist beliebig skalierbar):
 ## Interne Messgruppe
 - BME280 (Temperatur, Luftfeuchtigkeit, Luftdruck)
-- MH-Z19(b/c) (CO2)
+- MH-Z19C (CO2)
 ## Externe Messgruppe
-- BME/BMP280 (Temperatur, Luftfeuchtigkeit, (Luftdruck wenn BME))
-- DCF77-Empfänger und Meteotime-Decoder (Uhrzeit und Wettervorhersage)
+- BME280 (Tempertur, Luftfeuchtigkeit, Luftdruck)
+- DCF77-Empfänger (Uhrzeit und Wettervorhersage)
+    - Der DCF77-Empfänger empfängt das Signal eines Zeitzeichensenders, das neben aktuellen Zeitinformationen eine Wettervorhersage beinhaltet. Diese ist allerdings verschlüsselt. verfügbaren GPIO Pins und Rechenleistung wird die Entschlüsselung auf dem internen Modul vorgenommen. Mit der Nutzung des ESP8266 als Außenmodul ist das ganz sinnvoll, weil der nicht so viele GPIO Pins frei verfügbar hat, ein MSP430 sollte das aber ohne grö0eren Rechenaufwand schaffen. Für die Entschlüsselung der Daten wird ein HKW581 Modul benötigt. 
 ## Eventuelle Erweiterungen
 - DHT22 (Temperatur, Luftfeuchtigkeit)
 - PT100/PT1000 (Zwei- oder Vierleitermessung, dazu Konstantstromquelle + rel. hochauflösender ADC (min. 16 bit))
