@@ -317,10 +317,10 @@ bool DCF77::processBuffer(void) {
 
 	if (returnValue == true)
 	{
-		minuteSwitcher = time.Minute % 3;
+		minuteSwitcher = (time.Minute - 1) % 3;
 	} else if (timeUseable)
 	{
-		minuteSwitcher = minute() % 3;
+		minuteSwitcher = (minute() - 1) % 3;
 	} else
 	{
 		minuteSwitcher = 0;
@@ -336,21 +336,21 @@ bool DCF77::processBuffer(void) {
 	switch(minuteSwitcher)
 	{
 		case 0:
-			meteoData.data.packet1 = rx_buffer->meteoBits;
+			meteoData.data.packet1 = reverseMeteoPacket(rx_buffer->meteoBits);
 			meteoPacketNumber++;
 		break;
 		case 1:
-			meteoData.data.packet2 = rx_buffer->meteoBits;
+			meteoData.data.packet2 = reverseMeteoPacket(rx_buffer->meteoBits);
+			meteoData.data.minute = reverseBits8(rx_buffer->Min, 7) << 1;
+			meteoData.data.hour = reverseBits8(rx_buffer->Hour, 6) << 2;
+			meteoData.data.date = reverseBits8(rx_buffer->Day, 6) << 2;
+			meteoData.data.month = reverseBits8(rx_buffer->Month, 5);
+			meteoData.data.dayInWeek = reverseBits8(rx_buffer->Weekday, 3);
+			meteoData.data.year = reverseBits8(rx_buffer->Year, 8);
 			meteoPacketNumber++;
 		break;
 		case 2:
-			meteoData.data.packet3 = rx_buffer->meteoBits;
-			meteoData.data.minute = rx_buffer->Min << 1;
-			meteoData.data.hour = rx_buffer->Hour << 2;
-			meteoData.data.date = rx_buffer->Day << 2;
-			meteoData.data.month = rx_buffer->Month;
-			meteoData.data.dayInWeek = rx_buffer->Weekday;
-			meteoData.data.year = rx_buffer->Year;
+			meteoData.data.packet3 = reverseMeteoPacket(rx_buffer->meteoBits);
 			if (meteoPacketNumber == 2)
 			{
 				meteoDataReady = true;
@@ -367,6 +367,34 @@ bool DCF77::processBuffer(void) {
 	}
 
 	return returnValue;
+}
+
+uint16_t DCF77::reverseMeteoPacket(uint16_t inputData)
+{
+	uint16_t reversedPacket = 0;
+	for(int i = 0; i < 14; i++)
+	{
+		reversedPacket |= (inputData & (1 << i)) >> i;
+		if (i != 13)
+		{
+			reversedPacket <<= 1;
+		}
+	}
+	return reversedPacket;
+}
+
+uint8_t DCF77::reverseBits8(uint8_t inputData, int bitsUsed)
+{
+	uint8_t reversedPacket = 0;
+	for(int i = 0; i < bitsUsed; i++)
+	{
+		reversedPacket |= (inputData & (1 << i)) >> i;
+		if (i != (bitsUsed - 1))
+		{
+			reversedPacket <<= 1;
+		}
+	}
+	return reversedPacket;
 }
 
 bool DCF77::isMeteoReady()

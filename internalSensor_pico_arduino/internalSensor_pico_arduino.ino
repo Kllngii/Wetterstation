@@ -295,6 +295,25 @@ void loop()
             {
                 MeteoRawSendBuf rawBuffer;
                 memcpy(rawBuffer.buf, meteoReceiveBuffer.buf + 4, sizeof(rawBuffer));
+                Serial.println("Meteodata: ");
+                Serial.print("Packet1: ");
+                Serial.println(rawBuffer.data.packet1, BIN);
+                Serial.print("Packet2: ");
+                Serial.println(rawBuffer.data.packet2, BIN);
+                Serial.print("Packet3: ");
+                Serial.println(rawBuffer.data.packet3, BIN);
+                Serial.print("Minute: ");
+                Serial.println(rawBuffer.data.minute, BIN);
+                Serial.print("Hour: ");
+                Serial.println(rawBuffer.data.hour, BIN);
+                Serial.print("Day: ");
+                Serial.println(rawBuffer.data.date, BIN);
+                Serial.print("Month: ");
+                Serial.println(rawBuffer.data.month, BIN);
+                Serial.print("Weekday: ");
+                Serial.println(rawBuffer.data.dayInWeek, BIN);
+                Serial.print("Year: ");
+                Serial.println(rawBuffer.data.year, BIN);
                 meteo.getNewData(rawBuffer);
             }
         }

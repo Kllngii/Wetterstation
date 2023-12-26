@@ -93,6 +93,8 @@ private:
     void static calculateBufferParities(void);
     bool static processBuffer(void);
     void static appendSignal(unsigned char signal);
+    uint16_t static reverseMeteoPacket(uint16_t inputData);
+    uint8_t static reverseBits8(uint8_t inputData, int bitsUsed);
 
 public: 
     // Public Functions
