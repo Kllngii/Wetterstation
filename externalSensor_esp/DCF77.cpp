@@ -20,6 +20,9 @@
   23 Apr 2012 - added UTC support
   2  Jul 2012 - minor bugfix and additional noise rejection
 */
+/*
+ * Modified by faschmali
+ */
 
 #include "DCF77.h"       //https://github.com/thijse/Arduino-Libraries/downloads
 #include <TimeLib.h>        //http://playground.arduino.cc/code/time

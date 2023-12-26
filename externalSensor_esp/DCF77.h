@@ -1,3 +1,7 @@
+/*
+ *  Modified by faschmali. OG source -> .cpp
+ */
+
 #ifndef DCF77_h
 #define DCF77_h
 
