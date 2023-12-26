@@ -22,7 +22,7 @@
 #define BME_SEND_FREQUENCY_MILLIS   30000
 #define CO2_SEND_FREQUENCY_MILLIS   15000
 
-#define READ_TIMEOUT    100
+#define READ_TIMEOUT    100 // Timeout value after which the uC stops polling for Serial data from HC12
 
 Adafruit_BME280 bme;    // BME280, read by core0
 CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
@@ -33,6 +33,8 @@ BMESendBuf iBmeBuffer = {'I','B','M','E'};
 BMESendBuf eBmeBuffer;
 MeteoRawReceiveBuf meteoReceiveBuffer;
 TimeSendBuf timeBuffer;
+
+bool bmeAvailable = true;
 
 volatile bool co2Ready = false;
 volatile int co2Concentration = 0;
@@ -56,8 +58,10 @@ void setup()
     Serial2.setTX(HC12_TX);
     Serial2.begin(9600);
 
+    // Init BME280
     if (!bme.begin(0x76))
     {
+        bmeAvailable = false;
         Serial.println("No sensor found.");
     }
     else
@@ -65,7 +69,7 @@ void setup()
         Serial.println("Found bme.");
     }
 
-    digitalWrite(HC12_SET_PIN, OUTPUT);
+    pinMode(HC12_SET_PIN, OUTPUT);
 
     // Set Baudrate to 9600
     delay(100);
@@ -97,7 +101,7 @@ void setup()
     hcAnswerArray[5] = '\0';
     Serial.println(hcAnswerArray);
 
-    // Set Power to 8dBm
+    // Set Power to 14dBm
     delay(100);
     Serial2.print("AT+P6");
     if (Serial2.available())
@@ -118,12 +122,12 @@ void setup()
     Serial.println(hcAnswerArray);
 
     // Disable Setting Mode in HC-12
-    digitalWrite(HC12_SET_PIN, INPUT);
+    pinMode(HC12_SET_PIN, INPUT);
 }
 
 void setup1()
 {
-    // Define pins for meteo decoder
+    // Initialize Pins for Meteodecoder
     pinMode(METEO_DATA_IN, OUTPUT);
     pinMode(METEO_DATA_OUT, INPUT);
     pinMode(METEO_CLK_IN, OUTPUT);
@@ -135,7 +139,7 @@ void setup1()
 
 void loop()
 {
-
+    // Decode testpacket with meteodata
     if (Serial.available() == 4)
     {
         char buf[5];
@@ -175,6 +179,7 @@ void loop()
         int readIndex = 0;
         int readingSize;
 
+        // Isolate header of packet
         for(int i = 0; i < 4; i++)
         {
             receiveBuffer[readIndex++] = (char)Serial2.read();
@@ -183,6 +188,7 @@ void loop()
         }
         String headerString(header);
 
+        // Set datalength to be read
         if (headerString.equals("EBME"))
         {
             readingSize = sizeof(eBmeBuffer) - 4;
@@ -198,6 +204,7 @@ void loop()
         else
         {
             Serial.println("Received invalid message");
+            // Clear buffer and print data if there were invalid ones
             do
             {
                 Serial.print((char)Serial2.read());
@@ -206,8 +213,10 @@ void loop()
         }
 
         bool readTimeout = false;
+        // Read rest of datapacket
         for(int i = 0; i < readingSize; i++)
         {
+            // Read byte
             if (Serial2.available())
             {
                 receiveBuffer[readIndex++] = (char)Serial2.read();
@@ -215,6 +224,7 @@ void loop()
             }
             else
             {
+                // Wait until data are ready or Timeout triggered
                 int readTime = millis();
                 while(!Serial2.available())
                 {
@@ -227,6 +237,7 @@ void loop()
                 }
             }
 
+            // Stop reading if timeout appeared
             if (readTimeout)
             {
                 break;
@@ -236,9 +247,11 @@ void loop()
 
         if (headerString.equals("EBME"))
         {
-            memcpy(eBmeBuffer.buf, receiveBuffer, sizeof(eBmeBuffer));           
-            crc.add((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer) - 1);
-            if (crc.calc() != (uint8_t)eBmeBuffer.data.checksum)
+            // Copy data
+            memcpy(eBmeBuffer.buf, receiveBuffer, sizeof(eBmeBuffer));  
+            // Check if checksums match        
+            crc.add((const uint8_t*)eBmeBuffer.buf, sizeof(eBmeBuffer));
+            if (crc.calc() != 0x00)
             {
                 Serial.println("Checksum invalid on EBME Packet. Initiate retransmission");
                 packetValid = false;
@@ -257,9 +270,11 @@ void loop()
         }
         else if (headerString.equals("TIME"))
         {
+            // Copy data
             memcpy(timeBuffer.buf, receiveBuffer, sizeof(timeBuffer));
-            crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
-            if (crc.calc() != timeBuffer.data.checksum)
+            // Check if checksums match
+            crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer));
+            if (crc.calc() != 0x00)
             {
                 Serial.println("Checksum invalid on Time Packet. Initiate retransmission");
                 packetValid = false;
@@ -284,9 +299,11 @@ void loop()
         }
         else if (headerString.equals("MTEO"))
         {
+            // Copy data
             memcpy(meteoReceiveBuffer.buf, receiveBuffer, sizeof(meteoReceiveBuffer));
-            crc.add((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer) - 1);
-            if (crc.calc() != meteoReceiveBuffer.data.data.checksum)
+            // Check if checksums match
+            crc.add((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer));
+            if (crc.calc() != 0x00)
             {
                 Serial.println("Checksum invalud on Meteopacket. Initiate retransmission");
                 packetValid = false;
@@ -322,18 +339,21 @@ void loop()
             packetValid = false;
         }
 
+        // Send errormessage to outdoor module to initate retransmission
         if (!packetValid)
         {
             Serial2.print("ERRORERRORERROR");
         }
     }
 
+    // Send meteodata if there are any new
     if (meteo.isMeteoReady())
     {
         MeteoDecodedSendBuf convertedBuffer = meteo.getConvertedBuffer();
         Serial1.write((const uint8_t*)convertedBuffer.buf, sizeof(convertedBuffer));
         Serial.println("Transmitted decoded meteo data");
     }
+    // Send CO2 data if sensor is ready
     if (((millis() - lastCo2Send) > CO2_SEND_FREQUENCY_MILLIS) && co2Ready)
     {
         co2Buffer.data.concentration = co2Concentration;
@@ -342,7 +362,8 @@ void loop()
         Serial.print("Sent Co2 data. Concentration is: ");
         Serial.println(co2Buffer.data.concentration);
     }
-    if ((millis() - lastBmeSend) > BME_SEND_FREQUENCY_MILLIS)
+    // Send BME data if sensor is available
+    if (((millis() - lastBmeSend) > BME_SEND_FREQUENCY_MILLIS) && bmeAvailable)
     {
         iBmeBuffer.data.temp = bme.readTemperature();
         iBmeBuffer.data.humidity = bme.readHumidity();
@@ -358,6 +379,7 @@ void loop()
 
 void loop1()
 {
+    // Wait until sensor is heated up
     if (!co2Ready)
     {
         co2Ready = co2.isReady();
@@ -368,6 +390,7 @@ void loop1()
     }
     else
     {
+        // Read CO2 concentration using PWM
         co2Concentration = co2.readCO2PWM();
         //Serial.print("Got new CO2 value: ");
         //Serial.println(co2Concentration);
@@ -375,6 +398,7 @@ void loop1()
 
     if (meteo.isNewMeteo())
     {
+        // Decode data if HKW581 is heated up and ready to decode
         if (!digitalRead(METEO_RDY))
         {
             meteo.decode();

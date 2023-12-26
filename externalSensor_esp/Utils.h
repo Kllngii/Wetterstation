@@ -1,3 +1,7 @@
+/*
+ *	This is part of the DCF77 files and library and used for debugging. 
+ */
+
 #ifndef Utils_h
 #define Utils_h
 
