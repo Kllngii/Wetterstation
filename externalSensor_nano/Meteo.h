@@ -10,14 +10,14 @@
  #ifndef _METEO_H_
  #define _METEO_H_
 
- #include <cstdint>
+ #include <stdint.h>
 
 // Pindefs running on core1
-#define METEO_DATA_IN   16
-#define METEO_DATA_OUT  17
-#define METEO_CLK_IN    18
-#define METEO_CLK_OUT   19
-#define METEO_RDY       20
+#define METEO_DATA_IN   6
+#define METEO_DATA_OUT  7
+#define METEO_CLK_IN    8
+#define METEO_CLK_OUT   9
+#define METEO_RDY       10
 
 typedef struct __attribute__ ((__packed__)){
     uint16_t packet1;
@@ -29,27 +29,12 @@ typedef struct __attribute__ ((__packed__)){
     uint8_t month; // Only 5 bits used
     uint8_t dayInWeek;  // Only 3 bits used
     uint8_t year;
-    uint8_t checksum;
 } MeteoRawStruct;
-
-typedef union {
-    char buf[sizeof(MeteoRawStruct)];
-    MeteoRawStruct data;
-} MeteoRawSendBuf;
-
-typedef struct __attribute__ ((__packed__)){
-    char dataType[4];
-    MeteoRawStruct data;
-} MeteoRawReceiveStruct;
-
-typedef union {
-    char buf[sizeof(MeteoRawReceiveStruct)];
-    MeteoRawReceiveStruct data;
-} MeteoRawReceiveBuf;
 
 typedef struct __attribute__ ((__packed__)){
     char dataType[4];
     uint32_t meteoData;
+    uint8_t checksum;
 } MeteoDecodedStruct;
 
 typedef union {
@@ -66,7 +51,7 @@ class Meteo {
          *  Copies new meteodata to the class member and
          *  allows processing of the data (done by other core)
          */
-        bool getNewData(MeteoRawSendBuf rawBuffer);
+        bool getNewData(MeteoRawStruct rawBuffer);
 
         /*
          *  Decode the meteotime data. Done by core1
@@ -93,7 +78,7 @@ class Meteo {
         MeteoDecodedSendBuf getConvertedBuffer();
 
     private:
-        MeteoRawSendBuf rawBuffer;
+        MeteoRawStruct rawBuffer;
         MeteoDecodedSendBuf convertedBuffer;
         volatile bool newMeteoData;
         volatile bool meteoDataReady;

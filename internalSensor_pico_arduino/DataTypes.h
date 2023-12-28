@@ -13,7 +13,6 @@
 #define DATATYPES_H_
 
 #include <stdint.h>
-#include "Meteo.h"
 
 typedef struct __attribute__ ((__packed__)){
     char dataType[4];
@@ -30,6 +29,17 @@ typedef union {
     char buf[sizeof(TimeStruct)];
     TimeStruct data;
 } TimeSendBuf;
+
+typedef struct __attribute__ ((__packed__)){
+    char dataType[4];
+    uint32_t meteoData;
+    uint8_t checksum;
+} MeteoDecodedStruct;
+
+typedef union {
+    char buf[sizeof(MeteoDecodedStruct)];
+    MeteoDecodedStruct data;
+} MeteoDecodedSendBuf;
 
 typedef struct __attribute__ ((__packed__)){
     char dataType[4];

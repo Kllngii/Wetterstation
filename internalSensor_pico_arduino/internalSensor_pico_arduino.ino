@@ -10,7 +10,6 @@
 #include <CRC.h>
 #include <CRC8.h>
 #include "CO2.h"
-#include "Meteo.h"
 #include "DataTypes.h"
 
 // Pindefs running on core0
@@ -30,12 +29,11 @@
 
 Adafruit_BME280 bme;    // BME280, read by core0
 CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
-Meteo meteo;
 CO2SendBuf co2Buffer = {'C','O','2','.'};
 BMESendBuf iBmeBuffer = {'I','B','M','E'};
 
 BMESendBuf eBmeBuffer;
-MeteoRawReceiveBuf meteoReceiveBuffer;
+MeteoDecodedSendBuf meteoReceiveBuffer;
 TimeSendBuf timeBuffer;
 
 bool bmeAvailable = true;
@@ -131,50 +129,10 @@ void setup()
 
 void setup1()
 {
-    // Initialize Pins for Meteodecoder
-    pinMode(METEO_DATA_IN, OUTPUT);
-    pinMode(METEO_DATA_OUT, INPUT);
-    pinMode(METEO_CLK_IN, OUTPUT);
-    pinMode(METEO_CLK_OUT, INPUT);
-    pinMode(METEO_RDY, INPUT);
-    digitalWrite(METEO_DATA_IN, LOW);
-    digitalWrite(METEO_CLK_IN, LOW);
 }
 
 void loop()
 {
-    // Decode testpacket with meteodata
-    if (Serial.available() == 4)
-    {
-        char buf[5];
-        for(int i = 0; i < 4; i++)
-        {
-            Serial.readBytes(buf, 4);
-        }
-        buf[4] = '\0';
-        Serial.print("Received: ");
-        Serial.println(buf);
-        MeteoRawSendBuf testBuffer;
-        testBuffer.data.packet1 = 0x1d88;
-        testBuffer.data.packet2 = 0x3453;
-        testBuffer.data.packet3 = 0x32e4;
-        testBuffer.data.minute = 0x40;
-        testBuffer.data.hour = 0;
-        testBuffer.data.date = 0xe8;
-        testBuffer.data.month = 9;
-        testBuffer.data.dayInWeek = 0x7;
-        testBuffer.data.year = 0xc4;
-        Serial.println(testBuffer.data.packet1, BIN);
-        if (meteo.getNewData(testBuffer))
-        {
-            Serial.println("Meteo Packet accepted");
-        }
-        else
-        {
-            Serial.println("Meteo packet not accepted");
-        }
-    }
-
     if (Serial2.available())
     {
         bool packetValid = true;
@@ -309,33 +267,14 @@ void loop()
             crc.add((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer));
             if (crc.calc() != 0x00)
             {
-                Serial.println("Checksum invalud on Meteopacket. Initiate retransmission");
+                Serial.println("Checksum invalid on Meteopacket. Initiate retransmission");
                 packetValid = false;
             }
             else
             {
-                MeteoRawSendBuf rawBuffer;
-                memcpy(rawBuffer.buf, meteoReceiveBuffer.buf + 4, sizeof(rawBuffer));
-                Serial.println("Meteodata: ");
-                Serial.print("Packet1: ");
-                Serial.println(rawBuffer.data.packet1, BIN);
-                Serial.print("Packet2: ");
-                Serial.println(rawBuffer.data.packet2, BIN);
-                Serial.print("Packet3: ");
-                Serial.println(rawBuffer.data.packet3, BIN);
-                Serial.print("Minute: ");
-                Serial.println(rawBuffer.data.minute, BIN);
-                Serial.print("Hour: ");
-                Serial.println(rawBuffer.data.hour, BIN);
-                Serial.print("Day: ");
-                Serial.println(rawBuffer.data.date, BIN);
-                Serial.print("Month: ");
-                Serial.println(rawBuffer.data.month, BIN);
-                Serial.print("Weekday: ");
-                Serial.println(rawBuffer.data.dayInWeek, BIN);
-                Serial.print("Year: ");
-                Serial.println(rawBuffer.data.year, BIN);
-                meteo.getNewData(rawBuffer);
+                Serial.print("Received meteodata: ");
+                Serial.println(meteoReceiveBuffer.data.meteoData);
+                Serial1.write((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer) - 1);
             }
         }
         else
@@ -348,14 +287,6 @@ void loop()
         {
             Serial2.print("ERRORERRORERROR");
         }
-    }
-
-    // Send meteodata if there are any new
-    if (meteo.isMeteoReady())
-    {
-        MeteoDecodedSendBuf convertedBuffer = meteo.getConvertedBuffer();
-        Serial1.write((const uint8_t*)convertedBuffer.buf, sizeof(convertedBuffer));
-        Serial.println("Transmitted decoded meteo data");
     }
     // Send CO2 data if sensor is ready
     if (((millis() - lastCo2Send) > CO2_SEND_FREQUENCY_MILLIS) && co2Ready)
@@ -398,19 +329,5 @@ void loop1()
         co2Concentration = co2.readCO2PWM();
         //Serial.print("Got new CO2 value: ");
         //Serial.println(co2Concentration);
-    }
-
-    if (meteo.isNewMeteo())
-    {
-        // Decode data if HKW581 is heated up and ready to decode
-        if (!digitalRead(METEO_RDY))
-        {
-            meteo.decode();
-            Serial.println("Just finished decoding");
-        }
-        else
-        {
-            Serial.println("Meteo decoder is not ready yet...");
-        }
     }
 }

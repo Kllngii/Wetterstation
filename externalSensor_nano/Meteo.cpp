@@ -20,7 +20,7 @@ Meteo::~Meteo()
 
 }
 
-bool Meteo::getNewData(MeteoRawSendBuf rawBuffer)
+bool Meteo::getNewData(MeteoRawStruct rawBuffer)
 {
     if (!meteoDataReady)
     {
@@ -42,41 +42,41 @@ void Meteo::decode()
         {
             if (i == 0)
             {
-                writeToMeteo((rawBuffer.data.packet1 & (1 << j)) >> j);
+                writeToMeteo((rawBuffer.packet1 & (1 << j)) >> j);
             }
             else if (i == 1)
             {
-                writeToMeteo((rawBuffer.data.packet2 & (1 << j)) >> j);
+                writeToMeteo((rawBuffer.packet2 & (1 << j)) >> j);
             }
             else if (i == 2)
             {
-                writeToMeteo((rawBuffer.data.packet3 & (1 << j)) >> j);
+                writeToMeteo((rawBuffer.packet3 & (1 << j)) >> j);
             }
         }
     }
     for (int i = 7; i >= 0; i--)
     {
-        writeToMeteo((rawBuffer.data.minute & (1 << i)) >> i);
+        writeToMeteo((rawBuffer.minute & (1 << i)) >> i);
     }
     for (int i = 7; i >= 0; i--)
     {
-        writeToMeteo((rawBuffer.data.hour & (1 << i)) >> i);
+        writeToMeteo((rawBuffer.hour & (1 << i)) >> i);
     }
     for (int i = 7; i >= 0; i--)
     {
-        writeToMeteo((rawBuffer.data.date & (1 << i)) >> i);
+        writeToMeteo((rawBuffer.date & (1 << i)) >> i);
     }
     for (int i = 4; i >= 0; i--)
     {
-        writeToMeteo((rawBuffer.data.month & (1 << i)) >> i);
+        writeToMeteo((rawBuffer.month & (1 << i)) >> i);
     }
     for (int i = 2; i >= 0; i--)
     {
-        writeToMeteo((rawBuffer.data.dayInWeek & (1 << i)) >> i);
+        writeToMeteo((rawBuffer.dayInWeek & (1 << i)) >> i);
     }
     for (int i = 7; i >= 0; i--)
     {
-        writeToMeteo((rawBuffer.data.year & (1 << i)) >> i);
+        writeToMeteo((rawBuffer.year & (1 << i)) >> i);
     }
 
     while(!digitalRead(METEO_CLK_OUT));
