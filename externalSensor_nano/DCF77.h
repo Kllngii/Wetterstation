@@ -21,6 +21,9 @@
 #define DCFSplitTime 180        // Specifications distinguishes pulse width 100 ms and 200 ms. In practice we see 130 ms and 230
 #define DCFSyncTime 1500        // Specifications defines 2000 ms pulse for end of sequence
 
+
+//#define FILTER_METEO    1   // Filters meteodata based on current time. May be disabled for testing
+
 class DCF77 {
 private:
 
@@ -99,6 +102,9 @@ private:
     void static appendSignal(unsigned char signal);
     uint16_t static reverseMeteoPacket(uint16_t inputData);
     uint8_t static reverseBits8(uint8_t inputData, int bitsUsed);
+    bool static isMeteoRelevant(time_t packetTime);
+    void static tmToMeteo(tmElements_t& packetTime);
+
 
 public: 
     // Public Functions
