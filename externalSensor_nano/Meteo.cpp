@@ -92,8 +92,6 @@ void Meteo::decode()
         while (digitalRead(METEO_CLK_OUT));
         digitalWrite(METEO_CLK_IN, LOW);
     }
-    Serial.print("Decoded weather: ");
-    Serial.println(meteoPattern, BIN);
     meteoPattern >>= 1;
     convertedBuffer.data.meteoData = meteoPattern;
     newMeteoData = false;

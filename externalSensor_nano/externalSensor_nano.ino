@@ -181,11 +181,9 @@ void loop()
     if (DCF.isMeteoReady())
     {
         meteo.getNewData(DCF.getMeteoBuffer());
-        Serial.println("Got new meteodata");
     }
     if (meteo.isNewMeteo() && !digitalRead(METEO_RDY))
     {
-        Serial.println("Start decoding");
         meteo.decode();
         sendBuffer = meteo.getConvertedBuffer();
         crc.restart();
