@@ -1,0 +1,26 @@
+[package]
+name = "dcf77-pico"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.71.0"
+authors = ["Lasse Kelling <lasse@kelling.de>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+defmt = "0.3"
+defmt-rtt = "0.4.0"
+panic-probe = { version = "0.3.1", features = ["print-defmt"] }
+log = "0.4.20"
+embedded-alloc = "0.5.1"
+cortex-m-rt = "0.7.3"
+cortex-m = "0.7.7"
+embedded-hal = { version = "0.2.7" }
+rp-pico = "0.8.0"
+fugit = "0.3.7"
+
+#hc12-at = "0.2.0"
+
+#derive_more = "0.99.17"
+#pin-weak = "1.1.0"
+#cfg-if = "1.0.0"
