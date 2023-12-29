@@ -307,9 +307,12 @@ void loop()
         iBmeBuffer.data.pressure = bme.readPressure() / 100.0;
         Serial1.write((const uint8_t*)iBmeBuffer.buf, sizeof(iBmeBuffer));
         lastBmeSend = millis();
-        Serial.println("Set BME Data. Values are: Temp, Hum, Press: ");
+        Serial.println("Sent internal BME data.");
+        Serial.print("Temperature: ");
         Serial.println(iBmeBuffer.data.temp);
+        Serial.print("Humidity: ");
         Serial.println(iBmeBuffer.data.humidity);
+        Serial.print("Pressure: ");
         Serial.println(iBmeBuffer.data.pressure);
     }
 }
