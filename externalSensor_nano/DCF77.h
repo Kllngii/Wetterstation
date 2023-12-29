@@ -11,7 +11,7 @@
 #include <WProgram.h> 
 #endif
 #include <TimeLib.h>
-#include "DataTypes.h"
+#include "Meteo.h"
 
 #define MIN_TIME (unsigned long long)1334102400     // Date: 11-4-2012
 #define MAX_TIME (unsigned long long)4102444800     // Date:  1-1-2100
@@ -20,6 +20,9 @@
 #define DCFRejectPulseWidth 50  // Minimal pulse width
 #define DCFSplitTime 180        // Specifications distinguishes pulse width 100 ms and 200 ms. In practice we see 130 ms and 230
 #define DCFSyncTime 1500        // Specifications defines 2000 ms pulse for end of sequence
+
+
+//#define FILTER_METEO    1   // Filters meteodata based on current time. May be disabled for testing
 
 class DCF77 {
 private:
@@ -77,7 +80,7 @@ private:
 
     // Variables for meteotime
 
-    static MeteoRawSendBuf meteoData;
+    static MeteoRawStruct meteoData;
     static int meteoPacketNumber;
     static bool meteoDataReady; 
     static bool timeUseable;
@@ -99,13 +102,16 @@ private:
     void static appendSignal(unsigned char signal);
     uint16_t static reverseMeteoPacket(uint16_t inputData);
     uint8_t static reverseBits8(uint8_t inputData, int bitsUsed);
+    bool static isMeteoRelevant(time_t packetTime);
+    void static tmToMeteo(tmElements_t& packetTime);
+
 
 public: 
     // Public Functions
     DCF77(int DCF77Pin, int DCFinterrupt, bool OnRisingFlank=true); 
     
     static bool isMeteoReady();
-    static MeteoRawSendBuf getMeteoBuffer();
+    static MeteoRawStruct getMeteoBuffer();
     static time_t getTime(void);
     static time_t getUTCTime(void);
     static void Start(void);

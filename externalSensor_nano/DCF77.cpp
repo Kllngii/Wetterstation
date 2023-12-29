@@ -42,7 +42,7 @@ DCF77::DCF77(int DCF77Pin, int DCFinterrupt, bool OnRisingFlank)
 	pulseStart   = OnRisingFlank ? HIGH : LOW;
 	
 	if (!initialized) {  
-		pinMode(dCF77Pin, INPUT);	
+		pinMode(dCF77Pin, INPUT_PULLUP);	
 		initialize();
 	  }
 	initialized = true;
@@ -65,15 +65,15 @@ void DCF77::initialize(void)
 	flags.parityHour      = 0;
 	flags.parityMin       = 0;
 	CEST				  = 0;
-	meteoData.data.packet1 = 0;
-	meteoData.data.packet2 = 0;
-	meteoData.data.packet3 = 0;
-	meteoData.data.minute = 0;
-	meteoData.data.hour = 0;
-	meteoData.data.date = 0;
-	meteoData.data.month = 0;
-	meteoData.data.dayInWeek = 0;
-	meteoData.data.year = 0;
+	meteoData.packet1 = 0;
+	meteoData.packet2 = 0;
+	meteoData.packet3 = 0;
+	meteoData.minute = 0;
+	meteoData.hour = 0;
+	meteoData.date = 0;
+	meteoData.month = 0;
+	meteoData.dayInWeek = 0;
+	meteoData.year = 0;
 	meteoPacketNumber     = 0;
 	meteoDataReady        = false;
 }
@@ -83,7 +83,7 @@ void DCF77::initialize(void)
  */
 void DCF77::Start(void) 
 {
-	attachInterrupt(dCFinterrupt, int0handler, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(dCFinterrupt), int0handler, CHANGE);
 }
 
 /**
@@ -91,7 +91,7 @@ void DCF77::Start(void)
  */
 void DCF77::Stop(void) 
 {
-	detachInterrupt(dCFinterrupt);	
+	detachInterrupt(digitalPinToInterrupt(dCFinterrupt));	
 }
 
 /**
@@ -225,7 +225,7 @@ bool DCF77::receivedTimeUpdate(void) {
 		LogLn("time lag consistent");		
 		return true;
 	} else {
-		// Although there is a time lag, I will still use the time. 
+		// Although there is a time lag, the time will still be used 
 		timeUseable = true;
 		LogLn("time lag inconsistent");
 		return true;
@@ -276,6 +276,8 @@ bool DCF77::processBuffer(void) {
 	
 	bool returnValue = false;
 	int minuteSwitcher = 0;
+	static bool timeUseable = false;
+	static time_t meteoPacketTime;
 	/////  Start interaction with interrupt driven loop  /////
 	
 	// Copy filled buffer and timestamp from interrupt driven loop
@@ -290,7 +292,6 @@ bool DCF77::processBuffer(void) {
 	//  Calculate parities for checking buffer
 	calculateBufferParities();
 	tmElements_t time;
-	bool proccessedSucces;
 
 	struct DCF77Buffer *rx_buffer;
 	rx_buffer = (struct DCF77Buffer *)(unsigned long long)&processingBuffer;
@@ -318,45 +319,93 @@ bool DCF77::processBuffer(void) {
 	  returnValue =  false;
 	}
 
-	if (returnValue == true)
+	if (returnValue)
 	{
-		minuteSwitcher = (time.Minute - 1) % 3;
-	} else if (timeUseable)
+		setTime(latestupdatedTime);
+		minuteSwitcher = (minute(latestupdatedTime) - 1) % 3;
+		timeUseable = true;
+	} 
+	else
 	{
-		minuteSwitcher = (minute() - 1) % 3;
-	} else
-	{
-		minuteSwitcher = 0;
+		if (timeUseable)
+		{
+			minuteSwitcher = (minute() - 1) % 3;
+		}
+		else
+		{
+			minuteSwitcher = 0;
+		}
 	}
 
-	Serial.print("MinuteSwitcher value: ");
-	Serial.println(minuteSwitcher);
-	Serial.print("Meteopacketnumber: ");
-	Serial.println(meteoPacketNumber);
-	
 
 	//Merge MeteoTime Data
 	switch(minuteSwitcher)
 	{
 		case 0:
-			meteoData.data.packet1 = reverseMeteoPacket(rx_buffer->meteoBits);
+			meteoData.packet1 = reverseMeteoPacket(rx_buffer->meteoBits);
 			meteoPacketNumber++;
 		break;
 		case 1:
-			meteoData.data.packet2 = reverseMeteoPacket(rx_buffer->meteoBits);
-			meteoData.data.minute = reverseBits8(rx_buffer->Min, 7) << 1;
-			meteoData.data.hour = reverseBits8(rx_buffer->Hour, 6) << 2;
-			meteoData.data.date = reverseBits8(rx_buffer->Day, 6) << 2;
-			meteoData.data.month = reverseBits8(rx_buffer->Month, 5);
-			meteoData.data.dayInWeek = reverseBits8(rx_buffer->Weekday, 3);
-			meteoData.data.year = reverseBits8(rx_buffer->Year, 8);
+			meteoData.packet2 = reverseMeteoPacket(rx_buffer->meteoBits);
+			if (returnValue)
+			{
+				meteoData.minute = reverseBits8(rx_buffer->Min, 7) << 1;
+				meteoData.hour = reverseBits8(rx_buffer->Hour, 6) << 2;
+				meteoData.date = reverseBits8(rx_buffer->Day, 6) << 2;
+				meteoData.month = reverseBits8(rx_buffer->Month, 5);
+				meteoData.dayInWeek = reverseBits8(rx_buffer->Weekday, 3);
+				meteoData.year = reverseBits8(rx_buffer->Year, 8);
+
+				meteoPacketTime = latestupdatedTime;
+			}
+			else
+			{
+				tmElements_t brokenTime;
+				breakTime(now(), brokenTime);
+				tmToMeteo(brokenTime);
+				if (flags.parityMin != rx_buffer->P1)
+				{
+					meteoData.minute = brokenTime.Minute;
+				}
+				else
+				{
+					meteoData.minute = reverseBits8(rx_buffer->Min, 7) << 1;
+				}
+				if (flags.parityHour != rx_buffer->P2)
+				{
+					meteoData.hour = brokenTime.Hour;
+				}
+				else
+				{
+					meteoData.hour = reverseBits8(rx_buffer->Hour, 6) << 2;
+				}
+				if (flags.parityDate != rx_buffer->P3)
+				{
+					meteoData.date = brokenTime.Day;
+					meteoData.month = brokenTime.Month;
+					meteoData.dayInWeek = brokenTime.Wday;
+					meteoData.year = brokenTime.Year;
+				}
+				else
+				{
+					meteoData.date = reverseBits8(rx_buffer->Day, 6) << 2;
+					meteoData.month = reverseBits8(rx_buffer->Month, 5);
+					meteoData.dayInWeek = reverseBits8(rx_buffer->Weekday, 3);
+					meteoData.year = reverseBits8(rx_buffer->Year, 8);
+				}
+				meteoPacketTime = now();
+			}
 			meteoPacketNumber++;
 		break;
 		case 2:
-			meteoData.data.packet3 = reverseMeteoPacket(rx_buffer->meteoBits);
+			meteoData.packet3 = reverseMeteoPacket(rx_buffer->meteoBits);
 			if (meteoPacketNumber == 2)
 			{
+#ifdef FILTER_METEO
+				meteoDataReady = isMeteoRelevant(meteoPacketTime);
+#else
 				meteoDataReady = true;
+#endif
 			}
 			else
 			{
@@ -366,7 +415,7 @@ bool DCF77::processBuffer(void) {
 		break;
 		default:
 			LogLn("Invalid meteo packet number.");
-			// This stays unhandled. 
+			// This sis kept unhandled. 
 	}
 
 	return returnValue;
@@ -400,12 +449,225 @@ uint8_t DCF77::reverseBits8(uint8_t inputData, int bitsUsed)
 	return reversedPacket;
 }
 
+void DCF77::tmToMeteo(tmElements_t& packetTime)
+{
+	uint8_t tempValue = 0;
+	uint8_t startValue = 0;
+	// Minute
+	startValue = packetTime.Minute;
+	if (startValue / 40)
+	{
+		tempValue |= 1 << 1;
+		startValue -= 40;
+	}
+	if (startValue / 20)
+	{
+		tempValue |= 1 << 2;
+		startValue -= 20;
+	}
+	if (startValue / 10)
+	{
+		tempValue |= 1 << 3;
+		startValue -= 10;
+	}
+	if (startValue / 8)
+	{
+		tempValue |= 1 << 4;
+		startValue -= 8;
+	}
+	if (startValue / 4)
+	{
+		tempValue |= 1 << 5;
+		startValue -= 4;
+	}
+	if (startValue / 2)
+	{
+		tempValue |= 1 << 6;
+		startValue -= 2;
+	}
+	if (startValue)
+	{
+		tempValue |= 1 << 7;
+	}
+	packetTime.Minute = tempValue;
+	tempValue = 0;
+
+	// Hour
+	startValue = packetTime.Hour;
+	if (startValue / 20)
+	{
+		tempValue |= 1 << 2;
+		startValue -= 20;
+	}
+	if (startValue / 10)
+	{
+		tempValue |= 1 << 3;
+		startValue -= 10;
+	}
+	if (startValue / 8)
+	{
+		tempValue |= 1 << 4;
+		startValue -= 8;
+	}
+	if (startValue / 4)
+	{
+		tempValue |= 1 << 5;
+		startValue -= 4;
+	}
+	if (startValue / 2)
+	{
+		tempValue |= 1 << 6;
+		startValue -= 2;
+	}
+	if (startValue)
+	{
+		tempValue |= 1 << 7;
+	}
+	packetTime.Hour = tempValue;
+	tempValue = 0;
+	
+	// Date
+	startValue = packetTime.Day;
+	if (startValue / 20)
+	{
+		tempValue |= 1 << 2;
+		startValue -= 20;
+	}
+	if (startValue / 10)
+	{
+		tempValue |= 1 << 3;
+		startValue -= 10;
+	}
+	if (startValue / 8)
+	{
+		tempValue |= 1 << 4;
+		startValue -= 8;
+	}
+	if (startValue / 4)
+	{
+		tempValue |= 1 << 5;
+		startValue -= 4;
+	}
+	if (startValue / 2)
+	{
+		tempValue |= 1 << 6;
+		startValue -= 2;
+	}
+	if (startValue)
+	{
+		tempValue |= 1 << 7;
+	}
+	packetTime.Day = tempValue;
+	tempValue = 0;
+
+	// Month
+	startValue = packetTime.Month;
+	if (startValue / 10)
+	{
+		tempValue |= 1;
+		startValue -= 10;
+	}
+	if (startValue / 8)
+	{
+		tempValue |= 1 << 1;
+		startValue -= 8;
+	}
+	if (startValue / 4)
+	{
+		tempValue |= 1 << 2;
+		startValue -= 4;
+	}
+	if (startValue / 2)
+	{
+		tempValue |= 1 << 3;
+		startValue -= 2;
+	}
+	if (startValue)
+	{
+		tempValue |= 1 << 4;
+	}
+	packetTime.Month = tempValue;
+	tempValue = 0;
+
+	// Day in week
+	startValue = packetTime.Wday;
+	if (startValue == 1)
+	{
+		startValue = 7;
+	}
+	else
+	{
+		startValue -= 1;
+	}
+	
+	if (startValue / 4)
+	{
+		tempValue |= 1;
+		startValue -= 4;
+	}
+	if (startValue / 2)
+	{
+		tempValue |= 1 << 1;
+		startValue -= 2;
+	}
+	if (startValue)
+	{
+		tempValue |= 1 << 2;
+	}
+	packetTime.Wday = tempValue;
+	tempValue = 0;
+
+	// Year
+	startValue = packetTime.Year;
+	startValue -= 2000;
+	if (startValue / 80)
+	{
+		tempValue |= 1;
+		startValue -= 80;
+	}
+	if (startValue / 40)
+	{
+		tempValue |= 1 << 1;
+		startValue -= 40;
+	}
+	if (startValue / 20)
+	{
+		tempValue |= 1 << 2;
+		startValue -= 20;
+	}
+	if (startValue / 10)
+	{
+		tempValue |= 1 << 3;
+		startValue -= 10;
+	}
+	if (startValue / 8)
+	{
+		tempValue |= 1 << 4;
+		startValue -= 8;
+	}
+	if (startValue / 4)
+	{
+		tempValue |= 1 << 5;
+		startValue -= 4;
+	}
+	if (startValue / 2)
+	{
+		tempValue |= 1 << 6;
+		startValue -= 2;
+	}
+	if (startValue)
+	{
+		tempValue |= 1 << 7;
+	}
+	packetTime.Year = tempValue;
+}
+
 bool DCF77::isMeteoReady()
 {
 	return meteoDataReady;
 }
 
-MeteoRawSendBuf DCF77::getMeteoBuffer()
+MeteoRawStruct DCF77::getMeteoBuffer()
 {
 	if (meteoDataReady)
 	{
@@ -414,9 +676,117 @@ MeteoRawSendBuf DCF77::getMeteoBuffer()
 	}
 	else
 	{
-		MeteoRawSendBuf emptyBuf;
+		MeteoRawStruct emptyBuf;
 		return emptyBuf;
 	}
+}
+
+bool DCF77::isMeteoRelevant(time_t packetTime)
+{
+	bool returnVal = false;
+
+	switch (minute(packetTime))
+	{
+		case 59:
+			// 19: Bremerhaven
+			switch (hour(packetTime))
+			{
+				case 23:
+					returnVal = true; 	// Max 1
+				break;
+				case 2:
+					returnVal = true; 	// Min 1
+				break;
+				case 5:
+					returnVal = true; 	// Max 2
+				break;
+				case 8:
+					returnVal = true; 	// Min 2
+				break;
+				case 11:
+					returnVal = true; 	// Max 3
+				break;
+				case 14:
+					returnVal = true; 	// Min 3
+				break;
+				case 17:
+					returnVal = true; 	// Max 4
+				break;
+				case 20:
+					returnVal = true; 	// Min 4
+				break;
+				default:
+					returnVal = false;
+			}
+		break;
+		case 8:
+			// 22: Hannover
+			switch (hour(packetTime))
+			{
+				case 0:
+					returnVal = true;	// Max 1
+				break;
+				case 3:
+					returnVal = true;	// Min 1
+				break;
+				case 6:
+					returnVal = true;	// Max 2
+				break;
+				case 9:
+					returnVal = true;	// Min 2
+				break;
+				case 12:
+					returnVal = true;	// Max 3
+				break;
+				case 15:
+					returnVal = true;	// Min 3
+				break;
+				case 18:
+					returnVal = true;	// Max 4
+				break;
+				case 21:
+					returnVal = true;	// Min 4
+				break;
+				default:
+					returnVal = false;
+			}
+		break;
+		case 14:
+			// 24: Rostock
+			switch (hour(packetTime))
+			{
+				case 0:
+					returnVal = true;	// Max 1
+				break;
+				case 3:
+					returnVal = true;	// Min 1
+				break;
+				case 6:
+					returnVal = true;	// Max 2
+				break;
+				case 9:
+					returnVal = true;	// Min 2
+				break;
+				case 12:
+					returnVal = true;	// Max 3
+				break;
+				case 15:
+					returnVal = true;	// Min 3
+				break;
+				case 18:
+					returnVal = true;	// Max 4
+				break;
+				case 21:
+					returnVal = true;	// Min 4
+				break;
+				default:
+					returnVal = false;	
+			}
+		break;
+		default:
+			returnVal = false;
+	}
+	return returnVal;
 }
 
 /**
@@ -474,7 +844,7 @@ unsigned long long DCF77::runningBuffer = 0;
 unsigned long long DCF77::processingBuffer = 0;
 
 // MeteoInformation
-MeteoRawSendBuf DCF77::meteoData = {'M','T','E','O'};
+MeteoRawStruct DCF77::meteoData;
 int DCF77::meteoPacketNumber = 0;
 bool DCF77::meteoDataReady = false;
 bool DCF77::timeUseable = false;
