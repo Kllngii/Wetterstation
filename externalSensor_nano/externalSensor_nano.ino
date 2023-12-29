@@ -14,9 +14,7 @@
 
 #define DCF_DATA_PIN 2      // D2
 #define DCF_INTERRUPT_PIN 2 // D2
-#define SET_PIN 5          // D3
-#define HC_RX 7             // D4
-#define HC_TX 8             // D5
+#define SET_PIN 4          // D4
 
 // Send bme data every 53 seconds to reduce collision probability with time or meteo packets
 #define SENSOR_SEND_FREQUENCY_MILLIS 53000
@@ -84,7 +82,7 @@ void setup()
 
     // Enable Setting Mode in HC-12
     pinMode(SET_PIN, OUTPUT);
-    pinMode(SET_PIN, LOW);
+    digitalWrite(SET_PIN, LOW);
 
     // Set Baudrate to 9600
     delay(100);
@@ -183,9 +181,11 @@ void loop()
     if (DCF.isMeteoReady())
     {
         meteo.getNewData(DCF.getMeteoBuffer());
+        Serial.println("Got new meteodata");
     }
-    if (meteo.isNewMeteo() && digitalRead(METEO_RDY))
+    if (meteo.isNewMeteo() && !digitalRead(METEO_RDY))
     {
+        Serial.println("Start decoding");
         meteo.decode();
         sendBuffer = meteo.getConvertedBuffer();
         crc.restart();
