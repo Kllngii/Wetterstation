@@ -185,15 +185,18 @@ void loop()
     if (meteo.isNewMeteo() && !digitalRead(METEO_RDY))
     {
         meteo.decode();
-        sendBuffer = meteo.getConvertedBuffer();
-        crc.restart();
-        crc.add((const uint8_t*)sendBuffer.buf, sizeof(sendBuffer) - 1);
-        sendBuffer.data.checksum = crc.calc();
-        Serial.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
-        meteoResendCounter = 0;
-        meteoPacketPending = true;
-        meteoPacketValid = true;
-        meteoRetransTime = millis();
+        if (meteo.isMeteoValid())
+        {
+            sendBuffer = meteo.getConvertedBuffer();
+            crc.restart();
+            crc.add((const uint8_t*)sendBuffer.buf, sizeof(sendBuffer) - 1);
+            sendBuffer.data.checksum = crc.calc();
+            Serial.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
+            meteoResendCounter = 0;
+            meteoPacketPending = true;
+            meteoPacketValid = true;
+            meteoRetransTime = millis();
+        }
     }
     // Resend meteopacket if checksum was incorrect at receiver
     if (!meteoPacketValid)

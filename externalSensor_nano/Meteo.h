@@ -71,6 +71,11 @@ class Meteo {
         bool isNewMeteo();
 
         /*
+         *  Returns true if the decoder answered with valid data
+         */
+        bool isMeteoValid();
+
+        /*
          *  Returns databuffer with freshly decoded meteodata if there are any. 
          *  Else it returns an empty buffer. Shall be only used after checking with
          *  isMeteoReady() before. 
@@ -82,6 +87,7 @@ class Meteo {
         MeteoDecodedSendBuf convertedBuffer;
         volatile bool newMeteoData;
         volatile bool meteoDataReady;
+        const uint32_t meteoErrorValue = (1 << 2) | ((uint32_t)1 << 23);
 
         /* 
          *  Write a bit to the HKW581

@@ -108,6 +108,24 @@ bool Meteo::isNewMeteo()
     return newMeteoData;
 }
 
+bool Meteo::isMeteoValid()
+{
+    if (!meteoDataReady)
+    {
+        return false;
+    }
+    if (convertedBuffer.data.meteoData == meteoErrorValue)
+    {
+        meteoDataReady = false;
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+
+}
+
 MeteoDecodedSendBuf Meteo::getConvertedBuffer()
 {
     static MeteoDecodedSendBuf emptyBuf = {'E','M','T','Y'};
