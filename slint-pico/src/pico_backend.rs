@@ -5,6 +5,7 @@ use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
 use core::cell::RefCell;
+use core::char::decode_utf16;
 use core::convert::Infallible;
 use core::fmt::Display;
 use core::time::Duration;
@@ -38,6 +39,7 @@ use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
+use crate::meteotime::{decode_region, TimeStamp};
 
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
@@ -372,6 +374,12 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 current_date.month = ((time[5] >> 4) * 10 + (time[5] & 0xF)) as i32;
                 current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
                 current_date.weekday = weekday;
+
+                decode_region(TimeStamp {minute: current_time.minutes.clone() as u8,
+                    hour: current_time.hours.clone() as u8,
+                    day: current_date.day.clone() as u8,
+                    month: current_date.month.clone() as u8,
+                });
 
                 time_adapter.set_time(current_time);
                 time_adapter.set_date(current_date);

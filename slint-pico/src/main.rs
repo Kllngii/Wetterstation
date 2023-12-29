@@ -1,5 +1,6 @@
 #![no_std]
 #![cfg_attr(not(feature = "simulator"), no_main)]
+#![crate_name = "slint_pico"]
 //#![feature(type_alias_impl_trait)]
 //#![feature(async_fn_in_trait)]
 
