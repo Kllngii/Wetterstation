@@ -152,11 +152,18 @@ void loop()
     {
         timeBuffer.data.hour = hour(DCFtime);
         timeBuffer.data.minute = minute(DCFtime);
-        timeBuffer.data.second = second(DCFtime);
+        timeBuffer.data.second = 0;
         timeBuffer.data.year = year(DCFtime);
         timeBuffer.data.month = month(DCFtime);
         timeBuffer.data.day = day(DCFtime);
-
+        if (weekday(DCFtime) == 1)
+        {
+            timeBuffer.data.weekDay = 7;
+        }
+        else
+        {
+            timeBuffer.data.weekDay = weekday(DCFtime) - 1;
+        }
         // Calculate Checksum and store it in the sending struct
         crc.restart();
         crc.add((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);

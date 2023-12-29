@@ -22,6 +22,7 @@ typedef struct __attribute__ ((__packed__)){
     uint16_t year;
     uint8_t month;
     uint8_t day;
+    uint8_t weekDay;
     uint8_t checksum;
 } TimeStruct;
 

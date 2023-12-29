@@ -256,6 +256,8 @@ void loop()
                 Serial.println(timeBuffer.data.month);
                 Serial.print("Day: ");
                 Serial.println(timeBuffer.data.day);
+                Serial.print("Weekday: ");
+                Serial.println(timeBuffer.data.weekDay);
                 Serial1.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
             }
         }
@@ -273,7 +275,7 @@ void loop()
             else
             {
                 Serial.print("Received meteodata: ");
-                Serial.println(meteoReceiveBuffer.data.meteoData);
+                Serial.println(meteoReceiveBuffer.data.meteoData, BIN);
                 Serial1.write((const uint8_t*)meteoReceiveBuffer.buf, sizeof(meteoReceiveBuffer) - 1);
             }
         }

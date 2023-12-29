@@ -22,6 +22,7 @@ typedef struct {
     uint16_t year;
     uint8_t month;
     uint8_t day;
+    uint8_t weekDay;
     uint8_t checksum;
 } TimeStruct;
 #pragma pack(pop)
