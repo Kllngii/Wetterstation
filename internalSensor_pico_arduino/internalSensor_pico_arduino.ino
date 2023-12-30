@@ -7,6 +7,7 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include <SoftwareSerial.h>
 #include <CRC.h>
 #include <CRC8.h>
 #include "CO2.h"
@@ -20,6 +21,8 @@
 #define HC12_RX         9
 #define HC12_SET_PIN    3
 
+#define CO2_RX          10
+#define CO2_TX          11
 #define CO2_PWM_PIN     15
 
 #define BME_SEND_FREQUENCY_MILLIS   30000
@@ -28,7 +31,9 @@
 #define READ_TIMEOUT    100 // Timeout value after which the uC stops polling for Serial data from HC12
 
 Adafruit_BME280 bme;    // BME280, read by core0
-CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
+//CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
+SoftwareSerial co2Serial(CO2_RX, CO2_TX);
+CO2 co2(co2Serial, MHZ19C);
 CO2SendBuf co2Buffer = {'C','O','2','.'};
 BMESendBuf iBmeBuffer = {'I','B','M','E'};
 
@@ -129,6 +134,7 @@ void setup()
 
 void setup1()
 {
+    co2Serial.begin(9600, SERIAL_8N1);
 }
 
 void loop()
@@ -331,7 +337,7 @@ void loop1()
     else
     {
         // Read CO2 concentration using PWM
-        co2Concentration = co2.readCO2PWM();
+        co2Concentration = co2.readCO2UART();
         //Serial.print("Got new CO2 value: ");
         //Serial.println(co2Concentration);
     }
