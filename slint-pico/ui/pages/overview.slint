@@ -7,7 +7,7 @@ import { GroupBox, ValueDisplay, Value } from "../widgets/widgets.slint";
 export global OverviewAdapter {
     in property <string> temperature-title: "Temperatur";
     in property <string> humidity-title: "Luftfeuchtigkeit";
-    in property <string> pressure-title: "Luftdruck";
+    in property <string> pressure-title: "";
     in property <[Value]> temperature-model: [
         {
             title: "Innen",
@@ -34,9 +34,14 @@ export global OverviewAdapter {
     ];
     in property <[Value]> pressure-model: [
         {
-            title: "Innen",
+            title: "Luftdruck",
             value: 1013,
             unit: "hPa",
+        },
+        {
+            title: "CO2",
+            value: 972,
+            unit: "ppm",
         }
     ];
 }

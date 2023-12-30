@@ -5,6 +5,7 @@ use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
 use core::cell::RefCell;
+use core::char::decode_utf16;
 use core::convert::Infallible;
 use core::fmt::Display;
 use core::time::Duration;
@@ -38,6 +39,7 @@ use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
+use crate::meteotime::{decode_region, TimeStamp};
 
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
@@ -137,207 +139,6 @@ impl UartQueueRx {
             let queue = cell_queue.borrow_mut();
             queue.len()
         })
-    }
-}
-
-enum WeatherType {
-    Error,
-    Sonnig,
-    Klar,
-    LeichtBewölkt,
-    VorwiegendBewölkt,
-    Bedeckt,
-    Hochnebel,
-    Nebel,
-    Regenschauer,
-    LeichterRegen,
-    StarkerRegen,
-    FrontenGewitter,
-    WärmeGewitter,
-    SchneeregenSchauer,
-    Schneeschauer,
-    Schneeregen,
-    Schneefall,
-    //Extrema
-    GroßeHitze,
-    DichterNebel,
-    KurzerStarkregen,
-    ExtremeNiederschläge,
-    StarkeGewitter,
-    StarkeNiederschläge,
-
-    //Schweres Wetter
-    Sturm(Box<WeatherType>, bool, bool), //(Grundwetter, Tag, Nacht)
-    Böen(Box<WeatherType>, bool), //(Grundwetter, Tag)
-    Eisregen(Box<WeatherType>, bool, bool), //(Grundwetter, Vormittag, Nachmittag)
-    Feinstaub(Box<WeatherType>), //(Grundwetter)
-    Ozon(Box<WeatherType>), //(Grundwetter)
-    Radiation(Box<WeatherType>), //(Grundwetter)
-    Hochwasser(Box<WeatherType>), //(Grundwetter)
-
-}
-
-impl Display for WeatherType {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            WeatherType::Error => core::write!(f, "Error"),
-            WeatherType::Sonnig => core::write!(f, "Sonnig"),
-            WeatherType::Klar => core::write!(f, "Klar"),
-            WeatherType::LeichtBewölkt => core::write!(f, "Leicht Bewölkt"),
-            WeatherType::VorwiegendBewölkt => core::write!(f, "Vorwiegend Bewölkt"),
-            WeatherType::Bedeckt => core::write!(f, "Bedeckt"),
-            WeatherType::Hochnebel => core::write!(f, "Hochnebel"),
-            WeatherType::Nebel => core::write!(f, "Nebel"),
-            WeatherType::Regenschauer => core::write!(f, "Regenschauer"),
-            WeatherType::LeichterRegen => core::write!(f, "Leichter Regen"),
-            WeatherType::StarkerRegen => core::write!(f, "Starker Regen"),
-            WeatherType::FrontenGewitter => core::write!(f, "Frontengewitter"),
-            WeatherType::WärmeGewitter => core::write!(f, "Wärmegewitter"),
-            WeatherType::SchneeregenSchauer => core::write!(f, "Schneeregenschauer"),
-            WeatherType::Schneeschauer => core::write!(f, "Schneeschauer"),
-            WeatherType::Schneeregen => core::write!(f, "Schneeregen"),
-            WeatherType::Schneefall => core::write!(f, "Schneefall"),
-            WeatherType::GroßeHitze => core::write!(f, "Große Hitze"),
-            WeatherType::DichterNebel => core::write!(f, "Dichter Nebel"),
-            WeatherType::KurzerStarkregen => core::write!(f, "Kurzer Starkregen"),
-            WeatherType::ExtremeNiederschläge => core::write!(f, "Extreme Niederschläge"),
-            WeatherType::StarkeGewitter => core::write!(f, "Starke Gewitter"),
-            WeatherType::StarkeNiederschläge => core::write!(f, "Starke Niederschläge"),
-            WeatherType::Sturm(wetter, tag, nacht) => {
-                if *tag {
-                    if *nacht {
-                        core::write!(f, "Sturm 24h + {}", wetter)
-                    } else {
-                        core::write!(f, "Sturm Tag + {}", wetter)
-                    }
-                } else {
-                    core::write!(f, "Sturm Nacht + {}", wetter)
-                }
-            },
-            WeatherType::Böen(wetter, tag) => {
-                if *tag {
-                    core::write!(f, "Böen Tag + {}", wetter)
-                } else {
-                    core::write!(f, "Böen Nacht + {}", wetter)
-                }
-            },
-            WeatherType::Eisregen(wetter, vormittag, nachmittag) => {
-                if *vormittag {
-                    core::write!(f, "Eisregen Vormittag + {}", wetter)
-                } else if *nachmittag {
-                    core::write!(f, "Eisregen Nachmittag + {}", wetter)
-                } else {
-                    core::write!(f, "Eisregen Nacht + {}", wetter)
-                }
-            },
-            WeatherType::Feinstaub(wetter) => {
-                core::write!(f, "Feinstaub + {}", wetter)
-            },
-            WeatherType::Ozon(wetter) => {
-                core::write!(f, "Ozon + {}", wetter)
-            },
-            WeatherType::Radiation(wetter) => {
-                core::write!(f, "Radiation + {}", wetter)
-            },
-            WeatherType::Hochwasser(wetter) => {
-                core::write!(f, "Hochwasser + {}", wetter)
-            },
-        }
-    }
-}
-
-fn get_extrem_weather_type(weather: WeatherType) -> WeatherType {
-    match weather {
-        WeatherType::Sonnig => WeatherType::GroßeHitze,
-        WeatherType::Nebel => WeatherType::DichterNebel,
-        WeatherType::Regenschauer => WeatherType::KurzerStarkregen,
-        WeatherType::StarkerRegen => WeatherType::ExtremeNiederschläge,
-        WeatherType::FrontenGewitter => WeatherType::StarkeGewitter,
-        WeatherType::SchneeregenSchauer => WeatherType::StarkeNiederschläge,
-        WeatherType::Schneeregen => WeatherType::StarkeNiederschläge,
-        WeatherType::Schneefall => WeatherType::StarkeNiederschläge,
-        _ => weather,
-    }
-}
-fn get_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) -> WeatherType {
-    //u8 day_weather, u8 night_weather, u8 extrema, u8 rainfall, u8 anomaly, u8 temperature
-    let weather_type = match weather {
-        1 => {
-            if is_day {WeatherType::Sonnig} else {WeatherType::Klar}
-        },
-        2 => WeatherType::LeichtBewölkt,
-        3 => WeatherType::VorwiegendBewölkt,
-        4 => WeatherType::Bedeckt,
-        5 => WeatherType::Hochnebel,
-        6 => WeatherType::Nebel,
-        7 => WeatherType::Regenschauer,
-        8 => WeatherType::LeichterRegen,
-        9 => WeatherType::StarkerRegen,
-        10 => WeatherType::FrontenGewitter,
-        11 => WeatherType::WärmeGewitter,
-        12 => WeatherType::SchneeregenSchauer,
-        13 => WeatherType::Schneeschauer,
-        14 => WeatherType::Schneeregen,
-        15 => WeatherType::Schneefall,
-        _ => WeatherType::Error,
-    };
-
-    debug!("vorläufiges Wetter: {}", Display2Format(&weather_type));
-
-    if !anomaly {
-        match extrema {
-            0 => weather_type, //Kein Extremwetter
-            1 => { //24h Extremwetter
-                get_extrem_weather_type(weather_type)
-            },
-            2 => { //Nur am Tag Extremwetter
-                if is_day {get_extrem_weather_type(weather_type)} else {weather_type}
-            },
-            3 => { //Nur in der Nacht Extremwetter
-                if !is_day {get_extrem_weather_type(weather_type)} else {weather_type}
-            },
-            4  => {
-                WeatherType::Sturm(Box::from(weather_type), true, true)
-            },
-            5  => {
-                WeatherType::Sturm(Box::from(weather_type), true, false)
-            },
-            6  => {
-                WeatherType::Sturm(Box::from(weather_type), false, true)
-            },
-            7  => {
-                WeatherType::Böen(Box::from(weather_type), true)
-            },
-            8  => {
-                WeatherType::Böen(Box::from(weather_type), false)
-            },
-            9  => {
-                WeatherType::Eisregen(Box::from(weather_type), true, false)
-            },
-            10  => {
-                WeatherType::Eisregen(Box::from(weather_type), false, true)
-            },
-            11  => {
-                WeatherType::Eisregen(Box::from(weather_type), false, false)
-            },
-            12  => {
-                WeatherType::Feinstaub(Box::from(weather_type))
-            },
-            13  => {
-                WeatherType::Ozon(Box::from(weather_type))
-            },
-            14  => {
-                WeatherType::Radiation(Box::from(weather_type))
-            },
-            15  => {
-                WeatherType::Hochwasser(Box::from(weather_type))
-            }
-            //TODO Weitere Extremwetter hinzufügen
-            _ => WeatherType::Error
-        }
-    } else {
-        //TODO Extremwetter für anomaly = 1 hinzufügen
-        weather_type
     }
 }
 
@@ -574,6 +375,12 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
                 current_date.weekday = weekday;
 
+                decode_region(TimeStamp {minute: current_time.minutes.clone() as u8,
+                    hour: current_time.hours.clone() as u8,
+                    day: current_date.day.clone() as u8,
+                    month: current_date.month.clone() as u8,
+                });
+
                 time_adapter.set_time(current_time);
                 time_adapter.set_date(current_date);
 
@@ -657,7 +464,12 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     match co2 {
                         -1 => warn!("Ungültiger CO2 Wert"),
                         co2 => {
+                            let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
+                            let pres_mod = pressure_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
+                            let mut co2_data = pres_mod.row_data(1).unwrap();
                             info!("co2: {}ppm", co2);
+                            co2_data.value = co2 as f32;
+                            pres_mod.set_row_data(1, co2_data);
                             //TODO neue GUI anbinden
                         }
                     };
@@ -698,12 +510,12 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     let rainfall = (data & 0x70_00) >> 12; //Bit 12-14
                     let anomaly = !matches!(data & 0x80_00, 0); //Bit 15
                     let temperature = -22i32 + ((data & 0x3f_00_00) >> 16) as i32; //Bit 16-21
-                    //TODO weitere Inhalte des Structs auslesen
 
-                    let day = get_weather_type(day_weather, extrema, true, anomaly);
-                    let night = get_weather_type(night_weather, extrema, false, anomaly);
-                    info!("day: {} {}", defmt::Display2Format(&day), day_weather);
-                    info!("night: {} {}", defmt::Display2Format(&night), night_weather);
+                    //TODO Wetterdaten auslesen...
+                    //let day = get_weather_type(day_weather, extrema, true, anomaly);
+                    //let night = get_weather_type(night_weather, extrema, false, anomaly);
+                    //info!("day: {} {}", defmt::Display2Format(&day), day_weather);
+                    //info!("night: {} {}", defmt::Display2Format(&night), night_weather);
                 }
             }
         });
