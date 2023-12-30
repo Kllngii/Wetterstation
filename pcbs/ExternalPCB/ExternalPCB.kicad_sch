@@ -2411,7 +2411,7 @@
   )
 
   (symbol (lib_id "Device:C") (at 254 46.99 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (in_bom yes) (on_board yes) (dnp yes) (fields_autoplaced)
     (uuid 350c68c2-de76-4610-8135-bfdfdc59dd44)
     (property "Reference" "C5" (at 257.81 45.72 0)
       (effects (font (size 1.27 1.27)) (justify left))
@@ -2935,7 +2935,7 @@
   )
 
   (symbol (lib_id "Sensor:BME280") (at 240.03 67.31 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (in_bom yes) (on_board yes) (dnp yes) (fields_autoplaced)
     (uuid 86540f28-d125-40fc-9ff3-9caac683e51e)
     (property "Reference" "U3" (at 228.6 66.04 0)
       (effects (font (size 1.27 1.27)) (justify right))
@@ -3043,7 +3043,7 @@
   )
 
   (symbol (lib_id "Device:R") (at 271.78 55.88 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
+    (in_bom yes) (on_board yes) (dnp yes)
     (uuid 8f7249fa-22c5-415d-b902-44ca0dcc4b16)
     (property "Reference" "R2" (at 274.32 54.61 0)
       (effects (font (size 1.27 1.27)) (justify left))
@@ -3722,7 +3722,7 @@
   )
 
   (symbol (lib_id "Device:R") (at 262.89 55.88 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
+    (in_bom yes) (on_board yes) (dnp yes)
     (uuid e42cf799-e737-4c36-8e08-d844aa2338e9)
     (property "Reference" "R1" (at 265.43 54.61 0)
       (effects (font (size 1.27 1.27)) (justify left))
