@@ -21,8 +21,8 @@
 #define HC12_RX         9
 #define HC12_SET_PIN    3
 
-#define CO2_RX          10
-#define CO2_TX          11
+#define CO2_RX          13
+#define CO2_TX          12
 #define CO2_PWM_PIN     15
 
 #define BME_SEND_FREQUENCY_MILLIS   30000
@@ -33,7 +33,7 @@
 Adafruit_BME280 bme;    // BME280, read by core0
 //CO2 co2(CO2_PWM_PIN, MHZ19C, CO2::RANGE_5K);
 SoftwareSerial co2Serial(CO2_RX, CO2_TX);
-CO2 co2(co2Serial, MHZ19C);
+CO2 co2(&co2Serial, MHZ19C);
 CO2SendBuf co2Buffer = {'C','O','2','.'};
 BMESendBuf iBmeBuffer = {'I','B','M','E'};
 

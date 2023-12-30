@@ -74,7 +74,7 @@ class CO2 {
   uint8_t _type, temperature;
   uint8_t _temperatureOffset = 44;
   MeasuringRange _range = RANGE_5K;
-  boolean debug = false;
+  boolean debug = true;
   boolean _isBypassPreheatingCheck = false;
   boolean _isBypassResponseTimeCheck = false;
 
