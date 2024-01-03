@@ -18,6 +18,7 @@ cortex-m = "0.7.7"
 embedded-hal = { version = "0.2.7" }
 rp-pico = "0.8.0"
 fugit = "0.3.7"
+wheelbuf = "0.2.0"
 
 #hc12-at = "0.2.0"
 

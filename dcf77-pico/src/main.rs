@@ -108,8 +108,6 @@ impl SignalEdge {
 //static GLOBAL_DCF77_SIGNAL: SignalEdge = SignalEdge::new();
 static GLOBAL_TIMER_TICK: AtomicBool = AtomicBool::new(false);
 
-static GLOBAL_DCF77_VALUE
-
 static mut GLOBAL_ALARM: Option<Alarm0> = None;
 const FRAMES_PER_SECOND: u32 = 20;
 

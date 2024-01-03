@@ -90,6 +90,7 @@ dependencies = [
  "log",
  "panic-probe",
  "rp-pico",
+ "wheelbuf",
 ]
 
 [[package]]
@@ -540,3 +541,9 @@ checksum = "de437e2a6208b014ab52972a27e59b33fa2920d3e00fe05026167a1c509d19cc"
 dependencies = [
  "vcell",
 ]
+
+[[package]]
+name = "wheelbuf"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62945bc99a6a121cb2759c7bfa7b779ddf0e69b68bb35a9b23ab72276cfdcd3c"
