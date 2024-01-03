@@ -28,6 +28,7 @@ Folgende Sensoren werden verwendet (das Projekt ist beliebig skalierbar):
 - **wetterstation-arduinosensor** [Arduino als Sensormodul](#arduino-als-sensormodul)
 - **wetterstation-ui/** [Desktop App](#desktop-app)
 - **slint-pico/** [Raspberry Pico mit Touchscreen als Interface](#raspberry-pico-mit-touchscreen-als-interface)
+- **pcbs/** Hier findet man Schaltpläne und PCBs der Module als [KiCad](https://www.kicad.org) Projekt
 
 # Desktop App
 ![Platform Darwin](https://img.shields.io/badge/platform-macOS-orange.svg)
