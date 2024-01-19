@@ -35,6 +35,8 @@ use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
+use rp_pico::hal::clocks::init_clocks_and_plls;
+use rp_pico::hal::i2c::Error;
 use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
@@ -57,7 +59,7 @@ const SPI_ST7789VW_MAX_FREQ: Hertz<u32> = Hertz::<u32>::Hz(62_500_000);
 
 const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
 
-const DISPLAY_ORIENTATION: Orientation = Orientation::LandscapeSwapped;
+const DISPLAY_ORIENTATION: Orientation = Orientation::Landscape;
 
 const UART_RX_QUEUE_MAX_SIZE: usize = 256;
 
@@ -346,68 +348,75 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
             }
             if let Some(i2c) = &mut I2C {
 
-                i2c.write_read(0x68, &[0x00u8], &mut time).expect("I2C Fehler");
-                //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
+                match i2c.write_read(0x68, &[0x00u8], &mut time) {
+                    Ok(_) => {
+                        //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
 
-                //TODO ebenfalls unnötige .into() hier, nach Linter-Update entfernen
-                let weekday: SharedString = match time[3] {
-                    1 => "Mo".into(),
-                    2 => "Di".into(),
-                    3 => "Mi".into(),
-                    4 => "Do".into(),
-                    5 => "Fr".into(),
-                    6 => "Sa".into(),
-                    7 => "So".into(),
-                    _ => {
-                        warn!("Ungültiger Wochentag!");
-                        "Mo".into()
+                        //TODO ebenfalls unnötige .into() hier, nach Linter-Update entfernen
+                        let weekday: SharedString = match time[3] {
+                            1 => "Mo".into(),
+                            2 => "Di".into(),
+                            3 => "Mi".into(),
+                            4 => "Do".into(),
+                            5 => "Fr".into(),
+                            6 => "Sa".into(),
+                            7 => "So".into(),
+                            _ => {
+                                warn!("Ungültiger Wochentag!");
+                                "Mo".into()
+                            }
+                        };
+                        //TODO Makro oder impl für diese Umwandlung?
+                        let mut current_time: TimeModel = time_adapter.get_time(); //(i >> 4) * 10 + (i & 0xF)
+                        current_time.hours = ((time[2] >> 4) * 10 + (time[2] & 0xF)) as i32;
+                        current_time.minutes = ((time[1] >> 4) * 10 + (time[1] & 0xF)) as i32;
+                        current_time.seconds = ((time[0] >> 4) * 10 + (time[0] & 0xF)) as i32;
+
+                        let mut current_date: DateModel = time_adapter.get_date();
+                        current_date.day = ((time[4] >> 4) * 10 + (time[4] & 0xF)) as i32;
+                        current_date.month = ((time[5] >> 4) * 10 + (time[5] & 0xF)) as i32;
+                        current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
+                        current_date.weekday = weekday;
+
+                        //FIXME zu Testzwecken:
+                        /*
+                        decode_region(TimeStamp {minute: current_time.minutes.clone() as u8,
+                            hour: current_time.hours.clone() as u8,
+                            day: current_date.day.clone() as u8,
+                            month: current_date.month.clone() as u8,
+                        });
+                        */
+
+                        time_adapter.set_time(current_time);
+                        time_adapter.set_date(current_date);
+
+                        let weekdays = match time_adapter.get_date().weekday.as_str() {
+                            "Mo" => ("Montag", "Di", "Mi", "Do"),
+                            "Di" => ("Dienstag", "Mi", "Do", "Fr"),
+                            "Mi" => ("Mittwoch", "Do", "Fr", "Sa"),
+                            "Do" => ("Donnerstag", "Fr", "Sa", "So"),
+                            "Fr" => ("Freitag", "Sa", "So", "Mo"),
+                            "Sa" => ("Samstag", "So", "Mo", "Di"),
+                            _ => ("Sonntag", "Mo", "Di", "Mi"),
+                        };
+
+                        weather_adapter.set_current_day(weekdays.0.into());
+                        let week = weather_adapter.get_week_model();
+                        let week_model = week.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("muss gehen");
+                        let mut first_day = week_model.row_data(0).unwrap();
+                        let mut second_day = week_model.row_data(1).unwrap();
+                        let mut third_day = week_model.row_data(2).unwrap();
+
+                        first_day.title = weekdays.1.into();
+                        second_day.title = weekdays.2.into();
+                        third_day.title = weekdays.3.into();
+
+                        week_model.set_row_data(0, first_day);
+                        week_model.set_row_data(1, second_day);
+                        week_model.set_row_data(2, third_day);
                     }
-                };
-                //TODO Makro oder impl für diese Umwandlung?
-                let mut current_time: TimeModel = time_adapter.get_time(); //(i >> 4) * 10 + (i & 0xF)
-                current_time.hours = ((time[2] >> 4) * 10 + (time[2] & 0xF)) as i32;
-                current_time.minutes = ((time[1] >> 4) * 10 + (time[1] & 0xF)) as i32;
-                current_time.seconds = ((time[0] >> 4) * 10 + (time[0] & 0xF)) as i32;
-
-                let mut current_date: DateModel = time_adapter.get_date();
-                current_date.day = ((time[4] >> 4) * 10 + (time[4] & 0xF)) as i32;
-                current_date.month = ((time[5] >> 4) * 10 + (time[5] & 0xF)) as i32;
-                current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
-                current_date.weekday = weekday;
-
-                decode_region(TimeStamp {minute: current_time.minutes.clone() as u8,
-                    hour: current_time.hours.clone() as u8,
-                    day: current_date.day.clone() as u8,
-                    month: current_date.month.clone() as u8,
-                });
-
-                time_adapter.set_time(current_time);
-                time_adapter.set_date(current_date);
-
-                let weekdays = match time_adapter.get_date().weekday.as_str() {
-                    "Mo" => ("Montag", "Di", "Mi", "Do"),
-                    "Di" => ("Dienstag", "Mi", "Do", "Fr"),
-                    "Mi" => ("Mittwoch", "Do", "Fr", "Sa"),
-                    "Do" => ("Donnerstag", "Fr", "Sa", "So"),
-                    "Fr" => ("Freitag", "Sa", "So", "Mo"),
-                    "Sa" => ("Samstag", "So", "Mo", "Di"),
-                    _ => ("Sonntag", "Mo", "Di", "Mi"),
-                };
-
-                weather_adapter.set_current_day(weekdays.0.into());
-                let week = weather_adapter.get_week_model();
-                let week_model = week.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("muss gehen");
-                let mut first_day = week_model.row_data(0).unwrap();
-                let mut second_day = week_model.row_data(1).unwrap();
-                let mut third_day = week_model.row_data(2).unwrap();
-
-                first_day.title = weekdays.1.into();
-                second_day.title = weekdays.2.into();
-                third_day.title = weekdays.3.into();
-
-                week_model.set_row_data(0, first_day);
-                week_model.set_row_data(1, second_day);
-                week_model.set_row_data(2, third_day);
+                    Err(_) => { warn!("Keine Antwort von der RTC!"); }
+                }
             } else {
                 warn!("I2C nicht initialisiert!");
             }
@@ -822,11 +831,13 @@ fn UART0_IRQ() {
      * durch die Funktionsweise des NVIC kann dieser Problemfall aber auch nie auftreten.
      */
     static mut UART: Option<EnabledUart> = None;
+    static mut SETUP_DONE: bool = false;
 
     if UART.is_none() {
         cortex_m::interrupt::free(|cs| {
             *UART = GLOBAL_UART.borrow(cs).take();
         });
+        *SETUP_DONE = true;
     }
 
     if let Some(uart) = UART {
@@ -839,7 +850,7 @@ fn UART0_IRQ() {
                 }
             });
         }
-    } else {
+    } else if *SETUP_DONE { //Damit nicht immer beim ersten (erfolgreichen) Initialize gewarnt wird
         warn!("Uart nicht initialisiert!");
     }
     //Durch das Event sollte der Main-Thread immer wieder aufwachen...
