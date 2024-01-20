@@ -1,5 +1,6 @@
 /*
  *  Created by faschmali
+ *  Libs required: Adafruit BME280, Adafruit unified Sensors, CRC by Rob Tilaart
  */
 
 #include <stdio.h>

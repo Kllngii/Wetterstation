@@ -8,24 +8,32 @@ Nutzt [Slint](https://slint-ui.com), um eine hübsche UI auf einem Touch-Display
 
 ## Usage
 
-- Auf eienm PC testen (Simulator)
-    ```
-    cargo run --features simulator
-    ```
-- Auf einem [RaspberryPi Pico](https://www.raspberrypi.com/products/raspberry-pi-pico/) mit [2.8 inch Waveshare Touch Screen](https://www.waveshare.com/pico-restouch-lcd-2.8.htm) ausführen:
+### Auf einem PC testen (Simulator)
+```
+cargo run --features simulator
+```
 
-    a. Target RP2040 hinzufügen
-    ```
-    rustup self update
-    rustup update stable
-    rustup target add thumbv6m-none-eabi
-    ```
-    
-    b. UF2-Images-Tool für den RP2040 installieren
-    ```
-    cargo install elf2uf2-rs --locked
-    ```
-    c. Auf RPico ausführen
-    ```
-    cargo run --target=thumbv6m-none-eabi --features=pico --release
-    ```
+### Auf einem [RaspberryPi Pico](https://www.raspberrypi.com/products/raspberry-pi-pico/) mit [2.8 inch Waveshare Touch Screen](https://www.waveshare.com/pico-restouch-lcd-2.8.htm) ausführen:
+
+#### 1. Target RP2040 hinzufügen:
+```
+rustup self update
+rustup update stable
+rustup target add thumbv6m-none-eabi
+```
+
+#### 2. UF2-Images-Tool für den RP2040 installieren:
+```
+cargo install elf2uf2-rs --locked
+``` 
+
+#### 3. Korrekten Runner auswählen:
+In der Datei `.cargo/config.toml` muss der richtige Runner ausgewählt werden,
+indem alle anderen Runner auskommentiert werden.
+- Wird der Pico im USB-Bootloader-Modus angeschlossen: `elf2uf2-rs` auswählen
+- Der Pico wird über eine Debug Probe geflasht: `probe-run` wählen
+
+#### 4. Auf RPico ausführen:
+```
+cargo run --target=thumbv6m-none-eabi --features=pico --release
+```
