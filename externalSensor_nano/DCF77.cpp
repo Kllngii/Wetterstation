@@ -684,6 +684,16 @@ MeteoRawStruct DCF77::getMeteoBuffer()
 bool DCF77::isMeteoRelevant(time_t packetTime)
 {
 	bool returnVal = false;
+	int hour = hour(packetTime);
+
+	if (CEST)
+	{
+		hour--;
+		if (hour < 0)
+		{
+			hour = 23;
+		}
+	}
 
 	switch (minute(packetTime))
 	{

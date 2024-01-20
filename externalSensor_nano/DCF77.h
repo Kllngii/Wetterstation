@@ -22,7 +22,7 @@
 #define DCFSyncTime 1500        // Specifications defines 2000 ms pulse for end of sequence
 
 
-//#define FILTER_METEO    1   // Filters meteodata based on current time. May be disabled for testing
+#define FILTER_METEO    1   // Filters meteodata based on current time. May be disabled for testing
 
 class DCF77 {
 private:
