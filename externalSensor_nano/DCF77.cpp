@@ -684,14 +684,14 @@ MeteoRawStruct DCF77::getMeteoBuffer()
 bool DCF77::isMeteoRelevant(time_t packetTime)
 {
 	bool returnVal = false;
-	int hour = hour(packetTime);
+	int currentHour = hour(packetTime);
 
 	if (CEST)
 	{
-		hour--;
-		if (hour < 0)
+		currentHour--;
+		if (currentHour < 0)
 		{
-			hour = 23;
+			currentHour = 23;
 		}
 	}
 
@@ -699,7 +699,7 @@ bool DCF77::isMeteoRelevant(time_t packetTime)
 	{
 		case 59:
 			// 19: Bremerhaven
-			switch (hour(packetTime))
+			switch (currentHour)
 			{
 				case 23:
 					returnVal = true; 	// Max 1
@@ -731,7 +731,7 @@ bool DCF77::isMeteoRelevant(time_t packetTime)
 		break;
 		case 8:
 			// 22: Hannover
-			switch (hour(packetTime))
+			switch (currentHour)
 			{
 				case 0:
 					returnVal = true;	// Max 1
@@ -763,7 +763,7 @@ bool DCF77::isMeteoRelevant(time_t packetTime)
 		break;
 		case 14:
 			// 24: Rostock
-			switch (hour(packetTime))
+			switch (currentHour)
 			{
 				case 0:
 					returnVal = true;	// Max 1
