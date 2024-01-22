@@ -86,13 +86,12 @@ void Meteo::decode()
     {
         while (!digitalRead(METEO_CLK_OUT));
         meteoBit = digitalRead(METEO_DATA_OUT);
-        meteoPattern += meteoBit;
         meteoPattern <<= 1;
+        meteoPattern += meteoBit;
         digitalWrite(METEO_CLK_IN, HIGH);
         while (digitalRead(METEO_CLK_OUT));
         digitalWrite(METEO_CLK_IN, LOW);
     }
-    meteoPattern >>= 1;
     convertedBuffer.data.meteoData = meteoPattern;
     newMeteoData = false;
     meteoDataReady = true;
@@ -144,13 +143,7 @@ void Meteo::writeToMeteo(uint8_t bit)
 {
     digitalWrite(METEO_DATA_IN, bit & 0x01);
     digitalWrite(METEO_CLK_IN, HIGH);
-    while (!digitalRead(METEO_CLK_OUT))
-    {
-        delay(1);   // To reset watchdog timer
-    }
+    while (!digitalRead(METEO_CLK_OUT));
     digitalWrite(METEO_CLK_IN, LOW);
-    while(digitalRead(METEO_CLK_OUT))
-    {
-        delay(1);
-    }
+    while(digitalRead(METEO_CLK_OUT));
 }
