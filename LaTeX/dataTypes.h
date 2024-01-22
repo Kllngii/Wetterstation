@@ -1,5 +1,5 @@
 // Aktuelle Zeit
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     const char dataType[4];
     uint8_t hour;
     uint8_t minute;
@@ -7,6 +7,8 @@ typedef struct {
     uint8_t year;
     uint8_t month;
     uint8_t day;
+    uint8_t weekDay;
+    uint8_t checksum;
 } TimeStruct;
 
 typedef union {
@@ -14,29 +16,11 @@ typedef union {
     TimeStruct data;
 } TimeSendBuf;
 
-// Kodierte Wetterdaten mit Zeitinformationen zum Dekodieren
-typedef struct {
-    const char dataType[4];
-    uint16_t packet1;
-    uint16_t packet2;
-    uint16_t packet3;
-    uint8_t minute;
-    uint8_t hour;
-    uint8_t date;
-    uint8_t month; // Only 5 bits used
-    uint8_t dayInWeek;  // Only 3 bits used
-    uint8_t year;
-} MeteoRawStruct;
-
-typedef union {
-    char buf[sizeof(MeteoRawStruct)];
-    MeteoRawStruct data; 
-} MeteoRawSendBuf;
-
 // Dekodierte Wetterdaten
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     const char dataType[4];
     uint32_t meteoData; 
+    uint8_t checksum;
 } MeteoDecodedStruct;
 
 typedef union {
@@ -45,11 +29,12 @@ typedef union {
 } MeteoDecodedSendBuf;
 
 // Sensordaten vom BME280
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     const char dataType[4];
     float temperature;
     float humidity;
     float pressure;
+    uint8_t checksum;
 } BMEStruct;
 
 typedef union {
@@ -58,7 +43,7 @@ typedef union {
 } BMESendBuf;
 
 // CO2 Konzentration
-typedef struct {
+typedef struct __attribute__ ((__packed__)){
     const char dataType[4];
     int concentration;
 } CO2Struct;
