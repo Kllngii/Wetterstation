@@ -179,7 +179,6 @@ void loop()
     if (!timePacketValid)
     {
         Serial.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
-        timePacketPending = true;
         timePacketValid = true;
         timeResendCounter++;
     }
@@ -209,7 +208,6 @@ void loop()
     if (!meteoPacketValid)
     {
         Serial.write((const uint8_t *)meteoBuffer.buf, sizeof(meteoBuffer));
-        meteoPacketPending = true;
         meteoPacketValid = true;
         meteoResendCounter++;
     }
@@ -236,7 +234,6 @@ void loop()
     if (!bmePacketValid)
     {
         Serial.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
-        bmePacketPending = true;
         bmePacketValid = true;
         bmeResendCounter++;
     }
