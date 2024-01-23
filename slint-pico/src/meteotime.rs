@@ -271,7 +271,7 @@ fn decode_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) ->
         _ => WeatherType::Error,
     };
 
-    debug!("vorläufiges Wetter: {}", Display2Format(&weather_type));
+    //debug!("vorläufiges Wetter: {}", Display2Format(&weather_type));
 
     if !anomaly {
         match extrema {
@@ -345,10 +345,10 @@ fn decode_region(time: TimeStamp) -> (u8, MeteoPackageType) {
     } else {
         ((time.hour+(24-start_time)) as u32)*60 + time.minute as u32
     };
-    debug!("Bei der Zeit {} sind {} Minuten seit {}:00 vergangen", time, minutes_since_start, start_time);
+    //debug!("Bei der Zeit {} sind {} Minuten seit {}:00 vergangen", time, minutes_since_start, start_time);
 
     let region = (minutes_since_start / 3 % 60) as u8;
-    debug!("Das entspricht Region {}", region);
+    //debug!("Das entspricht Region {}", region);
 
     let mpt = match time.hour % 24 {
         //TODO könnte bei der ersten/letzten Region zu Problemen führen, das muss getestet werden
@@ -404,6 +404,6 @@ pub(crate) fn decode_weather(data: u32, time: TimeStamp) -> Weather {
     }
 
 
-    info!("{}", weather);
+    //info!("{}", weather);
     weather
 }

@@ -476,7 +476,6 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 }
             }
             if count > 0 {
-                info!("");
                 let temperature_modelrc: ModelRc<Value> = overview_adapter.get_temperature_model();
                 let humidity_modelrc: ModelRc<Value> = overview_adapter.get_humidity_model();
                 let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
@@ -488,7 +487,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 //info!("count: {}", count);
 
                 if let Some(ibme_start) = find_identifier::<u8>(&data, &id_ibme) {
-                    info!("Internes Paket");
+                    info!("Internes Paket empfangen!");
                     let temperature: f32 = data.to_f32(ibme_start);
                     let humidity: f32 = data.to_f32(ibme_start + 4);
                     let pressure: f32 = data.to_f32(ibme_start + 8);
@@ -513,7 +512,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                             let pressure_modelrc: ModelRc<Value> = overview_adapter.get_pressure_model();
                             let pres_mod = pressure_modelrc.as_any().downcast_ref::<VecModel<Value>>().expect("Muss gehen!");
                             let mut co2_data = pres_mod.row_data(1).unwrap();
-                            info!("co2: {}ppm", co2);
+                            info!("CO2 Paket empfangen");
                             co2_data.value = co2 as f32;
                             pres_mod.set_row_data(1, co2_data);
                         }
@@ -522,7 +521,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
 
                 }
                 if let Some(ebme_start) = find_identifier::<u8>(&data, &id_ebme) {
-                    info!("Externes Paket");
+                    info!("Externes Paket empfangen");
                     let temperature: f32 = data.to_f32(ebme_start);
                     let humidity: f32 = data.to_f32(ebme_start + 4);
                     //let _pressure: f32 = data.to_f32(ebme_start + 8);
@@ -645,7 +644,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                                     //TODO Wie verfährt man mit diesem Sonderpackage?
                                 }
                             }
-                            info!("Wettervorhersage der eigenen Region ({}) hat sich verändert: {}", METEO_REGION, FORECAST);
+                            info!("Wettervorhersage der eigenen Region ({}) hat sich verändert", METEO_REGION);
                             let week_modelrc = weather_adapter.get_week_model();
                             let week_mod = week_modelrc.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("Muss gehen");
                             unsafe {
