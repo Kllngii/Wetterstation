@@ -29,7 +29,7 @@ DCF77 DCF = DCF77(DCF_DATA_PIN, DCF_INTERRUPT_PIN, false);
 TimeSendBuf timeBuffer = {'T', 'I', 'M', 'E'};
 BMESendBuf sensorBuffer = {'E', 'B', 'M', 'E'};
 
-MeteoDecodedSendBuf sendBuffer;
+MeteoDecodedSendBuf meteoBuffer;
 Meteo meteo;
 
 bool bmeAvailable = false;
@@ -179,7 +179,6 @@ void loop()
     if (!timePacketValid)
     {
         Serial.write((const uint8_t *)timeBuffer.buf, sizeof(timeBuffer));
-        timePacketPending = true;
         timePacketValid = true;
         timeResendCounter++;
     }
@@ -194,11 +193,11 @@ void loop()
         meteo.decode();
         if (meteo.isMeteoValid())
         {
-            sendBuffer = meteo.getConvertedBuffer();
+            meteoBuffer = meteo.getConvertedBuffer();
             crc.restart();
-            crc.add((const uint8_t*)sendBuffer.buf, sizeof(sendBuffer) - 1);
-            sendBuffer.data.checksum = crc.calc();
-            Serial.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
+            crc.add((const uint8_t*)meteoBuffer.buf, sizeof(meteoBuffer) - 1);
+            meteoBuffer.data.checksum = crc.calc();
+            Serial.write((const uint8_t *)meteoBuffer.buf, sizeof(meteoBuffer));
             meteoResendCounter = 0;
             meteoPacketPending = true;
             meteoPacketValid = true;
@@ -208,8 +207,7 @@ void loop()
     // Resend meteopacket if checksum was incorrect at receiver
     if (!meteoPacketValid)
     {
-        Serial.write((const uint8_t *)sendBuffer.buf, sizeof(sendBuffer));
-        meteoPacketPending = true;
+        Serial.write((const uint8_t *)meteoBuffer.buf, sizeof(meteoBuffer));
         meteoPacketValid = true;
         meteoResendCounter++;
     }
@@ -236,7 +234,6 @@ void loop()
     if (!bmePacketValid)
     {
         Serial.write((const uint8_t *)sensorBuffer.buf, sizeof(sensorBuffer));
-        bmePacketPending = true;
         bmePacketValid = true;
         bmeResendCounter++;
     }

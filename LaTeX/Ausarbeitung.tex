@@ -21,6 +21,8 @@
 \usepackage{longtable}  % Tabellen mit Seitenumbruch
 \usepackage{textcomp}
 \usepackage{url}
+
+\usepackage{pdfpages}
 \usepackage[font=footnotesize, labelfont=bf]{caption}
 \usetikzlibrary{shapes,arrows}
 \pgfplotsset{compat = newest}
@@ -204,7 +206,8 @@ citecolor = black] {hyperref}
 
 Ziel des Projekts ist die Entwicklung eines Sensorhubs, der Sensordaten erfasst und auf einem Display darstellt.
 Bei den Sensoren handelt es sich in erster Linie um Umweltdaten, die aktuelle Parameter der Umgebung erfassen.
-Das Projekt kann daher grob mit einer Wetterstation verglichen werden.
+Das Projekt kann daher grob mit einer Wetterstation verglichen werden. Zusätzlich zu den Sensordaten kann der Sensorhub
+die aktuelle Zeit und eine Wettervorhersage über das DCF77-Signal empfangen. 
 
 \subsection{Anforderungen}
 \label{subsub:anforderungen}
@@ -291,10 +294,10 @@ Der Sensor verfügt über die folgenden Messbereiche:
 \end{itemize}
 
 \noindent
-Mit diesen Spezifikationen eigent sich der Sensor für die Anwendung im Innen- und Außenbereich. 
+Mit diesen Spezifikationen eignet sich der Sensor für die Anwendung im Innen- und Außenbereich. 
 
 \noindent
-Für das Projekt wird ein Sensorshield verwendet, welches nur den I2C Bus herausführt. Die Ansteuerung des Sensors erfolgt daher über I2C. 
+Für das Projekt wird ein Sensorshield verwendet, welches nur den I2C Bus herausführt. Die Kommunikation mit dem Sensor erfolgt daher über I2C. 
 
 \subsubsection{MHZ19C}
 \label{subsubsub:mhz19c}
@@ -354,12 +357,12 @@ Paritätsbit eingefügt, um Fehler erkennen zu können. Eine Fehlerkorrektur ist
 MeteoTime versendet versendet pro Minute 14 Bits mit Wetterinformationen, die von lizensierten Geräten entschlüsselt- und verwendet werden können. 
 Ein Informationspaket besteht aus 42 Bits und benötigt für die Übertragung somit drei Minuten. Ein Tag ist in fünf Abschnitte unterteilt, in denen
 unterschiedliche Informationen übertragen werden. Da die Wettervorhersage 90 Regionen abdeckt, wird jede Vorhersage nur täglich einmal übertragen. \\
-Es gilt folgende Aufteilung: \\
-22:00 Uhr - 03:59 Uhr: Aktueller Tag \\
-04:00 Uhr - 09:59 Uhr: Folgender Tag \\
-10:00 Uhr - 15:59 Uhr: Darauffolgender Tag \\
-16:00 Uhr - 18:59 Uhr: Darauffolgender Tag \\
-19:00 Uhr - 21:59 Uhr: Zusatzregionen mit 2-Tages Prognose. 
+Es gilt folgende Aufteilung (MEZ, bei MESZ eine Stunde später): \\
+23:00 Uhr - 04:59 Uhr: Aktueller Tag \\
+05:00 Uhr - 10:59 Uhr: Folgender Tag \\
+11:00 Uhr - 16:59 Uhr: Darauffolgender Tag \\
+17:00 Uhr - 19:59 Uhr: Darauffolgender Tag \\
+20:00 Uhr - 22:59 Uhr: Zusatzregionen mit 2-Tages Prognose. 
 
 \vspace{0.2cm}
 \noindent
@@ -369,13 +372,14 @@ Innerhalb eines sechsstündigen Übertragungszeitraums werden für jede Region n
 \noindent
 Die Wettervorhersagen decken große Regionen ab, weshalb diese etwas ungenau sind. \\
 Für Hamburg ist beispielsweise die Region Bremerhaven zugeteilt, der Bereich deckt alles vom westlichen Schleswig-Holstein bis zum Nordwesten der Niederlande ab. \\
-Um im Fall eines Lesefehlers beim Empfang der Daten trotzdem eine Vorhersage ableiten zu können, sollten Ausweichregionen definiert werden, die im Fehlerfall stattdessen angezeigt werden. \\
-Für Hamburg sind das die Regionen Rostock und Hannover. 
+Um im Fall eines Lesefehlers trotzdem eine Wettervorhersage anzeigen zu können, werden Ausweichzonen genutzt, dessen Wetterdaten stattdessen angezeigt wird. Schlägt
+der Empfang für die Region Bremerhaven fehl, wird ausweichend die Vorhersage für Hannover übernommen. Werden auch diese Daten nicht korrekt empfangen, wird die dritte
+Ausweichregion Rostock genutzt. 
 
 \vspace{0.3cm}
 \noindent
-Für die Entschlüsselung der Wetterinformationen ist ein Dekodier-IC notwendig, welches vermutlich aus rückgekoppelten Schieberegistern besteht, um die Daten zu Dekodieren. \\
-Beim IC handelt es sich um das Modell HKW581 der Firma HKW, die auch Betreiber des MeteoTime Dienstes ist. 
+Für die Entschlüsselung der Wetterinformationen ist ein Dekodier-IC notwendig, welches vermutlich aus rückgekoppelten Schieberegistern besteht, um die Daten zu dekodieren. \\
+Beim IC handelt es sich um das Modell HKW581 der Firma HKW, die auch Betreiber des MeteoTime Dienstes ist. Der IC ist nur in einem MSOP8 Format erhältlich (SMD).
 
 \begin{figure}[H]
   \centering
@@ -386,7 +390,8 @@ Beim IC handelt es sich um das Modell HKW581 der Firma HKW, die auch Betreiber d
 
 \noindent
 Der IC verfügt über acht Pins, davon sind neben den Pins zur Spannungsversorgung und Daten Ein- und Ausgabe auch ein Clock IN und Clock OUT Pin vorhanden, damit die Bits
-taktsynchron ein- bzw. ausgelesen werden. Der Clock OUT Pin folgt dem Clock IN Pin und wird zur Indikation genutzt, ob am Datenausgang ein valider Bitwert anliegt. 
+taktsynchron ein- bzw. ausgelesen werden. Beim Einlesen der Daten folgt das Clock OUT Signal dem Clock IN Signal, um anzuzeigen, dass die Erfassung des Bits erfolgreich war. 
+Nachdem 82 Bits übertragen wurden, wird das Clock OUT Signal invertiert, bis alle Daten vom IC ausgelesen wurden. 
 Neben einem Resetpin gibt es außerdem einen Ready Pin, der anzeigt, dass der IC betriebsbereit ist. Anscheinend braucht der IC eine Aufwärmphase. 
 
 \vspace{0.2cm}
@@ -435,19 +440,22 @@ Tiefstwerte:
 \noindent
 Die ausgegebenen Zahlenwerte sind wiederum einer Bezeichnung zugeordnet (z.B. Wetter Tag = 3 entspricht vorwiegend bewölkt).
 
+\newpage
 \subsection{Kommunikation}
 \label{subsub:kommunikation}
 
 Die Kommunikation zwischen den Mikrocontrollern erfolgt sowohl kabelgebunden, als auch drahtlos. Für die kabelgebundene Kommunikation wird UART mit einer Baudrate
-von 115200 bd genutzt. Die Drahtloskommunikation erfolt über einen 433 MHz Transmitter und Receiver, die jeweils über UART beschrieben und gelesen werden können. 
+von 115200 bd genutzt. Die Drahtloskommunikation erfolt über einen 433 MHz Transmitter und Receiver, die jeweils im Halbduplexverfahren wie eine UART Schnittstelle
+genutzt werden können. 
 
 \subsubsection{Funkstrecke}
 \label{subsubsub:funkstrecke}
 
 Bei den Funkmodulen handelt es sich um "HC-12 Wireless RF communicatio module V2.4" Module. Diese versprechen eine Übertragungsdistanz von bis zu 1800 m
 und eine einfache Ansteuerung über UART. \\
-Die Module haben eine Sendeleistung von bis zu 100 mW und können auf 100 verschiedenen, einstellbaren Kanälen funken (433,4 MHz bis 473 MHz). Die Baudrate ist einstellbar
-zwischen 1200 bps und 115200 bd.
+Die Module können jeweils sowohl Daten senden. 
+Die Sendeleistung beträgt bis zu 100 mW und es können 100 verschiedene, einstellbare Kanäle genutzt werden (433,4 MHz bis 473 MHz). Die Baudrate ist zwischen 
+1200 bps und 115200 bd wählbar. 
 
 \vspace{0.2cm}
 \noindent
@@ -472,11 +480,41 @@ Aktuell gibt es fünf verschiedene Identifier:
 \end{itemize}
 
 \noindent
-Die Datenpakete haben unterschiedliche Längen und sind in Form von Structs in C definiert. Zum Senden der Date werden diese dann in char arrays umgewandelt. \\
+Die Datenpakete haben unterschiedliche Längen und sind in Form von Structs in C definiert. Zum Senden der Daten werden diese dann in char arrays umgewandelt. \\
+Da die Structs unterschiedliche Datentypen beherbergen, fügt der Compiler normalerweise Padding Bytes ein, um gleichmäßige Addressabstände zu gewährleisten. 
+Für die Verarbeitung und Übertragung der Datenpakete ist dies aber problematisch, weil beispielsweise die zu sendenden Datenpakete größer als nötig sind. 
+Aus diesem Grund werden die Structs mit dem Attribut packed versehen, damit auf Padding Bytes verzichtet wird. 
 Alle Datenpakete sind im folgenden dargestellt:
 
+\newpage
 \lstinputlisting[language=C, caption=Datenpakete]{dataTypes.h}
 
+\noindent
+Wie man im obigen Listing sieht, haben alle Datenpakete zusätzlich eine CRC-8 Prüfsumme, die bei der drahtlosen Datenübertragung 
+zur Prüfung des Pakets verwendet wird. Bei der kabelgebundenen Datenübertragung zwischen beiden Mikrocontrollern
+auf dem Innenmodul wird auf eine Prüfsumme verzichtet. 
+
+\subsubsection{Übertragungsfehler}
+\label{subsubsub:uebertragungsfehler}
+
+Da die Meteotime Pakete jeweils nur einmal gesendet werden und ein Paketverlust bei der 433 MHz Datenübertragung problematisch wäre, wird, wie schon erwähnt, eine Prüfsumme
+berechnet und übertragen und auf der Empfängerseite auf Richtigkeit überprüft. Ist die Prüfsumme fehlerhaft, sendet der Empfänger einen Retransmission-Befehl an den Sender.
+Im folgenden ist die sowohl die fehlerfreie Übertragung von Paketen als auch die Übertragung mit mehrfacher Retransmission dargestellt. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{Kommunikation}
+  \caption{Kommunikationsablauf zwischen Innen- und Außenmodul ohne und mit Übertragungsfehler}
+  \label{fig:kommunikation}
+\end{figure}
+
+\noindent
+Aus Abbildung \ref{fig:kommunikation} geht hervor, dass das Innenmodul den String ``ERRORERRORERROR'' an das Außenmodul sendet, wenn die Prüfsumme vom vorher gesendeten Paket
+fehlerhaft ist. Der String wurde so gewählt, damit eventuell zufällig empfangene einzelne Bits anderer Quellen ignoriert werden und bei schlechtem Empfang zumindest ein paar Bytes
+empfangen werden. Das Außenmodul reagiert mit einer Retransmission, wenn es fünf Bytes empfangen hat. \\
+Die Zahl der Retransmissions ist auf fünf begrenzt, danach verwirft das Außenmodul das Paket. \\
+Ein Retransmission Paket muss vom Innenmodul innerhalb von drei Sekunden an das Außenmodul gesendet werden, andernfalls nimmt das Außenmodul an, dass die Übertragung
+erfolgreich war. 
 
 \section{Modulbeschreibung}
 \label{sub:modulbeschreibung}
@@ -484,29 +522,80 @@ Alle Datenpakete sind im folgenden dargestellt:
 \subsection{Sensormodul extern}
 \label{subsub:sensorModul_ext}
 
-Das externe Sensormodul soll für den Außenbereich konzipiert werden und möglichst effizient und langfristig mit Batterien betrieben werden können. \\
-Wie schon aus den vorherigen Abschnitten hervorgeht, verfügt das Modul über einen BME280 und eine Antenne zum Empfang von DCF77 Signalen. 
-Die empfangenen Daten werden dann zyklisch via 433 MHz an den Sensorhub gesendet.
+Das externe Sensormodul soll im Außenbereich angebracht werden und möglichst effizient per Batterie betrieben werden können. \\
+Wie schon aus den vorherigen Abschnitten hervorgeht, verfügt das Modul über einen BME280 für Temperatur, Luftfeuchtigkeit und Luftdruck
+und eine Antenne zum Empfang des DCF77 Signals. Die empfangenen Daten werden dann zyklisch via 433 MHz an den Sensorhub gesendet. Die DCF77 Antenne
+ist im Außenmodul untergebracht, weil das Signal sehr anfällig für Störungen durch elektrische Geräte oder Abschirmung durch Metalle ist, 
+die vorallem im Innenbereich vorkommen. Im Außenbereich ist der Empfang besser. 
 
 \vspace{0.2cm}
 \noindent
 Für den DCF77 Empfang wird ein Shield verwendet, das eine auf 77,5 kHz abgestimmte Antenne hat und das Signal filtert und in saubere TTL Pegel umwandelt.
-Im Mikrocontroller wird eine Bibliothek verwendet, die mit Interrupts auf steigende- und fallende Taktflanke arbeitet und jeweils die Zeiten der Absenkung misst. 
-Da in der letzten Sekunde einer Minute keine Absenkung stattfindet, kann anhanddessen das Ende eines Datenpakets ermittelt werden. Die empfangenen Daten werden anschließend
-in einem Datenpaket gespeichert und versendet. Wird eine Pegeländerung außerhalb des gültigen Bereichs erkannt, wird aktuell das ganze Minutenpaket als ungültig deklariert
-und ignoriert. Alle drei Minuten ist außerdem ein MeteoTime Paket Sendebereit, dieses wird anhand der aktuellen Zeit auf Relevanz geprüft und verworfen, wenn die Region irrelevant ist. 
-Die BME280 Daten werden zyklisch alle 30 Sekunden gelesen und dann gesendet. 
+Im Mikrocontroller wird eine Bibliothek verwendet, die einen Interrupt mit Trigger auf steigende- und fallende Taktflanke verwendet, um die Dauer der Absenkung
+des Trägersignals zu messen. In der letzten Sekunde einer Minute findet keine Absenkung statt, anhanddessen wird das Ende eines Datenpakets ermittelt.
+Da in der letzten Sekunde einer Minute keine Absenkung stattfindet, kann anhanddessen das Ende eines Datenpakets ermittelt werden. 
+Zum Ende jeder Minute wird das Paket auf Gültigkeit überprüft. Dazu werden zum einen die Paritätsbits auf den richtigen Wert überprüft, außerdem
+wird geprüft, ob die Flag für die Sommerzeit den gegenteiligen Wert der Flag für die Winterzeit hat. 
+Ist die Überprüfung in Ordnung, wird das Datenpaket für die Zeit aus dem erhaltenen Zeitstempel zusammengesetzt und versendet. \\
+Alle drei Minuten ist außerdem ein Meteotime Paket fertig und kann durch den Dechiffrier-IC entschlüsselt werden. 
 
 \vspace{0.2cm}
 \noindent
-Als Mikrocontroller wird aktuell ein ESP8266 verwendet, der mit einer Stromaufnahme von ca. 20 mA relativ viel Strom benötigt. Wegen des Zeitsignals kommen Schlafmodi nicht infrage. 
-Damit wäre der Batteriebetrieb mit langen Laufzeiten nur schwer realisierbar. Als Alternative wurde daher ein MSP430G2553 ausgewählt, der über einen I2C und einen 
-UART Bus verfügt und bei 1 MHz Takt einen Stromverbrauch von nur 230 $\mu$A hat. Damit wäre ein langfristiger Betrieb mit Batterie möglich. 
-Das HC-12 Modul hat im Sendebetrieb allerdings eine Stromaufnahme von bis zu 100 mA, die sich bei häufiger Sendefrequenz sehr negativ auswirken würde. 
-Die Sendefrequenz muss daher so niedrig wie nötig gewählt werden. 
+Ein Ablaufdiagramm zur Beschreibung der Software ist im Anhang in \hyperref[pdf:ablaufExtern]{Abbildung \ref{pdf:ablaufExtern}} zu finden. Es wird zyklisch geprüft, ob ein Zeit, Meteo oder Sensorpaket
+versendet werden kann und ob die Übertragung fehlerfrei abgelaufen ist. Die Dekodierung der Wetterdaten erfolgt in der Klasse Meteo, im Dekodierprozess nacheinander
+jedes Bit des Pakets in den Decoder geschrieben und anschließend der Bitstream aus dem IC gelesen. War die Entschlüsselung der Daten fehlerhaft, gibt der Decoder den String
+``100000000000000000000100'' aus. 
 
-\subsection{Sensormodul intern}
-\label{subsub:sensorModul_int}
+\vspace{0.2cm}
+\noindent
+Als Mikrocontroller wurde in ersten Tests zunächst ein ESP8266 verwendet. Da dieser einen relativ hohen Energieverbrauch von ca. 20 mA hat und zudem für
+den Anwendungszweck leistungstechnisch überdimensioniert ist, wurde als Alternative ein energiesparender MSP430G2553 gewählt, der bei 1 MHz Takt nur
+230 $\mu$A verbrauchen soll und sowohl einen UART, als auch I2C Bus hat. Damit wäre ein langfristiger Betrieb mit Batterie möglich gewesen. 
+Aus Zeitgründen und wegen der fehlenden Portierungsmöglichkeit des ESP8266 Codes auf den MSP430 wurde stattdessen ein Arduino Nano gewählt, einen ATmega328p
+Mikrocontroller als Basis verwendet. Modifiziert man einige Teile am Board, lässt sich der Stromverbrauch laut einiger Quellen auf ca. 5 mA drosseln. 
+
+\subsubsection{Platinenentwurf}
+\label{subsubsub:platinenentwurfExtern}
+
+Für beide Module wird eine Platine angefertigt, um das Projekt auch in der Realität anwendbar zu machen. Das Außenmodul ist für den Batteriebetrieb konzipiert
+und daher mit einigen Aktivbauteilen ausgestattet. Die Bauteile wurden zusammen mit der Platine bei JLCPCB bestellt und dort bestückt. 
+
+\subsubsubsection{Schaltplan}
+\label{subsubsubsub:schaltplanExtern}
+
+Der Schaltplan ist im Anhang in \hyperref[pdf:schaltplanExtern]{Abbildung \ref{pdf:schaltplanExtern}} dargestellt. Zentraler Bestandteil ist dabei der Mikrocontroller. 
+Für die Spannungsregulierung werden zwei Schaltregler verwendet, die 5 V und 3,3 V aus der Batteriespannung generieren. Beide Schaltregler arbeiten bis zu einer Minimalspannung
+von ca. 0,7 V, die angeschlossene Batterie kann also fast vollständig genutzt werden. Beide Schaltregler vertragen maximal 5,5 V am Eingang, weshalb als Spannungsquelle
+drei Alkaline Batterien in Serie dienen sollen, die eine Spannung von ca. 4,5 V bereitstellen. 
+Die Anschlusskabel des Batteriefachs werden an die Platine gelötet, dafür wurden je 4x4 mm große Pads gewählt. 
+
+\vspace{0.2cm}
+\noindent
+An den Mikrocontroller sind wie vorher beschrieben der HKW581 IC, ein BME280, die 433 MHz- und die DCF77-Antenne angeschlossen. Zu Entwicklungszwecken sind einige 
+Zusatzanschlüsse vorhanden, um Modifikationen möglich zu machen. \\
+Der HKW581 ist im MSOP8 Format und damit relativ klein. Um den IC schon bei vorherigen Testaufbauten auf dem Steckbrett nutzen zu können, wurde dieser auf einen Adapter
+gelötet, der die Anschlusspins auf einfache THT Pins adaptiert. Um den IC zu schonen, wird der Adapter auf der Platine verbaut. Zusätzlich besteht aber die Möglichkeit, 
+später darauf zu verzichten und das Bauteil direkt auf der Platine festzulöten. Diese Lösung findet sich ebenso auf dem später beschriebenen Innenmodul wieder, falls
+auf das Außenmodul verzichtet werden soll. \\
+Als BME280 soll in erster Linie ein fertiges Shield zum Aufstecken verwendet werden, da der private Bestand davon wesentlich höher ist. Zusätzlich kann manuell aber auch
+direkt ein BME280 auf die Platine gelötet werden. Die entsprechenden Bauteile sind nicht platziert. \\
+Es können zwei verschiedene Arten von DCF77 Antennen an den Mikrocontroller angeschlossen werden. Dabei wird unterschieden zwischen Shields mit drei- und vier Anschlüssen. 
+Die Shields mit vier Anschlüssen verfügen zusätzlich über einen PON (Power On) Pin, über den das Modul an- und ausgeschaltet werden kann. Der Pin ist normalerweise low
+active und wird daher auf Masse gelegt. 
+
+\subsubsubsection{Platine}
+\label{subsubsubsub:platineExtern}
+
+Die Platine ist im Anhang in \hyperref[pdf:platineExtern]{Abbildung \ref{pdf:platineExtern}} und \hyperref[fig:platineExtern3D]{Abbildung \ref{fig:platineExtern3D}} dargestellt. Es handelt sich um eine einfache 2-Layer Platine mit Ground Plane
+auf der Unterseite. An der Oberseite sind Befestigungsmöglichkeiten für die DCF77 Antenne vorgesehen (dort ist auch keine Ground Plane mehr, um Abschirmungen zu vermeiden). 
+Im Test hat sich allerdings herausgestellt, dass die Antenne nichts empfängt, wenn sie auf der Platine angebracht ist. 
+
+\newpage
+\subsection{Modul intern}
+\label{subsub:modulInt}
+
+\subsubsection{Sensormodul}
+\label{subsubsub:sensormodulInt}
 
 Das interne Sensormodul darf im Gegensatz zum externen Modul mehr Energie verbrauchen, da es mehr Daten verarbeiten muss und über einen Netzanschluss verfügt. 
 Das Modul empfängt die über 433 MHz gesendeten Daten und liest zusätzlich zyklisch den BME280 und CO2 Sensor aus. Wird ein kodiertes Paket mit Wetterdaten empfangen, 
@@ -521,11 +610,11 @@ via PWM ausgelesen. Eine Bibliothek für den Sensor liest den Duty-Cycle aus und
 Konzentrationen recht lang dauern kann, erfolgt dies ausschließlich über den zweiten Kern, der neue Werte global zur Verfügung stellt und dies über eine Flag signalisiert. 
 Auf Kern 2 findet außerdem der Dekodierprozess der Wetterdaten statt, um den Hauptprozess nicht zu verlangsamen. Auch hier werden fertige Pakete über eine Flag signalisiert. 
 
-\subsection{Grafikmodul}
-\label{subsub:grafikmodul}
+\subsubsection{Grafikmodul}
+\label{subsubsub:grafikmodulInt}
 
-Das Grafikmodul wird beim Endprodukt zusammen mit dem \hyperref[subsub:sensorModul_int]{internen Sensormodul} als eine Baugruppe ausgeführt sein.
-Hauptziel ist die grafische Aufarbeitung der über UART vom \hyperref[subsub:sensorModul_int]{internen Sensormodul} empfangenen Daten.
+Das Grafikmodul wird beim Endprodukt zusammen mit dem \hyperref[subsub:sensormodulInt]{internen Sensormodul} als eine Baugruppe ausgeführt sein.
+Hauptziel ist die grafische Aufarbeitung der über UART vom \hyperref[subsub:sensormodulInt]{internen Sensormodul} empfangenen Daten.
 Hierfür wird ebenfalls ein Raspberry Pi Pico in der W-Variante eingesetzt.
 Diese ist zusätzlich zu den Schnittstellen des Picos W-LAN (IEEE 802.11 b/g/n) und Bluetooth (5.2 LE) fähig, somit kann das Grafikmodul zukünftig ebenfalls die Rolle eines mqtt-Brokers übernehmen und die aufbereiteten Daten online abrufbar machen.
 Für diese Aufgaben verfügt das Modul über einen externen RTC-Chip und ein 2,8 Zoll Touchdisplay.
@@ -588,16 +677,68 @@ Ein entsprechendes Interrupt wird ausgelöst, wenn
 	\label{fig:gui-overview}
 \end{figure}
 
-\section{Aktueller Projektstand}
+\subsubsection{Platinenentwurf}
+\label{subsubsub:platineIntern}
 
-Der Entwicklungsprozess der Software ist bereits weit fortgeschritten, eine funktionierende Grafikoberfläche ist bereits vorhanden und auch die Kommunikation
-zwischen den Sensoren konnte schon erfolgreich getestet werden. Vor kurzem musste der Mikrocontroller des Innenmoduls aus Mangel an GPIO Pins gewechselt werden,
-die Migration der Software war nicht ohne weiteres möglich. Außerdem ist aktuell der Wechsel vom ESP8266 zum MSP430 geplant, durch die stark limitierten Ressourcen
-beim MSP430 und der Wechsel der Programmiersprache von C++ zu C machen den Wechsel aber sehr aufwendig und fehlerbehaftet. Eventuell wird der MSP430 aufgrund des hohen
-Aufwands wieder aus dem Projekt gestrichen, sodass der Testaufbau mit dem (wenig effizienten) ESP8266 stattfinden muss. 
 
-\vspace{0.2cm}
-\noindent
-Auf die fertige Software folgt die Entwicklung und Bestellung von Leiterplatten für die Module, um einen sauberen Aufbau ohne unnötige Kabel möglich zu machen. 
+\section{Funktionstest}
+\label{sub:funktionstest}
+
+\section{Fazit}
+\label{sub:fazit}
+
+\newpage
+\appendix
+
+\section{Ablaufdiagramm externes Modul}
+\label{subapp:ablaufExt}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.75, page=1]{Ablauf extern.pdf}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.75, page=2]{Ablauf extern.pdf}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.75, page=3]{Ablauf extern.pdf}
+  \caption{Abstraktes Ablaufdiagramm zur Beschreibung des Codes auf dem externen Sensormodul}
+  \label{pdf:ablaufExtern}
+\end{figure}
+
+\newpage
+\section{Schaltplan externes Modul}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.7, page=1, angle=90]{../pcbs/ExternalPCB/ExternalPCB.pdf}
+  \caption{Schaltplan des externen Moduls}
+  \label{pdf:schaltplanExtern}
+\end{figure}
+
+\newpage
+\section{Platine externes Modul}
+\subsection{2D Ansicht}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.7, page=1]{PCBExtern.pdf}
+  \caption{2D Ansicht des Platinenentwurfs}
+  \label{pdf:platineExtern}
+\end{figure}
+
+\newpage
+\subsection{3D Ansicht}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{ExternalPCB3D.jpg}
+  \caption{3D Ansicht des Platinenentwurfs}
+  \label{fig:platineExtern3D}
+\end{figure}
 
 \end{document}
