@@ -348,7 +348,12 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                 });
             }
             if let Some(i2c) = &mut I2C {
-
+                /* //TODO "Zeit beim flashen setzen" togglebar & one-shot machen
+                //                   reg   sec   min   hour  wd    day   month year
+                if i2c.write(0x68, &[0x00, 0x00, 0x52, 0x01, 0x02, 0x23, 0x01, 0x24]).is_ok() {
+                    info!("Uhrzeit gesetzt!");
+                }
+                 */
                 match i2c.write_read(0x68, &[0x00u8], &mut time) {
                     Ok(_) => {
                         //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
