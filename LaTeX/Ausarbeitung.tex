@@ -568,6 +568,9 @@ Für die Spannungsregulierung werden zwei Schaltregler verwendet, die 5 V und 3,
 von ca. 0,7 V, die angeschlossene Batterie kann also fast vollständig genutzt werden. Beide Schaltregler vertragen maximal 5,5 V am Eingang, weshalb als Spannungsquelle
 drei Alkaline Batterien in Serie dienen sollen, die eine Spannung von ca. 4,5 V bereitstellen. 
 Die Anschlusskabel des Batteriefachs werden an die Platine gelötet, dafür wurden je 4x4 mm große Pads gewählt. 
+Als Batterien werden aktuell Mono D Zellen verwendet, die das Modul aufgrund ihrer Größe und des Gewichts klobig erscheinen lassen, durch die hohe Ladungsmenge von bis zu
+21 Ah eine lange Laufzeit versprechen. Geht man von einem Stromfluss von 10 mA aus, kann das Modul damit über drei Monate betrieben werden. Im Vergleich zu kommerziellen
+Wetterstationen liegt die Laufzeit damit trotzdem weit unterhalb des Durchschnitts.  
 
 \vspace{0.2cm}
 \noindent
@@ -613,8 +616,8 @@ Konzentrationen recht lang dauern kann, erfolgt dies ausschließlich über den z
 \subsubsection{Grafikmodul}
 \label{subsubsub:grafikmodulInt}
 
-Das Grafikmodul wird beim Endprodukt zusammen mit dem \hyperref[subsub:sensormodulInt]{internen Sensormodul} als eine Baugruppe ausgeführt sein.
-Hauptziel ist die grafische Aufarbeitung der über UART vom \hyperref[subsub:sensormodulInt]{internen Sensormodul} empfangenen Daten.
+Das Grafikmodul wird beim Endprodukt zusammen mit dem \hyperref[subsubsub:sensormodulInt]{internen Sensormodul} als eine Baugruppe ausgeführt sein.
+Hauptziel ist die grafische Aufarbeitung der über UART vom \hyperref[subsubsub:sensormodulInt]{internen Sensormodul} empfangenen Daten.
 Hierfür wird ebenfalls ein Raspberry Pi Pico in der W-Variante eingesetzt.
 Diese ist zusätzlich zu den Schnittstellen des Picos W-LAN (IEEE 802.11 b/g/n) und Bluetooth (5.2 LE) fähig, somit kann das Grafikmodul zukünftig ebenfalls die Rolle eines mqtt-Brokers übernehmen und die aufbereiteten Daten online abrufbar machen.
 Für diese Aufgaben verfügt das Modul über einen externen RTC-Chip und ein 2,8 Zoll Touchdisplay.
@@ -656,7 +659,7 @@ Während Slint das Zeichnen der Grafikbausteine übernimmt, muss sich der selbst
 Um Rechenleistung einzusparen, ist der Großteil des Programms mithilfe der wfe und sev Anweisungen des Picos (\textbf{W}ait\textbf{F}or\textbf{E}vent und \textbf{S}et/\textbf{S}ignal\textbf{EV}ent) Event-basiert implementiert.
 Ein entsprechendes Interrupt wird ausgelöst, wenn
 \begin{enumerate}
-	\item ein UART-Package vom \hyperref[subsub:sensorModul_int]{internen Sensormodul} empfangen wurde
+	\item ein UART-Package vom \hyperref[subsubsub:sensormodulInt]{internen Sensormodul} empfangen wurde
 	\item Bildinhalte sich verändert haben (beispielsweise die Uhrzeit jede volle Sekunde)
 	\item der Touchscreen berührt wird
 \end{enumerate}
@@ -787,6 +790,18 @@ Nun kann im laufenden Betrieb oder mit einem Testprogramm validiert werden, dass
 \section{Fazit}
 \label{sub:fazit}
 
+Zum Ende des Projekts ist eine vollständige Wetterstation mit funktionierendem Außenmodul entwickelt und funktionstüchtig. Mit geeigneten Gehäusen sind beide
+Module theoretisch für den Langzeitgebrauch geeignet und in einer realen Umgebung einsetzbar. Das Projekt kann damit als Erfolg gewertet werden, 
+weil die zu Beginn aufgestellten Anforderungen erfüllt wurden. 
+Im Entwicklungsprozess hat sich insbesondere gezeigt, dass das DCF Signal sehr anfällig für Störungen ist und auf die korrekte Ausrichtung der Antenne und einen
+geeigneten Aufstellort geachtet werden muss (Antenne sollte in waagerechter Position sein und quer in Richtung Frankfurt a.M. ausgerichtet werden). Damit
+erklärt sich auch, warum herkömmliche Funkuhren häufig kein Signal in Innenräumen empfangen. 
+
+\vspace{0.2cm}
+\noindent
+Sollte das Projekt weiterverfolgt werden, kann im nächsten Iterationsschritt ein effizienterer Mikrocontroller in das Außenmodul eingesetzt werden (MSP430 o.ä.)
+und weitestgehends auf Shields verzichtet werden, um die Abmessungen der Platinen zu reduzieren. Damit liesse sich die Professionalität weiter steigern. 
+
 \newpage
 \appendix
 
@@ -843,6 +858,26 @@ Nun kann im laufenden Betrieb oder mit einem Testprogramm validiert werden, dass
 
 \newpage
 \section{Ablaufdiagramm internes Sensormodul}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.75, page=1]{Ablauf intern.pdf}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.75, page=2]{Ablauf intern.pdf}
+  \caption{Abstraktes Ablaufdiagramm zur Beschreibung des Codes auf dem internen Sensormodul (Core 0)}
+  \label{pdf:ablaufIntern}
+\end{figure}
+
+\newpage
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.3\textwidth]{Ablauf intern Core1.png}
+  \caption{Abstraktes Ablaufdiagramm zur Beschreibung des Codes auf dem internen Sensormodul (Core 1)}
+  \label{pdf:ablaufInternCore1}
+\end{figure}
 
 \newpage
 \section{Schaltplan internes Modul}

@@ -140,7 +140,7 @@ void loop()
         char receiveBuffer[100] = {'\0'};
         char header[5] = {'\0'};
         int readIndex = 0;
-        int readingSize;
+        int readingSize = 0;
 
         // Isolate header of packet
         for(int i = 0; i < 4; i++)
