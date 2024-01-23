@@ -32,6 +32,7 @@ use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
 use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
+use bit_reverse::ParallelReverse;
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
@@ -42,7 +43,7 @@ use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
-use crate::meteotime::{decode_region, TimeStamp};
+use crate::meteotime::{decode_weather, Forecast, MeteoPackageType, TimeStamp, Weather};
 
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
@@ -63,6 +64,15 @@ const DISPLAY_SIZE: slint::PhysicalSize = slint::PhysicalSize::new(320, 240);
 const DISPLAY_ORIENTATION: Orientation = Orientation::Landscape;
 
 const UART_RX_QUEUE_MAX_SIZE: usize = 256;
+
+const METEO_REGION: u8 = 19; //Bremerhaven
+static mut FORECAST: Forecast = Forecast {
+        region: METEO_REGION,
+        day_1: None,
+        day_2: None,
+        day_3: None,
+        day_4: None
+    };
 
 pub type TargetPixel = Rgb565Pixel;
 type IrqPin = gpio::Pin<gpio::bank0::Gpio17, gpio::FunctionSio<gpio::SioInput>, gpio::PullUp>;
@@ -547,20 +557,49 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
 
                 }
                 if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
-                    let data = data.to_u32(meteo_start);
+                    let data = (data.to_u32(meteo_start) & 0x3fffff).swap_bits() >> 10;
                     info!("Meteo Paket {:#b}", data);
-                    let day_weather: u8 = (data & 0x0f) as u8; //Bit 0-3
-                    let night_weather: u8 = ((data & 0xf0) >> 4) as u8; //Bit 4-7
-                    let extrema: u8 = ((data & 0x0f_00) >> 8) as u8; //Bit 8-11
-                    let rainfall = (data & 0x70_00) >> 12; //Bit 12-14
-                    let anomaly = !matches!(data & 0x80_00, 0); //Bit 15
-                    let temperature = -22i32 + ((data & 0x3f_00_00) >> 16) as i32; //Bit 16-21
+                    let current_time: TimeModel = time_adapter.get_time();
+                    let current_date: DateModel = time_adapter.get_date();
+                    let weather = decode_weather(data, TimeStamp {
+                        minute: current_time.minutes as u8,
+                        hour: current_time.hours as u8,
+                        day: current_date.day as u8,
+                        month: current_date.month as u8,
+                    });
+                    if weather.region == METEO_REGION {
+                        unsafe {
+                            match weather.meteo_package_type {
+                                //FIXME derzeit würde das LOW Package das aktuelle HIGH Package überschreiben
+                                MeteoPackageType::HIGH_1 => {
+                                    FORECAST.day_1 = Some(weather);
+                                }
+                                MeteoPackageType::LOW_1 => {
+                                    FORECAST.day_1 = Some(weather);
+                                }
+                                MeteoPackageType::HIGH_2 => {
+                                    FORECAST.day_2 = Some(weather);
+                                }
+                                MeteoPackageType::LOW_2 => {
+                                    FORECAST.day_2 = Some(weather);
+                                }
+                                MeteoPackageType::HIGH_3 => {
+                                    FORECAST.day_3 = Some(weather);
+                                }
+                                MeteoPackageType::LOW_3 => {
+                                    FORECAST.day_3 = Some(weather);
+                                }
+                                MeteoPackageType::HIGH_4 => {
+                                    FORECAST.day_4 = Some(weather);
+                                }
+                                MeteoPackageType::ANOMALY_WIND_4 => {
+                                    //TODO Wie verfährt man mit diesem Sonderpackage?
+                                }
+                            }
+                            info!("Wettervorhersage der eigenen Region ({}) hat sich verändert: {}", METEO_REGION, FORECAST);
+                        }
 
-                    //TODO Wetterdaten auslesen...
-                    //let day = get_weather_type(day_weather, extrema, true, anomaly);
-                    //let night = get_weather_type(night_weather, extrema, false, anomaly);
-                    //info!("day: {} {}", defmt::Display2Format(&day), day_weather);
-                    //info!("night: {} {}", defmt::Display2Format(&night), night_weather);
+                    }
                 }
             }
         });
