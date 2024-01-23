@@ -16,8 +16,8 @@
 #define DCF_INTERRUPT_PIN 2 // D2
 #define SET_PIN 4          // D4
 
-// Send bme data every 53 seconds to reduce collision probability with time or meteo packets
-#define SENSOR_SEND_FREQUENCY_MILLIS 53000
+// Send bme data every 30 seconds to reduce collision probability with time or meteo packets
+#define SENSOR_SEND_FREQUENCY_MILLIS 30000
 
 #define NUMBER_OF_RETRANSMISSIONS   5       // Resend a packet max. 5 times
 // A retransmission command has to be sent max. 3 seconds after a packet has been sent. 
@@ -174,6 +174,7 @@ void loop()
         timePacketPending = true;
         timePacketValid = true;
         timeRetransTime = millis();
+        lastSensorSend = millis() - 15000;
     }
     // Resend time data if packet has been sent and an error message was received
     if (!timePacketValid)
