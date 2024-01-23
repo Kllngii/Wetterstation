@@ -277,7 +277,7 @@ bool DCF77::processBuffer(void) {
 	bool returnValue = false;
 	int minuteSwitcher = 0;
 	static bool timeUseable = false;
-	static time_t meteoPacketTime;
+	static uint8_t meteoPacketHour = 0, meteoPacketMinute = 0;
 	/////  Start interaction with interrupt driven loop  /////
 	
 	// Copy filled buffer and timestamp from interrupt driven loop
@@ -356,7 +356,8 @@ bool DCF77::processBuffer(void) {
 				meteoData.dayInWeek = reverseBits8(rx_buffer->Weekday, 3);
 				meteoData.year = reverseBits8(rx_buffer->Year, 8);
 
-				meteoPacketTime = latestupdatedTime;
+				meteoPacketHour = time.Hour;
+				meteoPacketMinute = time.Minute;
 			}
 			else
 			{
@@ -393,7 +394,9 @@ bool DCF77::processBuffer(void) {
 					meteoData.dayInWeek = reverseBits8(rx_buffer->Weekday, 3);
 					meteoData.year = reverseBits8(rx_buffer->Year, 8);
 				}
-				meteoPacketTime = now();
+				// 30 s offset to compensate jitter
+				meteoPacketHour = hour(now() + 30);
+				meteoPacketMinute = minute(now() + 30);
 			}
 			meteoPacketNumber++;
 		break;
@@ -402,7 +405,7 @@ bool DCF77::processBuffer(void) {
 			if (meteoPacketNumber == 2)
 			{
 #ifdef FILTER_METEO
-				meteoDataReady = isMeteoRelevant(meteoPacketTime);
+				meteoDataReady = isMeteoRelevant(meteoPacketHour, meteoPacketMinute);
 #else
 				meteoDataReady = true;
 #endif
@@ -681,25 +684,27 @@ MeteoRawStruct DCF77::getMeteoBuffer()
 	}
 }
 
-bool DCF77::isMeteoRelevant(time_t packetTime)
+bool DCF77::isMeteoRelevant(uint8_t hour, uint8_t minute)
 {
 	bool returnVal = false;
-	int currentHour = hour(packetTime);
 
 	if (CEST)
 	{
-		currentHour--;
-		if (currentHour < 0)
+		if (hour == 0)
 		{
-			currentHour = 23;
+			hour = 23;
+		}
+		else
+		{
+			hour--;
 		}
 	}
 
-	switch (minute(packetTime))
+	switch (minute)
 	{
 		case 59:
 			// 19: Bremerhaven
-			switch (currentHour)
+			switch (hour)
 			{
 				case 23:
 					returnVal = true; 	// Max 1
@@ -731,7 +736,7 @@ bool DCF77::isMeteoRelevant(time_t packetTime)
 		break;
 		case 8:
 			// 22: Hannover
-			switch (currentHour)
+			switch (hour)
 			{
 				case 0:
 					returnVal = true;	// Max 1
@@ -763,7 +768,7 @@ bool DCF77::isMeteoRelevant(time_t packetTime)
 		break;
 		case 14:
 			// 24: Rostock
-			switch (currentHour)
+			switch (hour)
 			{
 				case 0:
 					returnVal = true;	// Max 1
