@@ -1,6 +1,6 @@
 extern crate alloc;
 
-use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel, WeatherAdapter, BarTileModel};
+use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel, WeatherAdapter, BarTileModel, Images};
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
@@ -31,7 +31,7 @@ use rp_pico::hal::{self, pac, prelude::*, Clock, Timer};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
+use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel, Image};
 use bit_reverse::ParallelReverse;
 
 #[cfg(feature = "panic-probe")]
@@ -43,7 +43,7 @@ use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
-use crate::meteotime::{decode_weather, Forecast, MeteoPackageType, TimeStamp, Weather};
+use crate::meteotime::{decode_weather, Forecast, MeteoPackageType, TimeStamp, Weather, WeatherType};
 
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
@@ -68,10 +68,30 @@ const UART_RX_QUEUE_MAX_SIZE: usize = 256;
 const METEO_REGION: u8 = 19; //Bremerhaven
 static mut FORECAST: Forecast = Forecast {
         region: METEO_REGION,
-        day_1: None,
-        day_2: None,
-        day_3: None,
-        day_4: None
+        day1_weather: None,
+        night1_weather: None,
+        precipitation1: None,
+        wind1: None,
+        temperature_day1: None,
+        temperature_night1: None,
+        day2_weather: None,
+        night2_weather: None,
+        precipitation2: None,
+        wind2: None,
+        temperature_day2: None,
+        temperature_night2: None,
+        day3_weather: None,
+        night3_weather: None,
+        precipitation3: None,
+        wind3: None,
+        temperature_day3: None,
+        temperature_night3: None,
+        day4_weather: None,
+        night4_weather: None,
+        precipitation4: None,
+        wind4: None,
+        temperature_day4: None,
+        temperature_night4: None,
     };
 
 pub type TargetPixel = Rgb565Pixel;
@@ -349,6 +369,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
         let overview_adapter = ui.global::<OverviewAdapter>();
         let time_adapter = ui.global::<TimeAdapter>();
         let weather_adapter = ui.global::<WeatherAdapter>();
+        let images_global = ui.global::<Images>();
 
         static mut I2C: Option<EnabledI2C> = None;
         unsafe {
@@ -572,31 +593,130 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                             match weather.meteo_package_type {
                                 //FIXME derzeit würde das LOW Package das aktuelle HIGH Package überschreiben
                                 MeteoPackageType::HIGH_1 => {
-                                    FORECAST.day_1 = Some(weather);
+                                    FORECAST.day1_weather = weather.day_weather;
+                                    FORECAST.night1_weather = weather.night_weather;
+                                    FORECAST.temperature_day1 = weather.temperature_day;
+                                    FORECAST.wind1 = weather.wind;
+                                    FORECAST.precipitation1 = weather.precipitation;
                                 }
                                 MeteoPackageType::LOW_1 => {
-                                    FORECAST.day_1 = Some(weather);
+                                    FORECAST.day1_weather = weather.day_weather;
+                                    FORECAST.night1_weather = weather.night_weather;
+                                    FORECAST.temperature_night1 = weather.temperature_night;
+                                    FORECAST.wind1 = weather.wind;
+                                    FORECAST.precipitation1 = weather.precipitation;
                                 }
                                 MeteoPackageType::HIGH_2 => {
-                                    FORECAST.day_2 = Some(weather);
+                                    FORECAST.day2_weather = weather.day_weather;
+                                    FORECAST.night2_weather = weather.night_weather;
+                                    FORECAST.temperature_day2 = weather.temperature_day;
+                                    FORECAST.wind2 = weather.wind;
+                                    FORECAST.precipitation2 = weather.precipitation;
                                 }
                                 MeteoPackageType::LOW_2 => {
-                                    FORECAST.day_2 = Some(weather);
+                                    FORECAST.day2_weather = weather.day_weather;
+                                    FORECAST.night2_weather = weather.night_weather;
+                                    FORECAST.temperature_night2 = weather.temperature_night;
+                                    FORECAST.wind2 = weather.wind;
+                                    FORECAST.precipitation2 = weather.precipitation;
                                 }
                                 MeteoPackageType::HIGH_3 => {
-                                    FORECAST.day_3 = Some(weather);
+                                    FORECAST.day3_weather = weather.day_weather;
+                                    FORECAST.night3_weather = weather.night_weather;
+                                    FORECAST.temperature_day3 = weather.temperature_day;
+                                    FORECAST.wind3 = weather.wind;
+                                    FORECAST.precipitation3 = weather.precipitation;
                                 }
                                 MeteoPackageType::LOW_3 => {
-                                    FORECAST.day_3 = Some(weather);
+                                    FORECAST.day3_weather = weather.day_weather;
+                                    FORECAST.night3_weather = weather.night_weather;
+                                    FORECAST.temperature_night3 = weather.temperature_night;
+                                    FORECAST.wind3 = weather.wind;
+                                    FORECAST.precipitation3 = weather.precipitation;
                                 }
                                 MeteoPackageType::HIGH_4 => {
-                                    FORECAST.day_4 = Some(weather);
+                                    FORECAST.day4_weather = weather.day_weather;
+                                    FORECAST.night4_weather = weather.night_weather;
+                                    FORECAST.temperature_day4 = weather.temperature_day;
+                                    FORECAST.wind4 = weather.wind;
+                                    FORECAST.precipitation4 = weather.precipitation;
                                 }
                                 MeteoPackageType::ANOMALY_WIND_4 => {
                                     //TODO Wie verfährt man mit diesem Sonderpackage?
                                 }
                             }
                             info!("Wettervorhersage der eigenen Region ({}) hat sich verändert: {}", METEO_REGION, FORECAST);
+                            let week_modelrc = weather_adapter.get_week_model();
+                            let week_mod = week_modelrc.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("Muss gehen");
+                            unsafe {
+                                if FORECAST.temperature_day1.is_some() {
+                                    let today_image: Image = weather_adapter.get_current_temperature_icon();
+                                    weather_adapter.set_current_temperature(slint::format!("{}°", FORECAST.temperature_day1.unwrap()).into());
+                                }
+                                if FORECAST.day1_weather.is_some() {
+                                    //TODO Makro statt copy&paste...
+                                    let day_weather = FORECAST.day1_weather.clone();
+                                    let image = match day_weather.unwrap() {
+                                        WeatherType::Sonnig | WeatherType::Klar | WeatherType::GroßeHitze => {
+                                            images_global.get_sunny()
+                                        }
+                                        WeatherType::LeichtBewölkt | WeatherType::VorwiegendBewölkt => {
+                                            images_global.get_cloudy()
+                                        }
+                                        WeatherType::Bedeckt => {
+                                            images_global.get_cloud()
+                                        }
+                                        WeatherType::Hochnebel | WeatherType::Nebel | WeatherType::DichterNebel => {
+                                            images_global.get_foggy()
+                                        }
+                                        WeatherType::Regenschauer | WeatherType::LeichterRegen | WeatherType::StarkerRegen
+                                        | WeatherType::KurzerStarkregen | WeatherType::ExtremeNiederschläge
+                                        | WeatherType::StarkeNiederschläge => {
+                                            images_global.get_rainy1()
+                                        }
+                                        _ => {
+                                            //TODO weitere Wetter hinzufügen und eigenes "Sonstiges" Bild hier einfügen
+                                            images_global.get_cloudy()
+                                        }
+                                    };
+
+                                    weather_adapter.set_current_temperature_icon(image);
+                                }
+                                if FORECAST.day2_weather.is_some() {
+                                    //TODO Makro statt copy&paste...
+                                    let day_weather = FORECAST.day2_weather.clone();
+                                    let image = match day_weather.unwrap() {
+                                        WeatherType::Sonnig | WeatherType::Klar | WeatherType::GroßeHitze => {
+                                            images_global.get_sunny()
+                                        }
+                                        WeatherType::LeichtBewölkt | WeatherType::VorwiegendBewölkt => {
+                                            images_global.get_cloudy()
+                                        }
+                                        WeatherType::Bedeckt => {
+                                            images_global.get_cloud()
+                                        }
+                                        WeatherType::Hochnebel | WeatherType::Nebel | WeatherType::DichterNebel => {
+                                            images_global.get_foggy()
+                                        }
+                                        WeatherType::Regenschauer | WeatherType::LeichterRegen | WeatherType::StarkerRegen
+                                        | WeatherType::KurzerStarkregen | WeatherType::ExtremeNiederschläge
+                                        | WeatherType::StarkeNiederschläge => {
+                                            images_global.get_rainy1()
+                                        }
+                                        _ => {
+                                            //TODO weitere Wetter hinzufügen und eigenes "Sonstiges" Bild hier einfügen
+                                            images_global.get_cloudy()
+                                        }
+                                    };
+
+                                    let mut day2_row = week_mod.row_data(0).unwrap();
+                                    day2_row.icon = image;
+
+                                    week_mod.set_row_data(0, day2_row);
+                                }
+                            }
+
+                            let weather_modelrc: ModelRc<BarTileModel> = weather_adapter.get_week_model(); //Vorhersagetage
                         }
 
                     }
