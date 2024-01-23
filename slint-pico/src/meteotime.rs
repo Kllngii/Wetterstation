@@ -17,10 +17,33 @@ pub(crate) struct TimeStamp {
 #[derive(Debug, Format, Clone)]
 pub(crate) struct Forecast {
     pub(crate) region: u8,
-    pub(crate) day_1: Option<Weather>,
-    pub(crate) day_2: Option<Weather>,
-    pub(crate) day_3: Option<Weather>,
-    pub(crate) day_4: Option<Weather>,
+    pub(crate) day1_weather: Option<WeatherType>,
+    pub(crate) night1_weather: Option<WeatherType>,
+    pub(crate) precipitation1: Option<u8>,
+    pub(crate) wind1: Option<Wind>,
+    pub(crate) temperature_day1: Option<i32>, //Temperatur Tag
+    pub(crate) temperature_night1: Option<i32>, //Temperatur Nacht
+
+    pub(crate) day2_weather: Option<WeatherType>,
+    pub(crate) night2_weather: Option<WeatherType>,
+    pub(crate) precipitation2: Option<u8>,
+    pub(crate) wind2: Option<Wind>,
+    pub(crate) temperature_day2: Option<i32>, //Temperatur Tag
+    pub(crate) temperature_night2: Option<i32>, //Temperatur Nacht
+
+    pub(crate) day3_weather: Option<WeatherType>,
+    pub(crate) night3_weather: Option<WeatherType>,
+    pub(crate) precipitation3: Option<u8>,
+    pub(crate) wind3: Option<Wind>,
+    pub(crate) temperature_day3: Option<i32>, //Temperatur Tag
+    pub(crate) temperature_night3: Option<i32>, //Temperatur Nacht
+
+    pub(crate) day4_weather: Option<WeatherType>,
+    pub(crate) night4_weather: Option<WeatherType>,
+    pub(crate) precipitation4: Option<u8>,
+    pub(crate) wind4: Option<Wind>,
+    pub(crate) temperature_day4: Option<i32>, //Temperatur Tag
+    pub(crate) temperature_night4: Option<i32>, //Temperatur Nacht
 }
 #[derive(Format, Debug, Clone)]
 pub(crate) struct Weather {
@@ -306,6 +329,10 @@ fn decode_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) ->
     }
 }
 
+fn decode_temperature(data: u8) -> i32 {
+    -22 + (data as i32)
+}
+
 
 /// Dekodiert die Regions-ID basierend auf dem Sendezeitpunkt `time`
 fn decode_region(time: TimeStamp) -> (u8, MeteoPackageType) {
@@ -366,6 +393,16 @@ pub(crate) fn decode_weather(data: u32, time: TimeStamp) -> Weather {
         false,
         ((data>>15) & 0x01) == 1
     ));
+    match weather.meteo_package_type {
+        HIGH_1 | HIGH_2 | HIGH_3 | HIGH_4 => {
+            weather.temperature_day = Some(decode_temperature(((data >> 16) & 0x3f) as u8))
+        }
+        LOW_1 | LOW_2 | LOW_3 => {
+            weather.temperature_night = Some(decode_temperature(((data >> 16) & 0x3f) as u8))
+        }
+        ANOMALY_WIND_4 => {}
+    }
+
 
     info!("{}", weather);
     weather
