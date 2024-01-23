@@ -705,6 +705,7 @@ Der Anschluss nach unten kann praktisch sein, wenn die Platine aufgehängt werde
 Der Funktionstest ist wegen der graphischen Oberfläche auf dem Display nicht ganz einfach zu dokumentieren. 
 
 \subsection{Test der Sensorik}
+\label{subsub:test-sensorik}
 Da der Raspberry Pi Pico im Gegensatz zu herkömmlichen Arduinos zusätzlich zu den UART Bussen serielle Daten über die USB Schnittstelle übertragen kann, 
 sind einfache Print Ausgaben der empfangenen und weitergeleiteten Daten die einfachste Möglichkeit. 
 
@@ -758,6 +759,30 @@ Aus dem Paket lassen sich folgende Informationen ermitteln:
   \end{table}
 
 \subsection{Test des Grafikmoduls}
+Das Grafikmodul muss auf zweierlei Arten betrachtet werden, einerseits muss das Userinterface einfach bedienbar und übersichtlich sein, andererseits müssen auch die Rohdaten der Sensoren korrekt empfangen und verarbeitet werden. Das Erste lässt sich durch simples "durchklicken" der Menüs erledigen.
+
+\vspace{0.2cm}
+\noindent
+Um die ankommenden Daten zu verifizieren müssen die Debugausgaben des versendenen Raspberry Picos (siehe \ref{subsub:test-sensorik}) als auch die des empfangenen und anzeigenden Raspberry Picos überwacht und abgeglichen werden.
+Da der UI-Pico durch das Anzeigen der GUI ziemlich stark ausgelastet ist, kommt die Raspberry Pi Debug Probe zum Einsatz, welche einen seriellen Port (SerialWireDebug) über das CMSIS-DAP Protokoll öffnen kann, und die CPU des Picos nicht zusätzlich belastet.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{DebugProbe.jpg}
+	\caption{Raspberry Pico Debug Probe Bildquelle: \href{https://www.berrybase.de/media/image/c2/87/07/ID_207742_orig_1280x1280.jpg}{berrybase.de}}
+	\label{fig:debugprobe}
+\end{figure}
+
+\noindent
+Nun kann im laufenden Betrieb oder mit einem Testprogramm validiert werden, dass die Daten korrekt übertragen und verarbeitet werden.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{FunktionstestGUI-INT-EXT-CO2.png}
+	\caption{Funktionstest für BME280-Sensoren und CO2-Sensor}
+	\label{fig:funktionstest-dcf-meteo}
+\end{figure}
+
 
 \section{Fazit}
 \label{sub:fazit}
