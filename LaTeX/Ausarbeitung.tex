@@ -598,17 +598,17 @@ Im Test hat sich allerdings herausgestellt, dass die Antenne nichts empfängt, w
 \label{subsubsub:sensormodulInt}
 
 Das interne Sensormodul darf im Gegensatz zum externen Modul mehr Energie verbrauchen, da es mehr Daten verarbeiten muss und über einen Netzanschluss verfügt. 
-Das Modul empfängt die über 433 MHz gesendeten Daten und liest zusätzlich zyklisch den BME280 und CO2 Sensor aus. Wird ein kodiertes Paket mit Wetterdaten empfangen, 
-wird dieses außerdem entschlüsselt und dann an das Grafikmodul weitergegeben. 
+Das Modul empfängt die über 433 MHz gesendeten Daten und liest zusätzlich zyklisch den BME280 und CO2 Sensor aus.
 
 \vspace{0.3cm}
 \noindent
-Als Mikrocontroller dient hier ein Raspberry Pi Pico, der mit zwei Kernen Multiprocessing erlaubt und damit die Reaktionszeiten beschleunigt. Der Mikrocontroller
-verfügt über zwei UART Busse und zwei I2C Busse, die beiden UART Busse werden zum einen für die Kommunikation mit dem anderen Mikrocontroller, zum anderen zur Datenübertragung
-vom 433 MHz Empfänger verwendet. Der CO2 Sensor hat zwar auch eine UART Schnittstelle, da UART Emulatoren aber regelmäßig falsche Daten geliefert haben, werden die Daten stattdessen
-via PWM ausgelesen. Eine Bibliothek für den Sensor liest den Duty-Cycle aus und ermittelt daraus die CO2 Konzentration. Da das Auslesen des PWM Signals insbesondere bei hohen
+Als Mikrocontroller wird ein Raspberry Pi Pico verwendet, der mit zwei kernen Multiprocessing erlaubt und damit die Reaktionszeiten beschleunigt. Der Mikrocontroller
+verfügt über zwei UART Busse und zwei I2C Busse. Die beiden UART Busse werden für die Kommunikation mit dem Grafikmodul und dem 433 MHz Modul verwendet.
+
+Der verwendete CO2 Sensor verfügt zwar auch über eine UART-Schnittstelle, die zur Verfügung stehenden UART Emulatoren für den Mikrocontroller lieferten allerdings
+falsche Daten. Aus diesem Grund wird der Duty Cycle des zur Verfügung stehenden PWM Pins genutzt. 
+Eine Bibliothek für den Sensor liest den PWM Pins automatisch aus und konvertiert den Duty Cycle in eine CO2 Konzentration. Da das Auslesen des PWM Signals insbesondere bei hohen
 Konzentrationen recht lang dauern kann, erfolgt dies ausschließlich über den zweiten Kern, der neue Werte global zur Verfügung stellt und dies über eine Flag signalisiert. 
-Auf Kern 2 findet außerdem der Dekodierprozess der Wetterdaten statt, um den Hauptprozess nicht zu verlangsamen. Auch hier werden fertige Pakete über eine Flag signalisiert. 
 
 \subsubsection{Grafikmodul}
 \label{subsubsub:grafikmodulInt}
@@ -678,11 +678,86 @@ Ein entsprechendes Interrupt wird ausgelöst, wenn
 \end{figure}
 
 \subsubsection{Platinenentwurf}
-\label{subsubsub:platineIntern}
+\label{subsubsub:platinenentwurfExtern} 
+
+\subsubsubsection{Schaltplan}
+\label{subsubsubsub:schaltplanExtern}
+
+Der Schaltplan ist im Anhang in \hyperref[pdf:schaltplanIntern]{Abbildung \ref{pdf:schaltplanIntern}} dargestellt. Zentraler Bestandteil sind die beiden Mikrocontroller, 
+die über eine UART Verbindung miteinander kommunizieren. Der Raspbery Pi Pico W, der das Grafikmodul beherbert, steuert das aufsteckbare Touchdisplay. Zusätzlich wird
+ein RTC Shield auf den Mikrocontroller gesteckt, um die aktuelle Zeit speichern zu können und jitter zu minimieren. 
+An den Raspberry Pi Pico, der die Sensoren ausliest, sind ein BME280, der CO2 Sensor und die 433 MHz Antenne angebunden. Zusätzlich kann hier ein HKW581 Modul integriert werden, 
+dieses befindet sich im aktuellen Aufbau aber auf dem Außenmodul. Wie schon im externen Modul sind Möglichkeiten für das Shield und den Adapter vorbehalten. 
+Der HKW581 auf dem internen Modul ist nur sinnvoll, falls auf das Außenmodul verzichtet werden soll (nicht geplant).
+
+\subsubsubsection{Platine}
+\label{subsubsubsub:platineExtern}
+
+Die Platine ist im Anhang in \hyperref[pdf:platineIntern]{Abbildung \ref{pdf:platineIntern}} und \hyperref[fig:platineIntern3D]{Abbildung \ref{fig:platineIntern3D}} dargestellt. Es handelt sich um eine einfache 2-Layer Platine mit Ground Plane
+auf der Unterseite. Hervorzuheben sind die Befestigungsmöglichkeiten des Displays sowie Bohrlöcher an den Außenseiten zur Befestigung im Gehäuse, o.ä..
+Auf der Platine sind zwei Anschlüsse zur Spannungsversorgung der Platine eingeplant, einer führt das Kabel seitlich nach links, der andere nach unten. 
+Der Anschluss nach unten kann praktisch sein, wenn die Platine aufgehängt werden sollte. Wird diese hingegen aufgestellt, ist eine seitlich Führung des Kabels nötig. 
 
 
 \section{Funktionstest}
 \label{sub:funktionstest}
+
+Der Funktionstest ist wegen der graphischen Oberfläche auf dem Display nicht ganz einfach zu dokumentieren. 
+
+\subsection{Test der Sensorik}
+Da der Raspberry Pi Pico im Gegensatz zu herkömmlichen Arduinos zusätzlich zu den UART Bussen serielle Daten über die USB Schnittstelle übertragen kann, 
+sind einfache Print Ausgaben der empfangenen und weitergeleiteten Daten die einfachste Möglichkeit. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{SensorLog.png}
+  \caption{Logausgabe von internen und externen Sensordaten und CO2 Konzentration}
+  \label{fig:sensorlog}
+\end{figure}
+
+\noindent
+Abbildung \ref{fig:sensorlog} zeigt die Logausgabe von BME Daten des externen und internen Sensors und die aktuell gemessene CO2 Konzentration. 
+``Received valid EBME Packet'' zeigt an, dass die übertragene Prüfsumme korrekt ist und keine Übertragungsfehler detektiert wurden. 
+Die drei Pakete werden anschließend über die UART-Schnittstelle an das Grafikmodul weitergeleitet. 
+
+\vspace{0.2cm}
+\noindent
+Ebenso werden die übertragenen Zeit- und Meteotimepakete in der Konsole ausgegeben:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{MeteotimeLog.png}
+  \caption{Logausgabe eines Zeit- und Meteotimepakets}
+  \label{fig:meteolog}
+\end{figure}
+
+\noindent
+Ein Meteotime Paket wird nur übertragen, wenn es relevant für die Wetterstation ist (relevante Zone) und, wenn die Ausgabe des Dekodier-ICs fehlerfrei ist. 
+Beim hier angezeigten Meteotime Paket handelt es sich um die Höchstwerte für den Tag + 3 für die Region Rostock. Das Paket ist 24 bit lang (die beiden führenden Nullen
+werden hier nicht mit angezeigt). 
+
+\vspace{0.2cm}
+\noindent
+Aus dem Paket lassen sich folgende Informationen ermitteln:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|l|}
+  \hline
+  \textbf{Binärwert} & \textbf{Lage}                   & \textbf{Dezimalwert} & \textbf{Beschreibung} \\ \hline
+  0010               & Tag                             & 4                    & bedeckt               \\ \hline
+  0010               & Nacht                           & 4                    & bedeckt               \\ \hline
+  0000               & Wetterextrema                   & 0                    & keine                 \\ \hline
+  010                & Niederschlagswahrscheinlichkeit & 2                    & 30\%                  \\ \hline
+  0                  & Wetteranomalie                  & 0                    & Nein                  \\ \hline
+  101110             & Temperatur                      & 29                   & 7°C                   \\ \hline
+  10                 & Dekoderstatus                   & -                    & OK                    \\ \hline
+  \end{tabular}
+  \caption{Informationen aus dem Meteotime Paket}
+  \label{tab:meteopacket}
+  \end{table}
+
+\subsection{Test des Grafikmoduls}
 
 \section{Fazit}
 \label{sub:fazit}
@@ -739,6 +814,41 @@ Ein entsprechendes Interrupt wird ausgelöst, wenn
   \includegraphics[width=\textwidth]{ExternalPCB3D.jpg}
   \caption{3D Ansicht des Platinenentwurfs}
   \label{fig:platineExtern3D}
+\end{figure}
+
+\newpage
+\section{Ablaufdiagramm internes Sensormodul}
+
+\newpage
+\section{Schaltplan internes Modul}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.7, page=1, angle=90]{../pcbs/InternalPCB/InternalPCB.pdf}
+  \caption{Schaltplan des internen Moduls}
+  \label{pdf:schaltplanIntern}
+\end{figure}
+
+\newpage
+\section{Platine internes Modul}
+
+\subsection{2D Ansicht}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.7, page=1]{PCBIntern.pdf}
+  \caption{2D Ansicht des Platinenentwurfs}
+  \label{pdf:platineIntern}
+\end{figure}
+
+\newpage
+\subsection{3D Ansicht}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{InternalPCB3D.jpg}
+  \caption{3D Ansicht des Platinenentwurfs}
+  \label{fig:platineIntern3D}
 \end{figure}
 
 \end{document}
