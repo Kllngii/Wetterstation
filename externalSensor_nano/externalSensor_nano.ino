@@ -189,7 +189,7 @@ void loop()
     {
         meteo.getNewData(DCF.getMeteoBuffer());
     }
-    if (meteo.isNewMeteo() && !digitalRead(METEO_RDY))
+    if (meteo.isNewMeteo() && !digitalRead(METEO_RDY) && !timePacketPending && !bmePacketPending)
     {
         meteo.decode();
         if (meteo.isMeteoValid())

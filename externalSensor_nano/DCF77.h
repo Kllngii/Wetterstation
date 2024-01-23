@@ -102,7 +102,7 @@ private:
     void static appendSignal(unsigned char signal);
     uint16_t static reverseMeteoPacket(uint16_t inputData);
     uint8_t static reverseBits8(uint8_t inputData, int bitsUsed);
-    bool static isMeteoRelevant(time_t packetTime);
+    bool static isMeteoRelevant(uint8_t hour, uint8_t minute);
     void static tmToMeteo(tmElements_t& packetTime);
 
 
