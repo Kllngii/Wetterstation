@@ -35,6 +35,7 @@ use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel};
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
+use embedded_hal::prelude::_embedded_hal_blocking_i2c_Write;
 use rp_pico::hal::clocks::init_clocks_and_plls;
 use rp_pico::hal::i2c::Error;
 use st7789::Orientation;
@@ -479,7 +480,6 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                             info!("co2: {}ppm", co2);
                             co2_data.value = co2 as f32;
                             pres_mod.set_row_data(1, co2_data);
-                            //TODO neue GUI anbinden
                         }
                     };
 
@@ -509,6 +509,37 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     let day: u8 = data[time_start + 6];
 
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
+
+                    unsafe {
+                        if let Some(i2c) = &mut I2C {
+                            //TODO über hübsches Makro lösen?
+                            let second_byte: u8 = (second % 10) | ((second / 10)<<4);
+                            let minute_byte: u8 = (minute % 10) | ((minute / 10)<<4);
+                            let hour_byte: u8 = (hour % 10) | ((hour / 10)<<4);
+                            //TODO Wochentag aus Datum berechnen (1-7 nicht 0-6!)
+                            let weekday_byte: u8 = day % 7 + 1; //FIXME funktioniert nur in Monaten, die mit einem Montag starten! (Wie der Januar 2024 🥹)
+                            let day_byte: u8 = (day % 10) | ((day / 10)<<4);
+                            let month_byte: u8 = (month % 10) | ((month / 10)<<4);
+                            let year_byte: u8 = (((year%100) as u8) % 10) | ((((year%100) as u8) / 10)<<4);
+
+
+                            //TODO RTC in eigenen Treiber auslagern, diesen Kommentar in Doc übernehmen:
+
+                            /*  Aufbau des Timekeeping Registers(Adresse 0x00-0x06 am Gerät 0x68)
+                             *  00:     -       10s     10s     10s     1s      1s      1s      1s      0-59
+                             *  01:     -       10m     10m     10m     1m      1m      1m      1m      0-59
+                             *  02:     -       0:24h   20h     10h     1h      1h      1h      1h      0-23
+                             *  03:     -       -       -       -       -       WD      WD      WD      1-7
+                             *  04:     -       -       10d     10d     1d      1d      1d      1d      1-31
+                             *  05:     century -       -       10mnth  1mnth   1mnth   1mnth   1mnth   1-12
+                             *  06:     10y     10y     10y     10y     1y      1y      1y      1y      0-99
+                             */
+                            if i2c.write(0x68, &[0x00, second_byte, minute_byte, hour_byte, weekday_byte, day_byte, month_byte, year_byte]).is_err() {
+                                warn!("I2C nicht initialisiert!");
+                            }
+                        }
+                    }
+
                 }
                 if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
                     let data = data.to_u32(meteo_start);
