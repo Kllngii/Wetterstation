@@ -1,29 +1,42 @@
 use alloc::boxed::Box;
 use core::fmt::Display;
-use defmt::{debug, Format};
+use cortex_m::interrupt::free;
+use defmt::{debug, Format, info};
 use defmt::Display2Format;
 use derive_more::Display;
+use crate::meteotime::MeteoPackageType::{ANOMALY_WIND_4, HIGH_1, HIGH_2, HIGH_3, HIGH_4, LOW_1, LOW_2, LOW_3};
 
-#[derive(Debug, Format)]
+#[derive(Debug, Format, Clone)]
 pub(crate) struct TimeStamp {
     pub(crate) minute: u8,
     pub(crate) hour: u8,
     pub(crate) day: u8,
     pub(crate) month: u8,
 }
-struct Weather {
-    region: u8, //Regions ID
-    day: TimeStamp,
-    day_weather: Option<WeatherType>, //Wetterprognose Tag
-    night_weather: Option<WeatherType>, //Wetterprognose Nacht
-    precipitation: Option<u8>, //Niederschlagswahrscheinlichkeit 24h
-    wind: Option<Wind>, //Wind 24h
-    temperature_day: Option<i32>, //Temperatur Tag
-    temperature_night: Option<i32>, //Temperatur Nacht
+
+#[derive(Debug, Format, Clone)]
+pub(crate) struct Forecast {
+    pub(crate) region: u8,
+    pub(crate) day_1: Option<Weather>,
+    pub(crate) day_2: Option<Weather>,
+    pub(crate) day_3: Option<Weather>,
+    pub(crate) day_4: Option<Weather>,
+}
+#[derive(Format, Debug, Clone)]
+pub(crate) struct Weather {
+    pub(crate) region: u8, //Regions ID
+    pub(crate) meteo_package_type: MeteoPackageType,
+    pub(crate) time: TimeStamp,
+    pub(crate) day_weather: Option<WeatherType>, //Wetterprognose Tag
+    pub(crate) night_weather: Option<WeatherType>, //Wetterprognose Nacht
+    pub(crate) precipitation: Option<u8>, //Niederschlagswahrscheinlichkeit 24h
+    pub(crate) wind: Option<Wind>, //Wind 24h
+    pub(crate) temperature_day: Option<i32>, //Temperatur Tag
+    pub(crate) temperature_night: Option<i32>, //Temperatur Nacht
 }
 
-#[derive(Debug, Format)]
-enum WeatherType {
+#[derive(Debug, Format, Clone)]
+pub(crate) enum WeatherType {
     Error,
     Sonnig,
     Klar,
@@ -130,8 +143,8 @@ impl Display for WeatherType {
     }
 }
 
-#[derive(Debug, Format, Display)]
-enum WindDirection {
+#[derive(Debug, Format, Display, Copy, Clone)]
+pub(crate) enum WindDirection {
     N,
     NO,
     O,
@@ -148,10 +161,22 @@ enum WindDirection {
     Tramontana,
 }
 
-#[derive(Debug, Format)]
-struct Wind {
-    direction: Option<WindDirection>,
-    force: u8,
+#[derive(Debug, Format, Display, Clone)]
+pub(crate) enum MeteoPackageType {
+    HIGH_1,
+    LOW_1,
+    HIGH_2,
+    LOW_2,
+    HIGH_3,
+    LOW_3,
+    HIGH_4,
+    ANOMALY_WIND_4,
+}
+
+#[derive(Debug, Format, Copy, Clone)]
+pub(crate) struct Wind {
+    pub(crate) direction: Option<WindDirection>,
+    pub(crate) force: u8,
 }
 
 fn decode_wind_direction(data: u8) -> Option<WindDirection> {
@@ -283,7 +308,7 @@ fn decode_weather_type(weather: u8, extrema: u8, is_day: bool, anomaly: bool) ->
 
 
 /// Dekodiert die Regions-ID basierend auf dem Sendezeitpunkt `time`
-pub(crate) fn decode_region(time: TimeStamp) -> u8 {
+fn decode_region(time: TimeStamp) -> (u8, MeteoPackageType) {
 
     //FIXME 22:00 bezieht sich auf UTC, der Zeitstempel hat UTC+1 oder UTC+2
     let start_time = 23; //Bei Sommerzeit 24:00
@@ -298,12 +323,27 @@ pub(crate) fn decode_region(time: TimeStamp) -> u8 {
     let region = (minutes_since_start / 3 % 60) as u8;
     debug!("Das entspricht Region {}", region);
 
-    region
+    let mpt = match time.hour % 24 {
+        //TODO könnte bei der ersten/letzten Region zu Problemen führen, das muss getestet werden
+        0..=1 => HIGH_1,
+        2..=4 => LOW_1,
+        5..=7 => HIGH_2,
+        8..=10 => LOW_2,
+        11..=13 => HIGH_3,
+        14..=16 => LOW_3,
+        17..=19 => HIGH_4,
+        20..=22 => ANOMALY_WIND_4,
+        //TODO Support für '2 Tage Regionen' und Anomaly_Wind Zeiten prüfen
+        _ => HIGH_1
+    };
+
+    (region, mpt)
 }
-fn decode_weather(meteotime_data: u32, time: TimeStamp) -> Weather {
-    let weather = Weather {
+pub(crate) fn decode_weather(data: u32, time: TimeStamp) -> Weather {
+    let mut weather = Weather {
         region: 0,
-        day: time,
+        meteo_package_type: LOW_1,
+        time: time.clone(),
         day_weather: None,
         night_weather: None,
         precipitation: None,
@@ -312,7 +352,21 @@ fn decode_weather(meteotime_data: u32, time: TimeStamp) -> Weather {
         temperature_night: None,
     };
 
-    //TODO hier muss die Magie passieren
+    (weather.region, weather.meteo_package_type) = decode_region(time.clone());
 
+    weather.day_weather = Some(decode_weather_type(
+        (data & 0x0f) as u8,
+        ((data>>8) & 0x0f) as u8,
+        true,
+        ((data>>15) & 0x01) == 1
+    ));
+    weather.night_weather = Some(decode_weather_type(
+        ((data>>4) & 0x0f) as u8,
+        ((data>>8) & 0x0f) as u8,
+        false,
+        ((data>>15) & 0x01) == 1
+    ));
+
+    info!("{}", weather);
     weather
 }
