@@ -118,6 +118,11 @@ bool Meteo::isMeteoValid()
         meteoDataReady = false;
         return false;
     }
+    else if (!rawBuffer.isRelevant)
+    {
+        meteoDataReady = false;
+        return false;
+    }
     else
     {
         return true;
