@@ -66,6 +66,9 @@ const DISPLAY_ORIENTATION: Orientation = Orientation::Landscape;
 const UART_RX_QUEUE_MAX_SIZE: usize = 256;
 
 const METEO_REGION: u8 = 19; //Bremerhaven
+//TODO Fallback Regions verwenden
+const FALLBACK_METEO_REGIONS: [u8; 2] = [22u8, 24u8]; //Hannover, Rostock
+//TODO statt static mut lieber static Mutex<RefCell<>>
 static mut FORECAST: Forecast = Forecast {
         region: METEO_REGION,
         day1_weather: None,
@@ -415,15 +418,6 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                         current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
                         current_date.weekday = weekday;
 
-                        //FIXME zu Testzwecken:
-                        /*
-                        decode_region(TimeStamp {minute: current_time.minutes.clone() as u8,
-                            hour: current_time.hours.clone() as u8,
-                            day: current_date.day.clone() as u8,
-                            month: current_date.month.clone() as u8,
-                        });
-                        */
-
                         time_adapter.set_time(current_time);
                         time_adapter.set_date(current_date);
 
@@ -542,17 +536,15 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     let year: i16 = data.to_i16(time_start + 3);
                     let month: u8 = data[time_start + 5];
                     let day: u8 = data[time_start + 6];
+                    let weekday: u8 = data[time_start + 7];
 
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
-
                     unsafe {
                         if let Some(i2c) = &mut I2C {
                             //TODO über hübsches Makro lösen?
                             let second_byte: u8 = (second % 10) | ((second / 10)<<4);
                             let minute_byte: u8 = (minute % 10) | ((minute / 10)<<4);
                             let hour_byte: u8 = (hour % 10) | ((hour / 10)<<4);
-                            //TODO Wochentag aus Datum berechnen (1-7 nicht 0-6!)
-                            let weekday_byte: u8 = day % 7 + 1; //FIXME funktioniert nur in Monaten, die mit einem Montag starten! (Wie der Januar 2024 🥹)
                             let day_byte: u8 = (day % 10) | ((day / 10)<<4);
                             let month_byte: u8 = (month % 10) | ((month / 10)<<4);
                             let year_byte: u8 = (((year%100) as u8) % 10) | ((((year%100) as u8) / 10)<<4);
@@ -569,7 +561,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                              *  05:     century -       -       10mnth  1mnth   1mnth   1mnth   1mnth   1-12
                              *  06:     10y     10y     10y     10y     1y      1y      1y      1y      0-99
                              */
-                            if i2c.write(0x68, &[0x00, second_byte, minute_byte, hour_byte, weekday_byte, day_byte, month_byte, year_byte]).is_err() {
+                            if i2c.write(0x68, &[0x00, second_byte, minute_byte, hour_byte, weekday, day_byte, month_byte, year_byte]).is_err() {
                                 warn!("I2C nicht initialisiert!");
                             }
                         }
