@@ -29,6 +29,7 @@ typedef struct __attribute__ ((__packed__)){
     uint8_t month; // Only 5 bits used
     uint8_t dayInWeek;  // Only 3 bits used
     uint8_t year;
+    bool isRelevant;
 } MeteoRawStruct;
 
 typedef struct __attribute__ ((__packed__)){

@@ -259,7 +259,7 @@ void loop()
                 Serial.println(timeBuffer.data.day);
                 Serial.print("Weekday: ");
                 Serial.println(timeBuffer.data.weekDay);
-                Serial1.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 2);
+                Serial1.write((const uint8_t*)timeBuffer.buf, sizeof(timeBuffer) - 1);
             }
         }
         else if (headerString.equals("MTEO"))

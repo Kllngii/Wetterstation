@@ -74,6 +74,7 @@ void DCF77::initialize(void)
 	meteoData.month = 0;
 	meteoData.dayInWeek = 0;
 	meteoData.year = 0;
+	meteoData.isRelevant = false;
 	meteoPacketNumber     = 0;
 	meteoDataReady        = false;
 }
@@ -404,11 +405,8 @@ bool DCF77::processBuffer(void) {
 			meteoData.packet3 = reverseMeteoPacket(rx_buffer->meteoBits);
 			if (meteoPacketNumber == 2)
 			{
-#ifdef FILTER_METEO
-				meteoDataReady = isMeteoRelevant(meteoPacketHour, meteoPacketMinute);
-#else
+				meteoData.isRelevant = isMeteoRelevant(meteoPacketHour, meteoPacketMinute);
 				meteoDataReady = true;
-#endif
 			}
 			else
 			{

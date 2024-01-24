@@ -233,6 +233,15 @@ Aus diesen Anforderungen lassen sich direkt Vorgaben für das Projekt ableiten:
   \item Nutzung ausreichend leistungsstarker Mikrocontroller, die genügend Leistungs- und Peripheriereserven haben, um weitere Geräte anzubinden
 \end{itemize}
 
+\subsection{Entwicklung}
+
+Für die Entwicklung wurde ein Repository in GitHub angelegt, um die gemeinsame Arbeit am Projekt zu vereinfachen. Neben dem Quellcode sind dort auch Testprogramme
+und die KiCad und Gerber Dateien für die Platinen abgelegt. 
+
+\vspace{0.2cm}
+\noindent
+Das Repository ist unter folgendem Link erreichbar: \url{https://github.com/Kllngii/Wetterstation}.
+
 \section{Systembeschreibung}
 \label{sub:systembeschreibung}
 
@@ -286,6 +295,7 @@ Beim BME280 handelt es sich um einen effizienten Sensor von Bosch, der zur Erfas
 Der Sensor verfügt über ein I2C und SPI Interface.
 Beim zyklischen Auslesen aller Sensordaten mit 1 Hz liegt die Stromaufnahme laut Datenblatt bei 3,6 $\mu$A, weshalb sich der Sensor ideal für die Anwendung in Sensormodulen mit Batteriebetrieb eignet. 
 
+\noindent
 Der Sensor verfügt über die folgenden Messbereiche:
 \begin{itemize}
   \item Temperatur: -40°C - +85°C ($\pm$ 0,5°C)
@@ -607,6 +617,7 @@ Das Modul empfängt die über 433 MHz gesendeten Daten und liest zusätzlich zyk
 Als Mikrocontroller wird ein Raspberry Pi Pico verwendet, der mit zwei Kernen Multiprocessing erlaubt und damit die Reaktionszeiten beschleunigt. Der Mikrocontroller
 verfügt über zwei UART Busse und zwei I2C Busse. Die beiden UART Busse werden für die Kommunikation mit dem Grafikmodul und dem 433 MHz Modul verwendet.
 
+\noindent
 Der verwendete CO2 Sensor verfügt zwar auch über eine UART-Schnittstelle, die zur Verfügung stehenden UART Emulatoren für den Mikrocontroller lieferten allerdings
 falsche Daten. Aus diesem Grund wird der Duty Cycle des zur Verfügung stehenden PWM Pins genutzt. 
 Eine Bibliothek für den Sensor liest den PWM Pins automatisch aus und konvertiert den Duty Cycle in eine CO2 Konzentration. Da das Auslesen des PWM Signals insbesondere bei hohen
