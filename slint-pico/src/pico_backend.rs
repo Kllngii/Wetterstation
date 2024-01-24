@@ -5,7 +5,6 @@ use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
 use core::cell::RefCell;
-use core::char::decode_utf16;
 use core::convert::Infallible;
 use core::fmt::Display;
 use core::time::Duration;
@@ -37,13 +36,11 @@ use bit_reverse::ParallelReverse;
 #[cfg(feature = "panic-probe")]
 use defmt::*;
 use embedded_hal::prelude::_embedded_hal_blocking_i2c_Write;
-use rp_pico::hal::clocks::init_clocks_and_plls;
-use rp_pico::hal::i2c::Error;
 use st7789::Orientation;
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
-use crate::meteotime::{decode_weather, Forecast, MeteoPackageType, TimeStamp, Weather, WeatherType};
+use crate::meteotime::{decode_weather, Forecast, MeteoPackageType, TimeStamp, WeatherType};
 
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
@@ -320,7 +317,7 @@ pub fn init() {
 
     uart.enable_rx_interrupt(); //IRQ wenn Platz im TX Buffer
     cortex_m::interrupt::free(|cs| {
-        GLOBAL_UART.borrow(cs).replace(Some(uart)); //Ab jetzt kein Zugriff mehr aus Main...
+        GLOBAL_UART.borrow(cs).replace(Some(uart)); //Ab jetzt kein Zugriff mehr aus Main
     });
 
     slint::platform::set_platform(Box::new(PicoBackend {
@@ -641,7 +638,6 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                             let week_mod = week_modelrc.as_any().downcast_ref::<VecModel<BarTileModel>>().expect("Muss gehen");
                             unsafe {
                                 if FORECAST.temperature_day1.is_some() {
-                                    let today_image: Image = weather_adapter.get_current_temperature_icon();
                                     weather_adapter.set_current_temperature(slint::format!("{}°", FORECAST.temperature_day1.unwrap()).into());
                                 }
                                 if FORECAST.day1_weather.is_some() {
@@ -1039,6 +1035,6 @@ fn UART0_IRQ() {
     } else if *SETUP_DONE { //Damit nicht immer beim ersten (erfolgreichen) Initialize gewarnt wird
         warn!("Uart nicht initialisiert!");
     }
-    //Durch das Event sollte der Main-Thread immer wieder aufwachen...
+    //Durch das Event sollte der Main-Thread immer wieder aufwachen
     cortex_m::asm::sev();
 }
