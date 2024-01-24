@@ -259,7 +259,7 @@ Der Sensor sendet die empfangenen Daten zyklisch per 433 MHz Sender an den Senso
 \noindent
 Der Sensorhub besteht aus zwei Mikrocontrollern, die über eine serielle Schnittstelle (UART) miteinander kommunizieren. Der in Abbildung \ref{fig:systemuebersicht} mittlere Mikrocontroller
 empfängt die Daten des Außensensors und leitet diese weiter an den verbundenen Mikrocontroller. Da die Daten zur Wettervorhersage verschlüsselt sind und der Außensensor möglichst
-wenig Energie verbrauchen soll, müssen die Daten vom Mikrocontroller entschlüsselt werden. Dazu werden die entsprechenden Datenpakete abgefangen, entschlüsselt und anschließend weitergesendet. 
+wenig Energie verbrauchen soll, müssen die Daten vom Mikrocontroller entschlüsselt werden. Dazu werden die entsprechenden Datenpakete abgefangen, dekodiert und anschließend weitergesendet. 
 Der Mikrocontroller verfügt außerdem wie der Außensensor über einen Sensor zur Messung von Temperatur, Luftfeuchtigkeit und Luftdruck (wobei der Luftdruck im Innenraum nicht gemessen wird). 
 Zusätzlich ist ein CO2 Sensor verbaut, der die Konzentration im Raum misst. 
 
@@ -332,7 +332,7 @@ Damit wird eine Bitrate von 1 Bit pro Sekunde erreicht.
 
 \noindent
 Abbildung \ref{fig:dcf77Schema} zeigt die Kodierung aller Datenbits innerhalb einer Minute. Daraus ist erkennbar, dass ein Datenpaket 59 Bits lang ist und
-die Übertragung eine Minute dauert. Ein Paket beginnt zu jeder neuen Minute. In der letzten Sekunde einer Minute erfolgt keine Absenkung des Trägers, sodass anhanddessen
+die Übertragung eine Minute dauert. Ein Paket beginnt zu jeder neuen Minute. In der letzten Sekunde einer Minute erfolgt keine Absenkung des Trägers, sodass anhand dessen
 das Ende eines Pakets abgeleitet werden kann. 
 
 \vspace{0.2cm}
@@ -354,7 +354,7 @@ Paritätsbit eingefügt, um Fehler erkennen zu können. Eine Fehlerkorrektur ist
 \subsubsubsection{MeteoTime}
 \label{subsubsubsub:meteotime}
 
-MeteoTime versendet versendet pro Minute 14 Bits mit Wetterinformationen, die von lizensierten Geräten entschlüsselt- und verwendet werden können. 
+MeteoTime versendet pro Minute 14 Bits mit Wetterinformationen, die von lizenzierten Geräten entschlüsselt- und verwendet werden können. 
 Ein Informationspaket besteht aus 42 Bits und benötigt für die Übertragung somit drei Minuten. Ein Tag ist in fünf Abschnitte unterteilt, in denen
 unterschiedliche Informationen übertragen werden. Da die Wettervorhersage 90 Regionen abdeckt, wird jede Vorhersage nur täglich einmal übertragen. \\
 Es gilt folgende Aufteilung (MEZ, bei MESZ eine Stunde später): \\
@@ -367,7 +367,7 @@ Es gilt folgende Aufteilung (MEZ, bei MESZ eine Stunde später): \\
 \vspace{0.2cm}
 \noindent
 Von den 90 Regionen erhalten 60 die viertägige Vorhersage, die restlichen 30 Regionen erhalten nur eine 2-Tages Vorhersage. \\
-Innerhalb eines sechsstündigen Übertragungszeitraums werden für jede Region nacheinander die Höchst- und Tiefstwerde übertragen.
+Innerhalb eines sechsstündigen Übertragungszeitraums werden für jede Region nacheinander die Höchst- und Tiefstwerte übertragen.
 
 \noindent
 Die Wettervorhersagen decken große Regionen ab, weshalb diese etwas ungenau sind. \\
@@ -392,7 +392,7 @@ Beim IC handelt es sich um das Modell HKW581 der Firma HKW, die auch Betreiber d
 Der IC verfügt über acht Pins, davon sind neben den Pins zur Spannungsversorgung und Daten Ein- und Ausgabe auch ein Clock IN und Clock OUT Pin vorhanden, damit die Bits
 taktsynchron ein- bzw. ausgelesen werden. Beim Einlesen der Daten folgt das Clock OUT Signal dem Clock IN Signal, um anzuzeigen, dass die Erfassung des Bits erfolgreich war. 
 Nachdem 82 Bits übertragen wurden, wird das Clock OUT Signal invertiert, bis alle Daten vom IC ausgelesen wurden. 
-Neben einem Resetpin gibt es außerdem einen Ready Pin, der anzeigt, dass der IC betriebsbereit ist. Anscheinend braucht der IC eine Aufwärmphase. 
+Neben einem Resetpin gibt es außerdem einen Ready-Pin, der anzeigt, dass der IC betriebsbereit ist. Anscheinend braucht der IC eine Aufwärmphase. 
 
 \vspace{0.2cm}
 \noindent
@@ -445,13 +445,13 @@ Die ausgegebenen Zahlenwerte sind wiederum einer Bezeichnung zugeordnet (z.B. We
 \label{subsub:kommunikation}
 
 Die Kommunikation zwischen den Mikrocontrollern erfolgt sowohl kabelgebunden, als auch drahtlos. Für die kabelgebundene Kommunikation wird UART mit einer Baudrate
-von 115200 bd genutzt. Die Drahtloskommunikation erfolt über einen 433 MHz Transmitter und Receiver, die jeweils im Halbduplexverfahren wie eine UART Schnittstelle
+von 115200 bd genutzt. Die Drahtloskommunikation erfolgt über einen 433 MHz Transmitter und Receiver, die jeweils im Halbduplexverfahren wie eine UART Schnittstelle
 genutzt werden können. 
 
 \subsubsection{Funkstrecke}
 \label{subsubsub:funkstrecke}
 
-Bei den Funkmodulen handelt es sich um "HC-12 Wireless RF communicatio module V2.4" Module. Diese versprechen eine Übertragungsdistanz von bis zu 1800 m
+Bei den Funkmodulen handelt es sich um "HC-12 Wireless RF communication module V2.4" Module. Diese versprechen eine Übertragungsdistanz von bis zu 1800 m
 und eine einfache Ansteuerung über UART. \\
 Die Module können jeweils sowohl Daten senden. 
 Die Sendeleistung beträgt bis zu 100 mW und es können 100 verschiedene, einstellbare Kanäle genutzt werden (433,4 MHz bis 473 MHz). Die Baudrate ist zwischen 
@@ -480,8 +480,8 @@ Aktuell gibt es fünf verschiedene Identifier:
 \end{itemize}
 
 \noindent
-Die Datenpakete haben unterschiedliche Längen und sind in Form von Structs in C definiert. Zum Senden der Daten werden diese dann in char arrays umgewandelt. \\
-Da die Structs unterschiedliche Datentypen beherbergen, fügt der Compiler normalerweise Padding Bytes ein, um gleichmäßige Addressabstände zu gewährleisten. 
+Die Datenpakete haben unterschiedliche Längen und sind in Form von Structs in C definiert. Zum Senden der Daten werden diese dann in Char-Arrays umgewandelt. \\
+Da die Structs unterschiedliche Datentypen beherbergen, fügt der Compiler normalerweise Padding Bytes ein, um gleichmäßige Adressabstände zu gewährleisten. 
 Für die Verarbeitung und Übertragung der Datenpakete ist dies aber problematisch, weil beispielsweise die zu sendenden Datenpakete größer als nötig sind. 
 Aus diesem Grund werden die Structs mit dem Attribut packed versehen, damit auf Padding Bytes verzichtet wird. 
 Alle Datenpakete sind im folgenden dargestellt:
@@ -526,14 +526,14 @@ Das externe Sensormodul soll im Außenbereich angebracht werden und möglichst e
 Wie schon aus den vorherigen Abschnitten hervorgeht, verfügt das Modul über einen BME280 für Temperatur, Luftfeuchtigkeit und Luftdruck
 und eine Antenne zum Empfang des DCF77 Signals. Die empfangenen Daten werden dann zyklisch via 433 MHz an den Sensorhub gesendet. Die DCF77 Antenne
 ist im Außenmodul untergebracht, weil das Signal sehr anfällig für Störungen durch elektrische Geräte oder Abschirmung durch Metalle ist, 
-die vorallem im Innenbereich vorkommen. Im Außenbereich ist der Empfang besser. 
+die vor allem im Innenbereich vorkommen. Im Außenbereich ist der Empfang besser. 
 
 \vspace{0.2cm}
 \noindent
 Für den DCF77 Empfang wird ein Shield verwendet, das eine auf 77,5 kHz abgestimmte Antenne hat und das Signal filtert und in saubere TTL Pegel umwandelt.
 Im Mikrocontroller wird eine Bibliothek verwendet, die einen Interrupt mit Trigger auf steigende- und fallende Taktflanke verwendet, um die Dauer der Absenkung
-des Trägersignals zu messen. In der letzten Sekunde einer Minute findet keine Absenkung statt, anhanddessen wird das Ende eines Datenpakets ermittelt.
-Da in der letzten Sekunde einer Minute keine Absenkung stattfindet, kann anhanddessen das Ende eines Datenpakets ermittelt werden. 
+des Trägersignals zu messen. In der letzten Sekunde einer Minute findet keine Absenkung statt, anhand dessen wird das Ende eines Datenpakets ermittelt.
+Da in der letzten Sekunde einer Minute keine Absenkung stattfindet, kann anhand dessen das Ende eines Datenpakets ermittelt werden. 
 Zum Ende jeder Minute wird das Paket auf Gültigkeit überprüft. Dazu werden zum einen die Paritätsbits auf den richtigen Wert überprüft, außerdem
 wird geprüft, ob die Flag für die Sommerzeit den gegenteiligen Wert der Flag für die Winterzeit hat. 
 Ist die Überprüfung in Ordnung, wird das Datenpaket für die Zeit aus dem erhaltenen Zeitstempel zusammengesetzt und versendet. \\
@@ -551,7 +551,7 @@ jedes Bit des Pakets in den Decoder geschrieben und anschließend der Bitstream 
 Als Mikrocontroller wurde in ersten Tests zunächst ein ESP8266 verwendet. Da dieser einen relativ hohen Energieverbrauch von ca. 20 mA hat und zudem für
 den Anwendungszweck leistungstechnisch überdimensioniert ist, wurde als Alternative ein energiesparender MSP430G2553 gewählt, der bei 1 MHz Takt nur
 230 $\mu$A verbrauchen soll und sowohl einen UART, als auch I2C Bus hat. Damit wäre ein langfristiger Betrieb mit Batterie möglich gewesen. 
-Aus Zeitgründen und wegen der fehlenden Portierungsmöglichkeit des ESP8266 Codes auf den MSP430 wurde stattdessen ein Arduino Nano gewählt, einen ATmega328p
+Aus Zeitgründen und wegen der fehlenden Portierungsmöglichkeit des ESP8266 Codes auf den MSP430 wurde stattdessen ein Arduino Nano gewählt, der einen ATmega328p
 Mikrocontroller als Basis verwendet. Modifiziert man einige Teile am Board, lässt sich der Stromverbrauch laut einiger Quellen auf ca. 5 mA drosseln. 
 
 \subsubsection{Platinenentwurf}
@@ -578,13 +578,12 @@ An den Mikrocontroller sind wie vorher beschrieben der HKW581 IC, ein BME280, di
 Zusatzanschlüsse vorhanden, um Modifikationen möglich zu machen. \\
 Der HKW581 ist im MSOP8 Format und damit relativ klein. Um den IC schon bei vorherigen Testaufbauten auf dem Steckbrett nutzen zu können, wurde dieser auf einen Adapter
 gelötet, der die Anschlusspins auf einfache THT Pins adaptiert. Um den IC zu schonen, wird der Adapter auf der Platine verbaut. Zusätzlich besteht aber die Möglichkeit, 
-später darauf zu verzichten und das Bauteil direkt auf der Platine festzulöten. Diese Lösung findet sich ebenso auf dem später beschriebenen Innenmodul wieder, falls
+später darauf zu verzichten und das Bauteil direkt auf der Platine fest zulöten. Diese Lösung findet sich ebenso auf dem später beschriebenen Innenmodul wieder, falls
 auf das Außenmodul verzichtet werden soll. \\
 Als BME280 soll in erster Linie ein fertiges Shield zum Aufstecken verwendet werden, da der private Bestand davon wesentlich höher ist. Zusätzlich kann manuell aber auch
 direkt ein BME280 auf die Platine gelötet werden. Die entsprechenden Bauteile sind nicht platziert. \\
 Es können zwei verschiedene Arten von DCF77 Antennen an den Mikrocontroller angeschlossen werden. Dabei wird unterschieden zwischen Shields mit drei- und vier Anschlüssen. 
-Die Shields mit vier Anschlüssen verfügen zusätzlich über einen PON (Power On) Pin, über den das Modul an- und ausgeschaltet werden kann. Der Pin ist normalerweise low
-active und wird daher auf Masse gelegt. 
+Die Shields mit vier Anschlüssen verfügen zusätzlich über einen PON (Power On) Pin, über den das Modul an- und ausgeschaltet werden kann. Der Pin ist normalerweise Low-aktiv und wird daher auf Masse gelegt. 
 
 \subsubsubsection{Platine}
 \label{subsubsubsub:platineExtern}
@@ -605,7 +604,7 @@ Das Modul empfängt die über 433 MHz gesendeten Daten und liest zusätzlich zyk
 
 \vspace{0.3cm}
 \noindent
-Als Mikrocontroller wird ein Raspberry Pi Pico verwendet, der mit zwei kernen Multiprocessing erlaubt und damit die Reaktionszeiten beschleunigt. Der Mikrocontroller
+Als Mikrocontroller wird ein Raspberry Pi Pico verwendet, der mit zwei Kernen Multiprocessing erlaubt und damit die Reaktionszeiten beschleunigt. Der Mikrocontroller
 verfügt über zwei UART Busse und zwei I2C Busse. Die beiden UART Busse werden für die Kommunikation mit dem Grafikmodul und dem 433 MHz Modul verwendet.
 
 Der verwendete CO2 Sensor verfügt zwar auch über eine UART-Schnittstelle, die zur Verfügung stehenden UART Emulatoren für den Mikrocontroller lieferten allerdings
@@ -687,8 +686,8 @@ Ein entsprechendes Interrupt wird ausgelöst, wenn
 \label{subsubsubsub:schaltplanExtern}
 
 Der Schaltplan ist im Anhang in \hyperref[pdf:schaltplanIntern]{Abbildung \ref{pdf:schaltplanIntern}} dargestellt. Zentraler Bestandteil sind die beiden Mikrocontroller, 
-die über eine UART Verbindung miteinander kommunizieren. Der Raspbery Pi Pico W, der das Grafikmodul beherbert, steuert das aufsteckbare Touchdisplay. Zusätzlich wird
-ein RTC Shield auf den Mikrocontroller gesteckt, um die aktuelle Zeit speichern zu können und jitter zu minimieren. 
+die über eine UART Verbindung miteinander kommunizieren. Der Raspberry Pi Pico W, der das Grafikmodul beherbergt, steuert das aufsteckbare Touchdisplay. Zusätzlich wird
+ein RTC Shield auf den Mikrocontroller gesteckt, um die aktuelle Zeit speichern zu können und Jitter zu minimieren. 
 An den Raspberry Pi Pico, der die Sensoren ausliest, sind ein BME280, der CO2 Sensor und die 433 MHz Antenne angebunden. Zusätzlich kann hier ein HKW581 Modul integriert werden, 
 dieses befindet sich im aktuellen Aufbau aber auf dem Außenmodul. Wie schon im externen Modul sind Möglichkeiten für das Shield und den Adapter vorbehalten. 
 Der HKW581 auf dem internen Modul ist nur sinnvoll, falls auf das Außenmodul verzichtet werden soll (nicht geplant).
@@ -766,7 +765,7 @@ Das Grafikmodul muss auf zweierlei Arten betrachtet werden, einerseits muss das 
 
 \vspace{0.2cm}
 \noindent
-Um die ankommenden Daten zu verifizieren müssen die Debugausgaben des versendenen Raspberry Picos (siehe \ref{subsub:test-sensorik}) als auch die des empfangenen und anzeigenden Raspberry Picos überwacht und abgeglichen werden.
+Um die ankommenden Daten zu verifizieren müssen die Debugausgaben des versendenden Raspberry Picos (siehe \ref{subsub:test-sensorik}) als auch die des empfangenen und anzeigenden Raspberry Picos überwacht und abgeglichen werden.
 Da der UI-Pico durch das Anzeigen der GUI ziemlich stark ausgelastet ist, kommt die Raspberry Pi Debug Probe zum Einsatz, welche einen seriellen Port (SerialWireDebug) über das CMSIS-DAP Protokoll öffnen kann, und die CPU des Picos nicht zusätzlich belastet.
 
 \begin{figure}[H]
@@ -802,7 +801,7 @@ erklärt sich auch, warum herkömmliche Funkuhren häufig kein Signal in Innenr�
 Sollte das Projekt weiterverfolgt werden, kann im nächsten Iterationsschritt ein effizienterer Mikrocontroller in das Außenmodul eingesetzt werden (MSP430 o.ä.)
 und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen zu reduzieren. Damit ließe sich die Professionalität weiter steigern. 
 
-\newpage
+\clearpage
 \appendix
 
 \section{Ablaufdiagramm externes Modul}
@@ -825,7 +824,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{pdf:ablaufExtern}
 \end{figure}
 
-\newpage
+\clearpage
 \section{Schaltplan externes Modul}
 
 \begin{figure}[H]
@@ -835,7 +834,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{pdf:schaltplanExtern}
 \end{figure}
 
-\newpage
+\clearpage
 \section{Platine externes Modul}
 \subsection{2D Ansicht}
 
@@ -846,7 +845,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{pdf:platineExtern}
 \end{figure}
 
-\newpage
+\clearpage
 \subsection{3D Ansicht}
 
 \begin{figure}[H]
@@ -856,7 +855,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{fig:platineExtern3D}
 \end{figure}
 
-\newpage
+\clearpage
 \section{Ablaufdiagramm internes Sensormodul}
 
 \begin{figure}[H]
@@ -871,7 +870,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{pdf:ablaufIntern}
 \end{figure}
 
-\newpage
+\clearpage
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.3\textwidth]{Ablauf intern Core1.png}
@@ -879,7 +878,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{pdf:ablaufInternCore1}
 \end{figure}
 
-\newpage
+\clearpage
 \section{Schaltplan internes Modul}
 
 \begin{figure}[H]
@@ -889,7 +888,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{pdf:schaltplanIntern}
 \end{figure}
 
-\newpage
+\clearpage
 \section{Platine internes Modul}
 
 \subsection{2D Ansicht}
@@ -901,7 +900,7 @@ und weitestgehend auf Shields verzichtet werden, um die Abmessungen der Platinen
   \label{pdf:platineIntern}
 \end{figure}
 
-\newpage
+\clearpage
 \subsection{3D Ansicht}
 
 \begin{figure}[H]
