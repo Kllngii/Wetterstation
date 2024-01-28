@@ -1,0 +1,19 @@
+(kicad_sch (version 20230121) (generator eeschema)
+
+  (uuid 99ca778d-3c48-46da-99cb-2eae53a7f34a)
+
+  (paper "A4")
+
+  (title_block
+    (title "Innenmodul V2")
+    (date "2024-01-28")
+    (rev "A")
+    (company "HAW Hamburg")
+    (comment 1 "Lasse Kelling")
+    (comment 2 "Display und RTC")
+  )
+
+  (lib_symbols
+  )
+
+)

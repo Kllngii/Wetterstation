@@ -3,3 +3,6 @@
 /slint-pico/target/*
 **.vscode
 /externalSensor_msp/Debug/*
+pcbs/InternalPCBV2/~InternalPCBV2.kicad_sch.lck
+pcbs/InternalPCBV2/InternalPCBV2-backups/*
+pcbs/InternalPCB/InternalPCB-backups/*
