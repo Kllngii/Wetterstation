@@ -3,3 +3,9 @@
 /slint-pico/target/*
 **.vscode
 /externalSensor_msp/Debug/*
+*.eep
+*.elf
+*.hex
+*.bin
+*.map
+*.uf2
