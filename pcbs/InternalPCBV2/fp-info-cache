@@ -1,4 +1,4 @@
-22650944505728374
+22647531975725211
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -54670,6 +54670,13 @@ display oled
 30
 30
 Display
+Pico-ResTouch-LCD-2.8
+
+
+0
+0
+0
+Display
 RC1602A
 http://www.raystar-optronics.com/down.php?ProID=18
 LCD 16x2 Alphanumeric 16pin
@@ -93033,27 +93040,6 @@ Varistor
 Varistor_Panasonic_VF
 Panasonic VF series varistor, 6x8mm body, 3.2mm height, https://mediap.industry.panasonic.eu/assets/imported/industrial.panasonic.com/cdbs/www-data/pdf/AWA0000/AWA0000C4.pdf
 Varistor VF
-0
-2
-2
-XTAL_HC-Abracon-ABLS
-XTAL_HC&slash_49US_ABLS_ABR
-
-ABLS-12.000MHZ-B2-T 
-0
-2
-2
-XTAL_HC-Abracon-ABLS
-XTAL_HC&slash_49US_ABLS_ABR-L
-
-ABLS-12.000MHZ-B2-T 
-0
-2
-2
-XTAL_HC-Abracon-ABLS
-XTAL_HC&slash_49US_ABLS_ABR-M
-
-ABLS-12.000MHZ-B2-T 
 0
 2
 2
