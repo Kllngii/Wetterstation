@@ -39,7 +39,7 @@ use defmt::*;
 use embedded_hal::prelude::_embedded_hal_blocking_i2c_Write;
 use rp_pico::hal::clocks::init_clocks_and_plls;
 use rp_pico::hal::i2c::Error;
-use st7789::Orientation;
+use st7789::{BacklightState, Orientation};
 
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
@@ -243,6 +243,8 @@ pub fn init() {
     );
     display.init(&mut delay).unwrap();
     display.set_orientation(DISPLAY_ORIENTATION).unwrap();
+    //TODO Funktion testen & Backlight bei Inaktivität ausschalten
+    display.set_backlight(BacklightState::On, &mut delay).unwrap();
 
     let touch_irq = pins.gpio17.into_pull_up_input();
     touch_irq.set_interrupt_enabled(GpioInterrupt::LevelLow, true);
