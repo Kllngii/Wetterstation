@@ -1,4 +1,4 @@
-22647531978147390
+22654358785967883
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -85806,6 +85806,13 @@ SST LuminOX O2
 4
 4
 Sensor
+MH-Z19B
+
+
+0
+9
+9
+Sensor
 MQ-6
 Gas Sensor, 6 pin, https://www.winsen-sensor.com/d/files/semiconductor/mq-6.pdf
 gas sensor
@@ -93040,6 +93047,27 @@ Varistor
 Varistor_Panasonic_VF
 Panasonic VF series varistor, 6x8mm body, 3.2mm height, https://mediap.industry.panasonic.eu/assets/imported/industrial.panasonic.com/cdbs/www-data/pdf/AWA0000/AWA0000C4.pdf
 Varistor VF
+0
+2
+2
+XTAL_HC-Abracon-ABLS
+XTAL_HC&slash_49US_ABLS_ABR
+
+ABLS-12.000MHZ-B2-T 
+0
+2
+2
+XTAL_HC-Abracon-ABLS
+XTAL_HC&slash_49US_ABLS_ABR-L
+
+ABLS-12.000MHZ-B2-T 
+0
+2
+2
+XTAL_HC-Abracon-ABLS
+XTAL_HC&slash_49US_ABLS_ABR-M
+
+ABLS-12.000MHZ-B2-T 
 0
 2
 2

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "XTAL_HC-Abracon-ABLS")(type "KiCad")(uri "/Users/lasse_kelling/Documents/GitHub/Wetterstation/pcbs/Libs/footprints/XTAL_HC-Abracon-ABLS.pretty")(options "")(descr ""))
+)

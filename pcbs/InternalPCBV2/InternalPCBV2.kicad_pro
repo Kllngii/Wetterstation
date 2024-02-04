@@ -312,6 +312,14 @@
       "version": 1
     },
     "net_format_name": "",
+    "ngspice": {
+      "fix_include_paths": true,
+      "meta": {
+        "version": 0
+      },
+      "model_mode": 0,
+      "workbook_filename": ""
+    },
     "page_layout_descr_file": "",
     "plot_directory": "",
     "spice_current_sheet_as_root": false,
@@ -330,6 +338,10 @@
     [
       "c45d2d52-0796-49f4-99c7-2a79c67462ab",
       "Display-RTC"
+    ],
+    [
+      "796954c4-1459-4bd2-81c2-debc267ec936",
+      "Sensors"
     ]
   ],
   "text_variables": {}
