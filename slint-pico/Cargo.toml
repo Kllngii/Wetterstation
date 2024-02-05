@@ -36,6 +36,7 @@ once_cell = { version = "1.9", default-features = false, features = ["alloc"] }
 pin-weak = { version = "1", default-features = false }
 rgb = "0.8.27"
 cfg-if = "1"
+chrono = { version = "0.4.33", optional = true, default-features = false }
 
 embedded-alloc = { version = "0.5", optional = false }
 cortex-m-rt = { version = "0.7", optional = true }
@@ -48,6 +49,7 @@ rp-pico = { version = "0.8.0", optional = false } #TODO wird so nicht als Simula
 fugit = { version = "0.3.6", optional = true }
 shared-bus = { version = "0.3", optional = true }
 st7789 = { version = "0.7.0", optional = true }
+ds323x = { version = "0.5.1", optional = true }
 euclid = { version = "0.22", default-features = false, optional = true }
 heapless = { version = "0.8.0", optional = true }
 bit_reverse = { version = "0.1.8", default-features = false }
@@ -94,7 +96,9 @@ pico = [
     "display-interface",
     "euclid",
     "euclid/libm",
-    "heapless"
+    "heapless",
+    "ds323x",
+    "chrono",
 ]
 
 

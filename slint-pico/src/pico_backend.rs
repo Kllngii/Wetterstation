@@ -1,9 +1,14 @@
 extern crate alloc;
 
-use crate::{OverviewAdapter, Value, TimeAdapter, TimeModel, DateModel, WeatherAdapter, BarTileModel, Images};
+use chrono::Weekday;
+use ds323x::interface::I2cInterface;
+use crate::{
+    BarTileModel, DateModel, Images, OverviewAdapter, TimeAdapter, TimeModel, Value, WeatherAdapter,
+};
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::vec;
+use bit_reverse::ParallelReverse;
 use core::cell::RefCell;
 use core::char::decode_utf16;
 use core::convert::Infallible;
@@ -31,19 +36,22 @@ use rp_pico::hal::{self, pac, prelude::*, Clock, Timer};
 use shared_bus::BusMutex;
 use slint::platform::software_renderer as renderer;
 use slint::platform::{PointerEventButton, WindowEvent};
-use slint::{SharedString, TimerMode, ComponentHandle, Model, ModelRc, VecModel, Image};
-use bit_reverse::ParallelReverse;
+use slint::{ComponentHandle, Image, Model, ModelRc, SharedString, TimerMode, VecModel};
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
+use ds323x::{Datelike, DateTimeAccess, Ds323x, NaiveDateTime, Timelike};
+use ds323x::ic::DS3231;
 use embedded_hal::prelude::_embedded_hal_blocking_i2c_Write;
 use rp_pico::hal::clocks::init_clocks_and_plls;
 use rp_pico::hal::i2c::Error;
 use st7789::{BacklightState, Orientation};
 
+use crate::meteotime::{
+    decode_weather, Forecast, MeteoPackageType, TimeStamp, Weather, WeatherType,
+};
 use crate::xpt2046::XPT2046;
 use crate::{display_interface_spi, xpt2046, AppWindow};
-use crate::meteotime::{decode_weather, Forecast, MeteoPackageType, TimeStamp, Weather, WeatherType};
 
 #[cfg(feature = "panic-probe")]
 extern crate defmt_rtt;
@@ -66,36 +74,36 @@ const DISPLAY_ORIENTATION: Orientation = Orientation::Landscape;
 const UART_RX_QUEUE_MAX_SIZE: usize = 256;
 
 const METEO_REGION: u8 = 19; //Bremerhaven
-//TODO Fallback Regions verwenden
+                             //TODO Fallback Regions verwenden
 const FALLBACK_METEO_REGIONS: [u8; 2] = [22u8, 24u8]; //Hannover, Rostock
-//TODO statt static mut lieber static Mutex<RefCell<>>
+                                                      //TODO statt static mut lieber static Mutex<RefCell<>>
 static mut FORECAST: Forecast = Forecast {
-        region: METEO_REGION,
-        day1_weather: None,
-        night1_weather: None,
-        precipitation1: None,
-        wind1: None,
-        temperature_day1: None,
-        temperature_night1: None,
-        day2_weather: None,
-        night2_weather: None,
-        precipitation2: None,
-        wind2: None,
-        temperature_day2: None,
-        temperature_night2: None,
-        day3_weather: None,
-        night3_weather: None,
-        precipitation3: None,
-        wind3: None,
-        temperature_day3: None,
-        temperature_night3: None,
-        day4_weather: None,
-        night4_weather: None,
-        precipitation4: None,
-        wind4: None,
-        temperature_day4: None,
-        temperature_night4: None,
-    };
+    region: METEO_REGION,
+    day1_weather: None,
+    night1_weather: None,
+    precipitation1: None,
+    wind1: None,
+    temperature_day1: None,
+    temperature_night1: None,
+    day2_weather: None,
+    night2_weather: None,
+    precipitation2: None,
+    wind2: None,
+    temperature_day2: None,
+    temperature_night2: None,
+    day3_weather: None,
+    night3_weather: None,
+    precipitation3: None,
+    wind3: None,
+    temperature_day3: None,
+    temperature_night3: None,
+    day4_weather: None,
+    night4_weather: None,
+    precipitation4: None,
+    wind4: None,
+    temperature_day4: None,
+    temperature_night4: None,
+};
 
 pub type TargetPixel = Rgb565Pixel;
 type IrqPin = gpio::Pin<gpio::bank0::Gpio17, gpio::FunctionSio<gpio::SioInput>, gpio::PullUp>;
@@ -114,13 +122,14 @@ type I2CPins = (
 );
 type EnabledSpi = hal::Spi<hal::spi::Enabled, pac::SPI1, SpiPins, 8>;
 type EnabledUart = hal::uart::UartPeripheral<hal::uart::Enabled, pac::UART0, UartPins>;
-type EnabledI2C = I2C<pac::I2C0, I2CPins>;
+type EnabledI2C = I2cInterface<I2C<pac::I2C0, I2CPins>>;
+type RTCType = Ds323x<EnabledI2C, DS3231>;
 
 static ALARM0: Mutex<RefCell<Option<Alarm0>>> = Mutex::new(RefCell::new(None));
 static TIMER: Mutex<RefCell<Option<Timer>>> = Mutex::new(RefCell::new(None));
 static IRQ_PIN: Mutex<RefCell<Option<IrqPin>>> = Mutex::new(RefCell::new(None));
 static GLOBAL_UART: Mutex<RefCell<Option<EnabledUart>>> = Mutex::new(RefCell::new(None));
-static GLOBAL_I2C: Mutex<RefCell<Option<EnabledI2C>>> = Mutex::new(RefCell::new(None));
+static GLOBAL_RTC: Mutex<RefCell<Option<RTCType>>> = Mutex::new(RefCell::new(None));
 static UART_RX_QUEUE: UartQueueRx =
     UartQueueRx { mutex_cell_rx: Mutex::new(RefCell::new(Queue::new())) };
 
@@ -299,8 +308,10 @@ pub fn init() {
         clocks.system_clock.freq(),
     );
 
+    let mut rtc = Ds323x::new_ds3231(i2c);
+
     cortex_m::interrupt::free(|cs| {
-        GLOBAL_I2C.borrow(cs).replace(Some(i2c));
+        GLOBAL_RTC.borrow(cs).replace(Some(rtc));
     });
 
     let uart_pins = (
@@ -376,48 +387,35 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
         let weather_adapter = ui.global::<WeatherAdapter>();
         let images_global = ui.global::<Images>();
 
-        static mut I2C: Option<EnabledI2C> = None;
+        static mut RTC: Option<RTCType> = None;
         unsafe {
-            if I2C.is_none() {
+            if RTC.is_none() {
                 cortex_m::interrupt::free(|cs| {
-                    I2C = GLOBAL_I2C.borrow(cs).take();
+                    RTC = GLOBAL_RTC.borrow(cs).take();
                 });
             }
-            if let Some(i2c) = &mut I2C {
-                /* //TODO "Zeit beim flashen setzen" togglebar & one-shot machen
-                //                   reg   sec   min   hour  wd    day   month year
-                if i2c.write(0x68, &[0x00, 0x00, 0x52, 0x01, 0x02, 0x23, 0x01, 0x24]).is_ok() {
-                    info!("Uhrzeit gesetzt!");
-                }
-                 */
-                match i2c.write_read(0x68, &[0x00u8], &mut time) {
-                    Ok(_) => {
-                        //info!("{:02x}:{:02x}:{:02x} {:02x}.{:02x}.20{:02x}", time[2], time[1], time[0], time[4], time[5], time[6]);
+            if let Some(rtc) = &mut RTC {
+                match rtc.datetime() {
+                    Ok(dt) => {
+                        let weekday: SharedString = match dt.weekday() {
 
-                        //TODO ebenfalls unnötige .into() hier, nach Linter-Update entfernen
-                        let weekday: SharedString = match time[3] {
-                            1 => "Mo".into(),
-                            2 => "Di".into(),
-                            3 => "Mi".into(),
-                            4 => "Do".into(),
-                            5 => "Fr".into(),
-                            6 => "Sa".into(),
-                            7 => "So".into(),
-                            _ => {
-                                warn!("Ungültiger Wochentag!");
-                                "Mo".into()
-                            }
+                            Weekday::Mon => "Mo".into(),
+                            Weekday::Tue => "Di".into(),
+                            Weekday::Wed => "Mi".into(),
+                            Weekday::Thu => "Do".into(),
+                            Weekday::Fri => "Fr".into(),
+                            Weekday::Sat => "Sa".into(),
+                            Weekday::Sun => "So".into(),
                         };
-                        //TODO Makro oder impl für diese Umwandlung?
-                        let mut current_time: TimeModel = time_adapter.get_time(); //(i >> 4) * 10 + (i & 0xF)
-                        current_time.hours = ((time[2] >> 4) * 10 + (time[2] & 0xF)) as i32;
-                        current_time.minutes = ((time[1] >> 4) * 10 + (time[1] & 0xF)) as i32;
-                        current_time.seconds = ((time[0] >> 4) * 10 + (time[0] & 0xF)) as i32;
+                        let mut current_time: TimeModel = time_adapter.get_time();
+                        current_time.hours = dt.hour() as i32;
+                        current_time.minutes = dt.minute() as i32;
+                        current_time.seconds = dt.second() as i32;
 
                         let mut current_date: DateModel = time_adapter.get_date();
-                        current_date.day = ((time[4] >> 4) * 10 + (time[4] & 0xF)) as i32;
-                        current_date.month = ((time[5] >> 4) * 10 + (time[5] & 0xF)) as i32;
-                        current_date.year = ((time[6] >> 4) * 10 + (time[6] & 0xF)) as i32;
+                        current_date.day = dt.day() as i32;
+                        current_date.month = dt.month() as i32;
+                        current_date.year = dt.year();
                         current_date.weekday = weekday;
 
                         time_adapter.set_time(current_time);
@@ -448,7 +446,9 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                         week_model.set_row_data(1, second_day);
                         week_model.set_row_data(2, third_day);
                     }
-                    Err(_) => { warn!("Keine Antwort von der RTC!"); }
+                    Err(_) => {
+                        warn!("Es gab einen Fehler beim Auslesen der RTC!");
+                    }
                 }
             } else {
                 warn!("I2C nicht initialisiert!");
@@ -541,33 +541,8 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
                     let weekday: u8 = data[time_start + 7];
 
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
-                    unsafe {
-                        if let Some(i2c) = &mut I2C {
-                            //TODO über hübsches Makro lösen?
-                            let second_byte: u8 = (second % 10) | ((second / 10)<<4);
-                            let minute_byte: u8 = (minute % 10) | ((minute / 10)<<4);
-                            let hour_byte: u8 = (hour % 10) | ((hour / 10)<<4);
-                            let day_byte: u8 = (day % 10) | ((day / 10)<<4);
-                            let month_byte: u8 = (month % 10) | ((month / 10)<<4);
-                            let year_byte: u8 = (((year%100) as u8) % 10) | ((((year%100) as u8) / 10)<<4);
 
-
-                            //TODO RTC in eigenen Treiber auslagern, diesen Kommentar in Doc übernehmen:
-
-                            /*  Aufbau des Timekeeping Registers(Adresse 0x00-0x06 am Gerät 0x68)
-                             *  00:     -       10s     10s     10s     1s      1s      1s      1s      0-59
-                             *  01:     -       10m     10m     10m     1m      1m      1m      1m      0-59
-                             *  02:     -       0:24h   20h     10h     1h      1h      1h      1h      0-23
-                             *  03:     -       -       -       -       -       WD      WD      WD      1-7
-                             *  04:     -       -       10d     10d     1d      1d      1d      1d      1-31
-                             *  05:     century -       -       10mnth  1mnth   1mnth   1mnth   1mnth   1-12
-                             *  06:     10y     10y     10y     10y     1y      1y      1y      1y      0-99
-                             */
-                            if i2c.write(0x68, &[0x00, second_byte, minute_byte, hour_byte, weekday, day_byte, month_byte, year_byte]).is_err() {
-                                warn!("I2C nicht initialisiert!");
-                            }
-                        }
-                    }
+                    //TODO Zeitstempel des DCF Pakets inRTC schreiben
 
                 }
                 if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
@@ -744,7 +719,12 @@ impl NumbersFromSlice for [u8; UART_RX_QUEUE_MAX_SIZE] {
         u16::from_be_bytes([self[start_index + 1], self[start_index]])
     }
     fn to_u32(&self, start_index: usize) -> u32 {
-        u32::from_be_bytes([self[start_index + 3], self[start_index + 2], self[start_index + 1], self[start_index]])
+        u32::from_be_bytes([
+            self[start_index + 3],
+            self[start_index + 2],
+            self[start_index + 1],
+            self[start_index],
+        ])
     }
 }
 
@@ -1038,7 +1018,8 @@ fn UART0_IRQ() {
                 }
             });
         }
-    } else if *SETUP_DONE { //Damit nicht immer beim ersten (erfolgreichen) Initialize gewarnt wird
+    } else if *SETUP_DONE {
+        //Damit nicht immer beim ersten (erfolgreichen) Initialize gewarnt wird
         warn!("Uart nicht initialisiert!");
     }
     //Durch das Event sollte der Main-Thread immer wieder aufwachen...
