@@ -1,6 +1,7 @@
 extern crate alloc;
 
-use chrono::Weekday;
+use chrono::format::OffsetPrecision::Hours;
+use chrono::{NaiveDate, NaiveTime, Weekday};
 use ds323x::interface::I2cInterface;
 use crate::{
     BarTileModel, DateModel, Images, OverviewAdapter, TimeAdapter, TimeModel, Value, WeatherAdapter,
@@ -40,7 +41,7 @@ use slint::{ComponentHandle, Image, Model, ModelRc, SharedString, TimerMode, Vec
 
 #[cfg(feature = "panic-probe")]
 use defmt::*;
-use ds323x::{Datelike, DateTimeAccess, Ds323x, NaiveDateTime, Timelike};
+use ds323x::{Datelike, DateTimeAccess, Ds323x, NaiveDateTime, Rtcc, Timelike};
 use ds323x::ic::DS3231;
 use embedded_hal::prelude::_embedded_hal_blocking_i2c_Write;
 use rp_pico::hal::clocks::init_clocks_and_plls;
@@ -455,7 +456,7 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
             }
         }
 
-        cortex_m::interrupt::free(|cs| {
+        cortex_m::interrupt::free(|cs| unsafe {
             let cell_queue = UART_RX_QUEUE.mutex_cell_rx.borrow(cs);
             let mut queue = cell_queue.borrow_mut();
 
@@ -542,7 +543,11 @@ pub fn init_timers(ui_handle: slint::Weak<AppWindow>) -> slint::Timer {
 
                     info!("Zeitstempel erhalten: {:02}:{:02}:{:02} {:02}.{:02}.{:04}", hour, minute, second, day, month, year);
 
-                    //TODO Zeitstempel des DCF Pakets inRTC schreiben
+                    unsafe {
+                        if let Some(rtc) = &mut RTC {
+                            //TODO Zeitstempel des DCF Pakets in RTC schreiben
+                        }
+                    }
 
                 }
                 if let Some(meteo_start) = find_identifier::<u8>(&data, &id_meteo) {
