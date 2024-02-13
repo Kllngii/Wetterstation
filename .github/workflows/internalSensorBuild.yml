@@ -1,3 +1,4 @@
+name: Internal Sensor Build
 on:
   - push
   - pull_request
@@ -8,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: arduino/compile-sketches@v1
         with: 
-          fqbn: arduino:mbed_rp2040
+          fqbn: "rp2040:rp2040"
           sketch-paths: |
             - internalSensor_pico_arduino/
           libraries: |
