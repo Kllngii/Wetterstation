@@ -1,0 +1,19 @@
+on:
+  - push
+  - pull_request
+jobs:
+  compile-sketches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: arduino/compile-sketches@v1
+        with: 
+          fqbn: rp2040:rp2040
+          sketch-paths: |
+            - internalSensor_pico_arduino/
+          libraries: |
+            - name: Adafruit BME280 Library
+            - name: Adafruit BusIO
+            - name: Adafruit Unified Sensor
+            - name: CRC
+        
