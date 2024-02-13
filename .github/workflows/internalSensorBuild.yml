@@ -10,6 +10,8 @@ jobs:
       - uses: arduino/compile-sketches@v1
         with: 
           fqbn: "rp2040:rp2040"
+          platforms: |
+            - name: "rp2040:rp2040"
           sketch-paths: |
             - internalSensor_pico_arduino/
           libraries: |
