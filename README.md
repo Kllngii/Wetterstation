@@ -56,3 +56,6 @@ Ein kleiner Beispiel-Sketch, der einen Arduino (Uno) benutzt, um die I2C- und On
 ![Version](https://img.shields.io/badge/version-0.0.1-green.svg)
 
 *TODO* Hier müsste man erklären was die Raspberry-Pi-Pico-App ist
+
+# Aktivität
+![Alt](https://repobeats.axiom.co/api/embed/44e0efac31b7cbafcf5f86047e12328fdb639fd2.svg "Repobeats analytics image")
